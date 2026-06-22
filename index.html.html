@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="he-IL">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HK&amp;Maintenance-Mendeli</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;color:#1a1a1a;background:#f5f5f0;min-height:100vh}
+#app{max-width:700px;margin:0 auto;padding:12px}
+h3{font-size:16px;font-weight:600}
+.header{background:#fff;border-radius:12px;border:0.5px solid #e0dfd8;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.header-title{font-size:16px;font-weight:700;color:#1a1a1a}
+.header-sub{font-size:11px;color:#aaa;margin-top:2px}
+.brand-logo{width:36px;height:36px;border-radius:10px;background:#185FA5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800;flex-shrink:0}
+.lang-switcher{display:flex;gap:4px;margin-left:auto}
+.lang-btn{padding:5px 10px;border-radius:8px;border:0.5px solid #ddd;cursor:pointer;font-size:12px;font-weight:600;background:#fff;color:#888}
+.lang-btn.active{background:#185FA5;border-color:#185FA5;color:#fff}
+.tabs{display:flex;border-bottom:0.5px solid #e0dfd8;background:#fff;border-radius:12px 12px 0 0;padding:0 4px}
+.tab{padding:11px 16px;cursor:pointer;font-size:14px;font-weight:500;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-0.5px;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.tab.active{color:#1a1a1a;border-bottom:2px solid #185FA5}
+.badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:500}
+.badge-sup{background:#E6F1FB;color:#0C447C}
+.badge-dlx{background:#EEEDFE;color:#3C3489}
+.badge-suite{background:#FAEEDA;color:#633806}
+.badge-loft{background:#EAF3DE;color:#27500A}
+.badge-premdlx{background:#FBEAF0;color:#72243E}
+.badge-classic{background:#F1EFE8;color:#444441}
+.badge-spa{background:#E1F5EE;color:#085041}
+.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:7px;margin-bottom:1.25rem}
+.room-card{border:0.5px solid #e0dfd8;border-radius:10px;padding:9px 6px;cursor:pointer;background:#fff;text-align:center;-webkit-tap-highlight-color:transparent}
+.room-card:active{transform:scale(0.96)}
+.room-card.clean{border-color:#639922;background:#f4fae8}
+.room-card.has-notes{border-color:#EF9F27}
+.room-card .num{font-size:14px;font-weight:600;margin-bottom:3px}
+.floor-label{font-size:11px;font-weight:700;color:#aaa;margin:1rem 0 0.4rem;text-transform:uppercase;letter-spacing:0.07em}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+@media(min-width:600px){.modal-bg{align-items:center;padding:16px}}
+.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:93vh;overflow-y:auto;padding:20px 20px 32px}
+@media(min-width:600px){.modal{border-radius:16px;padding:24px}}
+.modal-handle{width:36px;height:4px;background:#e0dfd8;border-radius:2px;margin:0 auto 18px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem}
+.close-btn{background:none;border:none;cursor:pointer;font-size:22px;color:#aaa;padding:4px;line-height:1}
+.btn{padding:10px 18px;border-radius:10px;border:0.5px solid #ddd;cursor:pointer;font-size:14px;font-weight:500;background:#fff;color:#1a1a1a;-webkit-tap-highlight-color:transparent}
+.btn:active{opacity:0.75}
+.btn-primary{background:#185FA5;border-color:#185FA5;color:#fff}
+.btn-danger{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.btn-success{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.btn-clean{background:#3B6D11;border-color:#3B6D11;color:#fff;width:100%;padding:14px;font-size:16px;border-radius:12px;margin-bottom:12px}
+.btn-dirty{background:#fff;border-color:#E24B4A;color:#E24B4A;width:100%;padding:12px;font-size:14px;border-radius:12px;margin-bottom:20px}
+.ticket-card{border:0.5px solid #e0dfd8;border-radius:10px;padding:12px;margin-bottom:10px;background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ticket-card:active{opacity:0.8}
+.ticket-card.open{border-left:3px solid #E24B4A}
+.ticket-card.resolved{border-left:3px solid #639922;opacity:0.65}
+textarea,select,input[type=text],input[type=password]{width:100%;border:0.5px solid #ccc;border-radius:10px;padding:11px;font-size:15px;font-family:inherit;background:#fff;color:#1a1a1a;outline:none;-webkit-appearance:none}
+textarea{resize:vertical;line-height:1.6}
+textarea:focus,select:focus,input:focus{border-color:#185FA5}
+.pin-input{width:160px;text-align:center;font-size:26px;letter-spacing:8px;font-family:monospace}
+.stat-card{background:#f5f5f0;border-radius:10px;padding:12px;text-align:center}
+.stat-num{font-size:28px;font-weight:700}
+.stat-lbl{font-size:11px;color:#888;margin-top:3px}
+.filter-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{padding:6px 14px;border-radius:20px;border:0.5px solid #ddd;cursor:pointer;font-size:13px;background:#fff;color:#888}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:0.9rem}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#888}
+.section-card{background:#fff;border-radius:12px;border:0.5px solid #e0dfd8;margin-bottom:14px}
+.hidden{display:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.sync-indicator{font-size:11px;color:#aaa;display:flex;align-items:center;gap:4px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#639922;flex-shrink:0}
+.sync-dot.syncing{background:#EF9F27;animation:pulse 1s infinite}
+.sync-dot.error{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.field-group{margin-bottom:1rem}
+.field-label{font-size:13px;color:#888;display:block;margin-bottom:6px}
+.note-item{padding:10px 12px;background:#f9f8f4;border-radius:8px;margin-bottom:8px;border:0.5px solid #e8e7e0}
+.note-text{font-size:14px;line-height:1.5;margin-bottom:4px}
+.note-meta{font-size:11px;color:#aaa}
+.note-delete{background:none;border:none;cursor:pointer;color:#E24B4A;font-size:13px;padding:0;margin-left:8px}
+.clean-status{text-align:center;padding:16px 0 8px;margin-bottom:4px}
+.clean-icon{font-size:48px;margin-bottom:8px}
+.clean-label{font-size:15px;font-weight:600;color:#3B6D11}
+.dirty-label{font-size:15px;font-weight:600;color:#888}
+.notes-section{margin-top:4px}
+.notes-header{font-size:13px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px}
+.add-note-row{display:flex;gap:8px;margin-top:10px}
+.add-note-row textarea{flex:1;min-height:44px;padding:10px}
+.user-chip{background:#E6F1FB;color:#0C447C;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="brand-logo">HK</div>
+    <div>
+      <div class="header-title">HK&amp;Maintenance-Mendeli</div>
+      <div class="header-sub" id="header-sub">66 rooms · 5 floors</div>
+    </div>
+    <div class="sync-indicator" style="margin-left:auto">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Synced</span>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('he')">HE</button>
+    </div>
+    <div>
+      <button class="btn" id="managerBtn" style="font-size:13px;padding:8px 12px"><i class="ti ti-lock"></i> <span id="lbl-manager">Manager</span></button>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="tabs">
+      <button class="tab active" id="tab-btn-rooms" onclick="showTab('rooms',event)"><i class="ti ti-door"></i> <span id="lbl-rooms">Rooms</span></button>
+      <button class="tab" id="tab-btn-maintenance" onclick="showTab('maintenance',event)"><i class="ti ti-tool"></i> <span id="lbl-maintenance">Maintenance</span></button>
+    </div>
+    <div style="padding:14px">
+      <div id="tab-rooms">
+        <div class="legend">
+          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#D3D1C7"></span><span id="lbl-dirty">Dirty</span></div>
+          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#639922"></span><span id="lbl-clean">Clean</span></div>
+          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#EF9F27"></span><span id="lbl-hasnotes">Has notes</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:1.25rem">
+          <div class="stat-card"><div class="stat-num" id="s-dirty">-</div><div class="stat-lbl" id="lbl-stat-dirty">Dirty</div></div>
+          <div class="stat-card"><div class="stat-num" id="s-clean">-</div><div class="stat-lbl" id="lbl-stat-clean">Clean</div></div>
+          <div class="stat-card"><div class="stat-num" id="s-notes">-</div><div class="stat-lbl" id="lbl-stat-notes">Has notes</div></div>
+        </div>
+        <div id="room-list"></div>
+      </div>
+      <div id="tab-maintenance" class="hidden">
+        <div style="margin-bottom:1rem">
+          <button class="btn btn-primary" onclick="openNewTicket()"><i class="ti ti-plus"></i> <span id="lbl-newcall">New call</span></button>
+        </div>
+        <div id="ticket-filter" class="filter-row">
+          <button class="filter-btn active" onclick="filterTickets('all',this)" id="lbl-all">All</button>
+          <button class="filter-btn" onclick="filterTickets('open',this)" id="lbl-open">Open</button>
+          <button class="filter-btn" onclick="filterTickets('resolved',this)" id="lbl-resolved">Resolved</button>
+        </div>
+        <div id="ticket-list"></div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;font-size:11px;color:#ccc;padding-bottom:1rem">HK&amp;Maintenance-Mendeli © 2025 · All rights reserved</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Room Modal -->
+<div class="modal-bg hidden" id="roomModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-room-title">Room 101</h3>
+        <span id="modal-room-badge" class="badge"></span>
+      </div>
+      <button class="close-btn" onclick="closeModal('roomModal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="clean-status" id="room-status-display"></div>
+    <button class="btn-clean" id="btn-mark-clean" onclick="markRoomClean()"><i class="ti ti-checks"></i> <span id="lbl-markclean">Mark as Vi ✅</span></button>
+    <button class="btn-dirty hidden" id="btn-mark-dirty" onclick="markRoomDirty()"><i class="ti ti-refresh"></i> <span id="lbl-markdirty">Mark as Dirty</span></button>
+    <div class="notes-section">
+      <div class="notes-header"><i class="ti ti-notes"></i> <span id="lbl-roomnotes">Room notes</span></div>
+      <div id="room-notes-list"></div>
+      <div class="add-note-row">
+        <textarea id="new-note-text" rows="2" oninput="autoDir(this)"></textarea>
+        <button class="btn btn-primary" style="align-self:flex-end;white-space:nowrap" onclick="addNote()"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Ticket Modal -->
+<div class="modal-bg hidden" id="ticketModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 id="lbl-newcall-title">New call</h3>
+      <button class="close-btn" onclick="closeModal('ticketModal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="lbl-selectroom">Select room</label>
+      <select id="ticket-room"></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="lbl-problem">Problem description</label>
+      <textarea id="ticket-desc" rows="4" oninput="autoDir(this)"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="submitTicket()"><i class="ti ti-send"></i> <span id="lbl-submit">Submit</span></button>
+      <button class="btn" onclick="closeModal('ticketModal')" id="lbl-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ticket Detail Modal -->
+<div class="modal-bg hidden" id="ticketDetailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 id="td-title">Maintenance call</h3>
+      <button class="close-btn" onclick="closeModal('ticketDetailModal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="td-body"></div>
+    <div id="td-manager-actions" class="hidden" style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-success" id="td-resolve-btn" onclick="resolveTicket()">Mark resolved</button>
+      <button class="btn btn-danger" onclick="deleteTicket()"><i class="ti ti-trash"></i> <span id="lbl-delete">Delete</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN Modal -->
+<div class="modal-bg hidden" id="pinModal">
+  <div class="modal" style="text-align:center">
+    <div class="modal-handle"></div>
+    <div class="modal-header" style="justify-content:flex-end"><button class="close-btn" onclick="closeModal('pinModal')"><i class="ti ti-x"></i></button></div>
+    <i class="ti ti-lock" style="font-size:40px;margin-bottom:1rem;color:#bbb"></i>
+    <h3 style="margin-bottom:0.5rem" id="lbl-manageraccess">Manager access</h3>
+    <p style="font-size:13px;color:#aaa;margin-bottom:1.25rem" id="lbl-enterpin">Enter PIN</p>
+    <input class="pin-input" type="password" inputmode="numeric" maxlength="6" id="pin-input" placeholder="······" oninput="checkPin(this.value)">
+    <p id="pin-error" style="color:#E24B4A;font-size:13px;margin-top:8px;min-height:20px"></p>
+  </div>
+</div>
+
+<!-- Manager Dashboard -->
+<div class="modal-bg hidden" id="managerDashModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3><i class="ti ti-shield"></i> <span id="lbl-dashboard">Manager dashboard</span></h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-danger" style="font-size:12px;padding:7px 10px" onclick="resetAllData()"><i class="ti ti-trash"></i> <span id="lbl-resetall">Reset all</span></button>
+        <button class="close-btn" onclick="closeModal('managerDashModal')"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div id="manager-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem"></div>
+    <h3 style="margin-bottom:0.75rem" id="lbl-opencalls">Open maintenance calls</h3>
+    <div id="manager-tickets"></div>
+  </div>
+</div>
+
+<!-- Name Modal -->
+<div class="modal-bg hidden" id="nameModal">
+  <div class="modal" style="text-align:center;max-width:360px">
+    <div class="modal-handle"></div>
+    <i class="ti ti-user" style="font-size:40px;margin-bottom:1rem;color:#185FA5"></i>
+    <h3 style="margin-bottom:0.5rem" id="lbl-welcome">Welcome!</h3>
+    <p style="font-size:13px;color:#aaa;margin-bottom:1.25rem" id="lbl-entername">Enter your name once</p>
+    <input type="text" id="name-input" style="text-align:center;font-size:16px;margin-bottom:12px">
+    <button class="btn btn-primary" style="width:100%" onclick="saveName()"><i class="ti ti-check"></i> <span id="lbl-start">Start</span></button>
+  </div>
+</div>
+
+<script>
+const SUPA_URL='https://tpfqcfnaynccdoxstvhz.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwZnFjZm5heW5jY2RveHN0dmh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MDU4NTQsImV4cCI6MjA5NzE4MTg1NH0.elqUF3tVLfCyFa3F2tvhX7oi-nnlr-AZ_RtgMboL68g';
+const PIN='199108';
+const WA_GROUP='https://chat.whatsapp.com/Bb2HYhOcUw0E4XRmkXDUkA';
+
+const LANGS={
+  en:{
+    manager:'Manager',rooms:'Rooms',maintenance:'Maintenance',dirty:'Dirty',clean:'Vi',hasnotes:'Has notes',
+    markclean:'Mark as Vi ✅',markdirty:'Mark as Dirty',roomnotes:'Room notes',addnote:'Add a note...',
+    nonotes:'No notes yet',newcall:'New call',selectroom:'Select room',problem:'Problem description',
+    submit:'Submit',cancel:'Cancel',delete:'Delete',manageraccess:'Manager access',enterpin:'Enter PIN',
+    dashboard:'Manager dashboard',resetall:'Reset all',opencalls:'Open maintenance calls',
+    welcome:'Welcome!',entername:'Enter your name once',start:'Start',synced:'Synced',syncing:'Syncing…',offline:'Offline',
+    roomclean:'Room is Vi ✅',roomdirty:'Room needs cleaning',incorrectpin:'Incorrect PIN',
+    open:'Open',resolved:'Resolved',all:'All',cleanrooms:'Clean rooms',opencallsstat:'Open calls',resolvedstat:'Resolved',
+    nameplaceholder:'Your name',confirmdelete:'Delete?',confirmreset:'Reset ALL data?',noteerror:'Please write a note.',
+    ticketerror:'Please describe the problem.',markedvi:'marked as Vi',markedclean:'marked as clean',markeddirty:'marked as dirty',
+    noteadded:'Note added',notedeleted:'Note deleted',deleted:'Deleted',markedresolved:'Marked as resolved',reopened:'Reopened',reset:'All data reset'
+  },
+  ru:{
+    manager:'Менеджер',rooms:'Номера',maintenance:'Обслуживание',dirty:'Грязный',clean:'Ви',hasnotes:'Есть заметки',
+    markclean:'Отметить как Ви ✅',markdirty:'Отметить как грязный',roomnotes:'Заметки номера',addnote:'Добавить заметку...',
+    nonotes:'Заметок пока нет',newcall:'Новый вызов',selectroom:'Выбрать номер',problem:'Описание проблемы',
+    submit:'Отправить',cancel:'Отмена',delete:'Удалить',manageraccess:'Доступ менеджера',enterpin:'Введите PIN',
+    dashboard:'Панель менеджера',resetall:'Сбросить всё',opencalls:'Открытые вызовы',
+    welcome:'Добро пожаловать!',entername:'Введите своё имя один раз',start:'Начать',synced:'Синхронизировано',syncing:'Синхронизация…',offline:'Офлайн',
+    roomclean:'Номер чист ✅',roomdirty:'Номер требует уборки',incorrectpin:'Неверный PIN',
+    open:'Открыт',resolved:'Решено',all:'Все',cleanrooms:'Чистые номера',opencallsstat:'Открытые вызовы',resolvedstat:'Решено',
+    nameplaceholder:'Ваше имя',confirmdelete:'Удалить?',confirmreset:'Сбросить ВСЕ данные?',noteerror:'Пожалуйста, напишите заметку.',
+    ticketerror:'Пожалуйста, опишите проблему.',markedvi:'отмечен как Ви',markedclean:'отмечен как чистый',markeddirty:'отмечен как грязный',
+    noteadded:'Заметка добавлена',notedeleted:'Заметка удалена',deleted:'Удалено',markedresolved:'Отмечено как решённое',reopened:'Переоткрыто',reset:'Все данные сброшены'
+  },
+  he:{
+    manager:'מנהל',rooms:'חדרים',maintenance:'תחזוקה',dirty:'מלוכלך',clean:'וי',hasnotes:'יש הערות',
+    markclean:'סמן כוי ✅',markdirty:'סמן כמלוכלך',roomnotes:'הערות חדר',addnote:'הוסף הערה...',
+    nonotes:'אין הערות עדיין',newcall:'קריאה חדשה',selectroom:'בחר חדר',problem:'תיאור הבעיה',
+    submit:'שלח',cancel:'ביטול',delete:'מחק',manageraccess:'כניסת מנהל',enterpin:'הכנס קוד',
+    dashboard:'לוח מנהל',resetall:'אפס הכל',opencalls:'קריאות פתוחות',
+    welcome:'ברוך הבא!',entername:'הכנס שמך פעם אחת',start:'התחל',synced:'מסונכרן',syncing:'מסנכרן…',offline:'לא מחובר',
+    roomclean:'החדר נקי ✅',roomdirty:'החדר טעון ניקיון',incorrectpin:'קוד שגוי',
+    open:'פתוח',resolved:'טופל',all:'הכל',cleanrooms:'חדרים נקיים',opencallsstat:'קריאות פתוחות',resolvedstat:'טופל',
+    nameplaceholder:'שמך',confirmdelete:'למחוק?',confirmreset:'לאפס את כל הנתונים?',noteerror:'נא לכתוב הערה.',
+    ticketerror:'נא לתאר את הבעיה.',markedvi:'סומן כוי',markedclean:'סומן כנקי',markeddirty:'סומן כמלוכלך',
+    noteadded:'הערה נוספה',notedeleted:'הערה נמחקה',deleted:'נמחק',markedresolved:'סומן כטופל',reopened:'נפתח מחדש',reset:'כל הנתונים אופסו'
+  }
+};
+
+const ROOMS=[101,102,103,104,105,106,107,108,109,110,111,112,113,114,201,202,203,204,205,206,207,208,209,210,211,212,213,214,301,302,303,304,305,306,307,308,309,310,311,312,313,314,401,402,403,404,405,406,407,408,409,410,411,412,413,501,502,503,504,505,506,507,508,509,510,511];
+const TYPES={101:'Superior',112:'Deluxe',113:'Superior',114:'Classic',201:'Superior',202:'Spa',211:'Superior',212:'Deluxe',213:'Superior',214:'Superior',301:'Superior',311:'Superior',312:'Deluxe',313:'Superior',314:'Superior',401:'Suite',409:'Superior',411:'Superior',412:'Deluxe',413:'Superior',501:'Superior',502:'Superior',503:'Loft',504:'Loft',505:'Loft',506:'Superior',507:'Loft',508:'PremDlx',509:'Loft',510:'PremDlx',511:'Superior'};
+const BADGE_CLASS={Superior:'badge-sup',Deluxe:'badge-dlx',Suite:'badge-suite',Loft:'badge-loft',PremDlx:'badge-premdlx',Classic:'badge-classic',Spa:'badge-spa'};
+
+function getType(r){return TYPES[r]||'Classic';}
+function getBadgeClass(t){return BADGE_CLASS[t]||'badge-classic';}
+function isHebrew(t){return /[\u0590-\u05FF]/.test(t);}
+function isRussian(t){return /[\u0400-\u04FF]/.test(t);}
+function autoDir(el){const h=isHebrew(el.value);el.style.direction=h?'rtl':'ltr';el.style.textAlign=h?'right':'left';}
+function getDir(t){return isHebrew(t)?'rtl':'ltr';}
+function getAlign(t){return isHebrew(t)?'right':'left';}
+function toast(msg,dur=2200){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+
+let lang='en';
+function t(key){return LANGS[lang][key]||LANGS['en'][key]||key;}
+
+function setLang(l){
+  lang=l;
+  localStorage.setItem('hk-lang',l);
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.lang-btn[onclick="setLang(\''+l+'\')"]').classList.add('active');
+  applyLang();
+  renderAll();
+  updateHeaderUser();
+}
+
+function applyLang(){
+  const ids={
+    'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance',
+    'lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes',
+    'lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes',
+    'lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom',
+    'lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete',
+    'lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard',
+    'lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome',
+    'lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean',
+    'lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all',
+    'lbl-open':'open','lbl-resolved':'resolved'
+  };
+  Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
+  const np=document.getElementById('name-input');if(np)np.placeholder=t('nameplaceholder');
+  const nt=document.getElementById('new-note-text');if(nt)nt.placeholder=t('addnote');
+  const td=document.getElementById('ticket-desc');if(td)td.placeholder=t('problem')+'...';
+  setSyncStatus(null);
+}
+
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot');const lbl=document.getElementById('sync-label');if(!dot)return;
+  if(s===null){lbl.textContent=t('synced');return;}
+  dot.className='sync-dot'+(s==='syncing'?' syncing':s==='error'?' error':'');
+  lbl.textContent=s==='syncing'?t('syncing'):s==='error'?t('offline'):t('synced');
+}
+
+let rooms={},tickets=[],notes={};
+let currentRoom=null,currentTicketId=null,isManager=false,ticketFilter='all';
+let pollInterval=null;
+let currentUser='';
+
+function initUser(){
+  const savedLang=localStorage.getItem('hk-lang');
+  if(savedLang){lang=savedLang;document.querySelector('.lang-btn[onclick="setLang(\''+lang+'\')"]').classList.remove('active');document.querySelector('.lang-btn[onclick="setLang(\''+lang+'\')"]').classList.add('active');document.querySelectorAll('.lang-btn').forEach(b=>{if(b.getAttribute('onclick')!=="setLang('"+lang+"')")b.classList.remove('active');});}
+  applyLang();
+  const saved=localStorage.getItem('hk-username');
+  if(saved&&saved.trim()){currentUser=saved;updateHeaderUser();return;}
+  document.getElementById('nameModal').classList.remove('hidden');
+}
+
+function saveName(){
+  const val=document.getElementById('name-input').value.trim();
+  if(!val){alert(t('noteerror'));return;}
+  currentUser=val;
+  localStorage.setItem('hk-username',currentUser);
+  document.getElementById('nameModal').classList.add('hidden');
+  updateHeaderUser();
+}
+
+function updateHeaderUser(){
+  document.getElementById('header-sub').innerHTML='66 rooms · 5 floors &nbsp;·&nbsp; <span class="user-chip"><i class="ti ti-user"></i> '+currentUser+'</span>';
+}
+
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'resolution=merge-duplicates':''}};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(SUPA_URL+'/rest/v1/'+path,opts);
+  if(!r.ok)throw new Error(await r.text());
+  return r.status===204?null:r.json();
+}
+
+async function loadAll(){
+  setSyncStatus('syncing');
+  try{
+    const[rm,tk,nt]=await Promise.all([api('rooms?select=room,clean'),api('tickets?select=*&order=id.desc'),api('notes?select=*&order=id.asc')]);
+    rooms={};(rm||[]).forEach(r=>rooms[r.room]=r.clean);
+    tickets=tk||[];
+    notes={};(nt||[]).forEach(n=>{if(!notes[n.room])notes[n.room]=[];notes[n.room].push(n);});
+    setSyncStatus('ok');renderAll();
+  }catch(e){setSyncStatus('error');console.error(e);}
+}
+
+async function saveRoomStatus(room,clean){setSyncStatus('syncing');try{await api('rooms','POST',[{room,clean}]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function saveTicket(tk){setSyncStatus('syncing');try{await api('tickets','POST',[tk]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function updateTicketStatus(id,status){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'PATCH',{status});setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function deleteTicketDB(id){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function saveNote(note){setSyncStatus('syncing');try{await api('notes','POST',[note]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function deleteNoteDB(id){setSyncStatus('syncing');try{await api('notes?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function resetAll(){setSyncStatus('syncing');try{await api('rooms?room=gt.0','DELETE');await api('tickets?id=gt.0','DELETE');await api('notes?id=gt.0','DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+
+function startPolling(){if(pollInterval)clearInterval(pollInterval);pollInterval=setInterval(loadAll,15000);}
+function renderAll(){updateStats();renderRooms();renderTickets();}
+
+function showTab(tab,e){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  e.target.closest('.tab').classList.add('active');
+  document.getElementById('tab-rooms').classList.toggle('hidden',tab!=='rooms');
+  document.getElementById('tab-maintenance').classList.toggle('hidden',tab!=='maintenance');
+}
+
+function floorLabel(r){
+  const f=Math.floor(r/100);
+  const labels={1:'Floor 1 (101-114)',2:'Floor 2 (201-214)',3:'Floor 3 (301-314)',4:'Floor 4 (401-413)',5:'Floor 5 (501-511)'};
+  return labels[f]||'';
+}
+
+function isClean(r){return rooms[r]===true;}
+function hasNotes(r){return notes[r]&&notes[r].length>0;}
+
+function renderRooms(){
+  const c=document.getElementById('room-list');if(!c)return;
+  let html='';let lastFloor=null;let gridOpen=false;
+  ROOMS.forEach(r=>{
+    const f=Math.floor(r/100);
+    if(f!==lastFloor){if(gridOpen)html+='</div>';html+='<div class="floor-label">'+floorLabel(r)+'</div><div class="room-grid">';gridOpen=true;lastFloor=f;}
+    const tp=getType(r);const clean=isClean(r);const hn=hasNotes(r);
+    const dotColor=clean?'#639922':hn?'#EF9F27':'#D3D1C7';
+    const cardClass='room-card'+(clean?' clean':hn?' has-notes':'');
+    const icon=tp==='Spa'?'<i class="ti ti-ripple" style="font-size:11px;color:#085041"></i> ':'';
+    const notesBadge=hn?'<span style="font-size:10px;color:#EF9F27"><i class="ti ti-notes"></i> '+notes[r].length+'</span>':'';
+    html+='<div class="'+cardClass+'" onclick="openRoom('+r+')">'
+      +'<div class="num">'+icon+r+'</div>'
+      +'<span class="badge '+getBadgeClass(tp)+'">'+tp+'</span>'
+      +'<div style="margin-top:5px;display:flex;align-items:center;justify-content:center;gap:4px">'
+      +'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+dotColor+'"></span>'
+      +notesBadge+'</div></div>';
+  });
+  if(gridOpen)html+='</div>';
+  c.innerHTML=html;
+}
+
+function updateStats(){
+  const clean=ROOMS.filter(r=>isClean(r)).length;
+  const dirty=ROOMS.length-clean;
+  const hn=ROOMS.filter(r=>hasNotes(r)).length;
+  const ed=document.getElementById('s-dirty');const ec=document.getElementById('s-clean');const en=document.getElementById('s-notes');
+  if(ed)ed.textContent=dirty;if(ec)ec.textContent=clean;if(en)en.textContent=hn;
+}
+
+function openRoom(r){
+  currentRoom=r;const tp=getType(r);
+  document.getElementById('modal-room-title').textContent='Room '+r;
+  const b=document.getElementById('modal-room-badge');b.className='badge '+getBadgeClass(tp);b.textContent=tp;
+  renderRoomModal();
+  document.getElementById('roomModal').classList.remove('hidden');
+}
+
+function renderRoomModal(){
+  const clean=isClean(currentRoom);
+  const statusDiv=document.getElementById('room-status-display');
+  const btnClean=document.getElementById('btn-mark-clean');
+  const btnDirty=document.getElementById('btn-mark-dirty');
+  if(clean){
+    statusDiv.innerHTML='<div class="clean-icon">🟢</div><div class="clean-label">'+t('roomclean')+'</div>';
+    btnClean.classList.add('hidden');btnDirty.classList.remove('hidden');
+  }else{
+    statusDiv.innerHTML='<div class="clean-icon">⚪</div><div class="dirty-label">'+t('roomdirty')+'</div>';
+    btnClean.classList.remove('hidden');btnDirty.classList.add('hidden');
+  }
+  document.getElementById('lbl-markclean').textContent=t('markclean');
+  document.getElementById('lbl-markdirty').textContent=t('markdirty');
+  document.getElementById('lbl-roomnotes').textContent=t('roomnotes');
+  const roomNotes=notes[currentRoom]||[];
+  const notesList=document.getElementById('room-notes-list');
+  if(roomNotes.length===0){
+    notesList.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nonotes')+'</p>';
+  }else{
+    notesList.innerHTML=roomNotes.map(n=>{
+      const delBtn=isManager?'<button class="note-delete" onclick="deleteNote('+n.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>':'';
+      return '<div class="note-item">'
+        +'<div class="note-text" style="direction:'+getDir(n.text)+';text-align:'+getAlign(n.text)+'">'+n.text+'</div>'
+        +'<div class="note-meta"><i class="ti ti-user"></i> '+(n.username||'Unknown')+' · <i class="ti ti-clock"></i> '+n.ts+delBtn+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  const ta=document.getElementById('new-note-text');ta.value='';ta.placeholder=t('addnote');ta.style.direction='ltr';ta.style.textAlign='left';
+}
+
+async function markRoomClean(){
+  rooms[currentRoom]=true;
+  renderRooms();updateStats();closeModal('roomModal');
+  await saveRoomStatus(currentRoom,true);
+  toast('Room '+currentRoom+' '+t('markedvi'));
+  const now=new Date().toLocaleString();
+  const msg=encodeURIComponent('✅ Room '+currentRoom+' Vi - '+currentUser+' '+now);
+  window.open(WA_GROUP,'_blank');
+}
+
+async function markRoomDirty(){
+  rooms[currentRoom]=false;
+  renderRooms();updateStats();closeModal('roomModal');
+  toast('Room '+currentRoom+' '+t('markeddirty'));
+  await saveRoomStatus(currentRoom,false);
+}
+
+async function addNote(){
+  const ta=document.getElementById('new-note-text');
+  const text=ta.value.trim();
+  if(!text){alert(t('noteerror'));return;}
+  const note={id:Date.now(),room:currentRoom,text,ts:new Date().toLocaleString(),username:currentUser};
+  if(!notes[currentRoom])notes[currentRoom]=[];
+  notes[currentRoom].push(note);
+  renderRoomModal();renderRooms();updateStats();
+  await saveNote(note);toast(t('noteadded'));
+}
+
+async function deleteNote(id){
+  if(!confirm(t('confirmdelete')))return;
+  notes[currentRoom]=notes[currentRoom].filter(n=>n.id!==id);
+  renderRoomModal();renderRooms();updateStats();
+  await deleteNoteDB(id);toast(t('notedeleted'));
+}
+
+function openNewTicket(){
+  const sel=document.getElementById('ticket-room');
+  sel.innerHTML=ROOMS.map(r=>'<option value="'+r+'">Room '+r+' - '+getType(r)+'</option>').join('');
+  const ta=document.getElementById('ticket-desc');ta.value='';ta.placeholder=t('problem')+'...';ta.style.direction='ltr';ta.style.textAlign='left';
+  document.getElementById('lbl-newcall-title').textContent=t('newcall');
+  document.getElementById('lbl-selectroom').textContent=t('selectroom');
+  document.getElementById('lbl-problem').textContent=t('problem');
+  document.getElementById('lbl-submit').textContent=t('submit');
+  document.getElementById('lbl-cancel').textContent=t('cancel');
+  document.getElementById('ticketModal').classList.remove('hidden');
+}
+
+async function submitTicket(){
+  const room=parseInt(document.getElementById('ticket-room').value);
+  const description=document.getElementById('ticket-desc').value.trim();
+  if(!description){alert(t('ticketerror'));return;}
+  const ticket={id:Date.now(),room,type:getType(room),description,ts:new Date().toLocaleString(),status:'open',username:currentUser};
+  tickets.unshift(ticket);renderTickets();closeModal('ticketModal');
+  await saveTicket(ticket);toast(t('newcall')+' ✓');
+}
+
+function filterTickets(f,btn){
+  ticketFilter=f;
+  document.querySelectorAll('#ticket-filter .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderTickets();
+}
+
+function renderTickets(){
+  const list=document.getElementById('ticket-list');if(!list)return;
+  const filtered=tickets.filter(tk=>ticketFilter==='all'||tk.status===ticketFilter);
+  if(!filtered.length){list.innerHTML='<p style="color:#bbb;font-size:14px;text-align:center;padding:2rem 0">'+t('opencalls')+' — 0</p>';return;}
+  list.innerHTML=filtered.map(tk=>{
+    return '<div class="ticket-card '+tk.status+'" onclick="openTicket('+tk.id+')">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+      +'<div><span style="font-weight:600">Room '+tk.room+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
+      +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+';white-space:nowrap">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
+      +'</div>'
+      +'<p style="font-size:13px;color:#888;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
+      +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
+      +'</div>';
+  }).join('');
+}
+
+function openTicket(id){
+  const tk=tickets.find(x=>x.id===id);if(!tk)return;
+  currentTicketId=id;
+  document.getElementById('td-title').textContent='Room '+tk.room+' - '+tk.type;
+  document.getElementById('td-body').innerHTML=
+    '<p style="font-size:13px;color:#aaa;margin-bottom:8px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
+    +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+'">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
+    +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-top:0.75rem;padding:12px;background:#f5f5f0;border-radius:10px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</div>';
+  const ma=document.getElementById('td-manager-actions');const rb=document.getElementById('td-resolve-btn');
+  if(isManager){ma.classList.remove('hidden');rb.textContent=tk.status==='open'?t('resolved'):t('open');}
+  else{ma.classList.add('hidden');}
+  document.getElementById('ticketDetailModal').classList.remove('hidden');
+}
+
+async function resolveTicket(){
+  const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
+  const ns=tk.status==='open'?'resolved':'open';tk.status=ns;
+  renderTickets();closeModal('ticketDetailModal');
+  await updateTicketStatus(currentTicketId,ns);toast(ns==='resolved'?t('markedresolved'):t('reopened'));
+}
+async function deleteTicket(){
+  if(!confirm(t('confirmdelete')))return;
+  tickets=tickets.filter(x=>x.id!==currentTicketId);
+  renderTickets();closeModal('ticketDetailModal');
+  await deleteTicketDB(currentTicketId);toast(t('deleted'));
+}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+
+document.getElementById('managerBtn').onclick=()=>{
+  if(isManager){openManagerDash();return;}
+  document.getElementById('pin-input').value='';document.getElementById('pin-error').textContent='';
+  document.getElementById('lbl-manageraccess').textContent=t('manageraccess');
+  document.getElementById('lbl-enterpin').textContent=t('enterpin');
+  document.getElementById('pinModal').classList.remove('hidden');
+};
+
+function checkPin(v){
+  if(v.length===6){
+    if(v===PIN){isManager=true;document.getElementById('managerBtn').innerHTML='<i class="ti ti-shield"></i> '+t('manager');closeModal('pinModal');openManagerDash();}
+    else{document.getElementById('pin-error').textContent=t('incorrectpin');document.getElementById('pin-input').value='';}
+  }
+}
+
+function openManagerDash(){
+  const clean=ROOMS.filter(r=>isClean(r)).length;
+  const open=tickets.filter(tk=>tk.status==='open').length;
+  const res=tickets.filter(tk=>tk.status==='resolved').length;
+  document.getElementById('lbl-dashboard').textContent=t('dashboard');
+  document.getElementById('lbl-resetall').textContent=t('resetall');
+  document.getElementById('lbl-opencalls').textContent=t('opencalls');
+  document.getElementById('manager-stats').innerHTML=
+    '<div class="stat-card"><div class="stat-num" style="color:#639922">'+clean+'</div><div class="stat-lbl">'+t('cleanrooms')+'</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:#E24B4A">'+open+'</div><div class="stat-lbl">'+t('opencallsstat')+'</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:#639922">'+res+'</div><div class="stat-lbl">'+t('resolvedstat')+'</div></div>';
+  const ot=tickets.filter(tk=>tk.status==='open');
+  document.getElementById('manager-tickets').innerHTML=ot.length?ot.map(tk=>{
+    return '<div class="ticket-card open" onclick="closeModal(\'managerDashModal\');openTicket('+tk.id+')">'
+      +'<div style="font-weight:600">Room '+tk.room+' <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
+      +'<p style="font-size:13px;color:#888;margin-top:4px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
+      +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · '+tk.ts+'</p>'
+      +'</div>';
+  }).join(''):'<p style="color:#bbb;font-size:14px">'+t('opencalls')+' — 0</p>';
+  document.getElementById('managerDashModal').classList.remove('hidden');
+}
+
+async function resetAllData(){
+  if(!confirm(t('confirmreset')))return;
+  rooms={};tickets=[];notes={};renderAll();closeModal('managerDashModal');
+  await resetAll();toast(t('reset'));
+}
+
+initUser();
+loadAll();
+startPolling();
+</script>
+</body>
+</html>
