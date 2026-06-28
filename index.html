@@ -153,7 +153,7 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
         </div>
         <div id="ticket-filter" class="filter-row">
           <button class="filter-btn active" onclick="filterTickets('all',this)" id="lbl-all">All</button>
-          <button class="filter-btn" onclick="filterTickets('urgent',this)" id="lbl-urgent-filter" style="color:#A32D2D;border-color:#E24B4A">🔴 Urgent</button>
+          <button class="filter-btn" onclick="filterTickets('urgent',this)" id="lbl-urgent-filter" style="color:#A32D2D;border-color:#E24B4A">🔴 <span id="lbl-urgent-filter-text">Urgent</span></button>
           <button class="filter-btn" onclick="filterTickets('open',this)" id="lbl-open">Open</button>
           <button class="filter-btn" onclick="filterTickets('resolved',this)" id="lbl-resolved">Resolved</button>
         </div>
@@ -371,7 +371,7 @@ function setLang(l){
 }
 
 function applyLang(){
-  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-urgent':'urgent','lbl-normal':'normal','lbl-priority-label':'prioritylabel','lbl-eta-title':'etatitle','lbl-today':'today','lbl-parts':'parts','lbl-pickdate':'pickdate'};
+  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-urgent':'urgent','lbl-normal':'normal','lbl-priority-label':'prioritylabel','lbl-eta-title':'etatitle','lbl-today':'today','lbl-parts':'parts','lbl-pickdate':'pickdate','lbl-urgent-filter-text':'urgent'};
   Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
   const np=document.getElementById('name-input');if(np)np.placeholder=t('nameplaceholder');
   const nt=document.getElementById('new-note-text');if(nt)nt.placeholder=t('addnote');
