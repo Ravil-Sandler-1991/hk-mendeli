@@ -27,7 +27,7 @@ h3{font-size:16px;font-weight:600}
 .badge-loft{background:#EAF3DE;color:#27500A}
 .badge-premdlx{background:#FBEAF0;color:#72243E}
 .badge-classic{background:#F1EFE8;color:#444441}
-.badge-spa{background:#E1F5EE;color:#085041}
+.badge-other{background:#EDEAF7;color:#4B3F8C}
 .badge-urgent{background:#FCEBEB;color:#A32D2D;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
 .badge-normal{background:#FFF8E6;color:#8A5A00;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
 .room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:7px;margin-bottom:1.25rem}
@@ -197,8 +197,19 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
       <button class="close-btn" onclick="closeModal('ticketModal')"><i class="ti ti-x"></i></button>
     </div>
     <div class="field-group">
+      <label class="field-label" id="lbl-location-type">Location type</label>
+      <div class="priority-row">
+        <button class="priority-btn" id="loc-room" onclick="selectLocType('room')" style="border-color:#185FA5;color:#185FA5"><i class="ti ti-door"></i> <span id="lbl-room-type">Room</span></button>
+        <button class="priority-btn" id="loc-other" onclick="selectLocType('other')" style="border-color:#888;color:#888"><i class="ti ti-map-pin"></i> <span id="lbl-other-type">Other location</span></button>
+      </div>
+    </div>
+    <div class="field-group" id="room-select-group">
       <label class="field-label" id="lbl-selectroom">Select room</label>
       <select id="ticket-room"></select>
+    </div>
+    <div class="field-group hidden" id="other-loc-group">
+      <label class="field-label" id="lbl-otherloc">Location</label>
+      <input type="text" id="ticket-other-loc" oninput="autoDir(this)">
     </div>
     <div class="field-group">
       <label class="field-label" id="lbl-problem">Problem description</label>
@@ -307,7 +318,9 @@ const LANGS={
     noteadded:'Note added',notedeleted:'Note deleted',deleted:'Deleted',markedresolved:'Marked as resolved',reopened:'Reopened',reset:'All data reset',
     urgent:'Urgent',normal:'Normal',prioritylabel:'Priority',
     etatitle:'When will this be fixed?',today:'Will be done today',parts:'Waiting for parts / technician',pickdate:'Pick a date',
-    etaset:'ETA updated',urgentcalls:'Urgent calls'
+    etaset:'ETA updated',urgentcalls:'Urgent calls',
+    locationtype:'Location type',roomtype:'Room',othertype:'Other location',otherloc:'Location',
+    otherlocplaceholder:'e.g. Lobby, Floor -1, Dining room...',locerror:'Please enter a location.'
   },
   ru:{
     manager:'Менеджер',rooms:'Номера',maintenance:'Обслуживание',dirty:'Грязный',clean:'Ви',hasnotes:'Есть заметки',
@@ -323,7 +336,9 @@ const LANGS={
     noteadded:'Заметка добавлена',notedeleted:'Заметка удалена',deleted:'Удалено',markedresolved:'Отмечено как решённое',reopened:'Переоткрыто',reset:'Все данные сброшены',
     urgent:'Срочно',normal:'Обычный',prioritylabel:'Приоритет',
     etatitle:'Когда будет исправлено?',today:'Будет сделано сегодня',parts:'Ожидание запчастей / техника',pickdate:'Выбрать дату',
-    etaset:'Срок обновлён',urgentcalls:'Срочные вызовы'
+    etaset:'Срок обновлён',urgentcalls:'Срочные вызовы',
+    locationtype:'Тип места',roomtype:'Номер',othertype:'Другое место',otherloc:'Местоположение',
+    otherlocplaceholder:'напр. Лобби, Этаж -1, Столовая...',locerror:'Пожалуйста, укажите местоположение.'
   },
   he:{
     manager:'מנהל',rooms:'חדרים',maintenance:'תחזוקה',dirty:'מלוכלך',clean:'וי',hasnotes:'יש הערות',
@@ -339,13 +354,15 @@ const LANGS={
     noteadded:'הערה נוספה',notedeleted:'הערה נמחקה',deleted:'נמחק',markedresolved:'סומן כטופל',reopened:'נפתח מחדש',reset:'כל הנתונים אופסו',
     urgent:'דחוף',normal:'רגיל',prioritylabel:'עדיפות',
     etatitle:'מתי זה יתוקן?',today:'יסתיים היום',parts:'ממתין לחלקים / טכנאי',pickdate:'בחר תאריך',
-    etaset:'זמן עדכון עודכן',urgentcalls:'קריאות דחופות'
+    etaset:'זמן עדכון עודכן',urgentcalls:'קריאות דחופות',
+    locationtype:'סוג מיקום',roomtype:'חדר',othertype:'מיקום אחר',otherloc:'מיקום',
+    otherlocplaceholder:'לדוגמה: לובי, קומה -1, חדר אוכל...',locerror:'נא להזין מיקום.'
   }
 };
 
 const ROOMS=[101,102,103,104,105,106,107,108,109,110,111,112,113,114,201,202,203,204,205,206,207,208,209,210,211,212,213,214,301,302,303,304,305,306,307,308,309,310,311,312,313,314,401,402,403,404,405,406,407,408,409,410,411,412,413,501,502,503,504,505,506,507,508,509,510,511];
 const TYPES={101:'Superior',112:'Deluxe',113:'Superior',114:'Classic',201:'Superior',202:'Spa',211:'Superior',212:'Deluxe',213:'Superior',214:'Superior',301:'Superior',311:'Superior',312:'Deluxe',313:'Superior',314:'Superior',401:'Suite',409:'Superior',411:'Superior',412:'Deluxe',413:'Superior',501:'Superior',502:'Superior',503:'Loft',504:'Loft',505:'Loft',506:'Superior',507:'Loft',508:'PremDlx',509:'Loft',510:'PremDlx',511:'Superior'};
-const BADGE_CLASS={Superior:'badge-sup',Deluxe:'badge-dlx',Suite:'badge-suite',Loft:'badge-loft',PremDlx:'badge-premdlx',Classic:'badge-classic',Spa:'badge-spa'};
+const BADGE_CLASS={Superior:'badge-sup',Deluxe:'badge-dlx',Suite:'badge-suite',Loft:'badge-loft',PremDlx:'badge-premdlx',Classic:'badge-classic',Spa:'badge-spa',Other:'badge-other'};
 
 function getType(r){return TYPES[r]||'Classic';}
 function getBadgeClass(tp){return BADGE_CLASS[tp]||'badge-classic';}
@@ -525,11 +542,24 @@ function selectPriority(p){
   document.getElementById('pri-normal').classList.toggle('selected',p==='normal');
 }
 
+let selectedLocType='room';
+function selectLocType(type){
+  selectedLocType=type;
+  document.getElementById('loc-room').style.background=type==='room'?'#185FA5':'#fff';
+  document.getElementById('loc-room').style.color=type==='room'?'#fff':'#185FA5';
+  document.getElementById('loc-other').style.background=type==='other'?'#888':'#fff';
+  document.getElementById('loc-other').style.color=type==='other'?'#fff':'#888';
+  document.getElementById('room-select-group').classList.toggle('hidden',type!=='room');
+  document.getElementById('other-loc-group').classList.toggle('hidden',type!=='other');
+}
+
 function openNewTicket(){
   const sel=document.getElementById('ticket-room');
   sel.innerHTML=ROOMS.map(r=>'<option value="'+r+'">Room '+r+' - '+getType(r)+'</option>').join('');
   const ta=document.getElementById('ticket-desc');ta.value='';ta.placeholder=t('problem')+'...';ta.style.direction='ltr';ta.style.textAlign='left';
+  const ol=document.getElementById('ticket-other-loc');ol.value='';ol.style.direction='ltr';ol.style.textAlign='left';
   selectedPriority='normal';selectPriority('normal');
+  selectedLocType='room';selectLocType('room');
   document.getElementById('lbl-newcall-title').textContent=t('newcall');
   document.getElementById('lbl-selectroom').textContent=t('selectroom');
   document.getElementById('lbl-problem').textContent=t('problem');
@@ -538,14 +568,28 @@ function openNewTicket(){
   document.getElementById('lbl-priority-label').textContent=t('prioritylabel');
   document.getElementById('lbl-urgent').textContent=t('urgent');
   document.getElementById('lbl-normal').textContent=t('normal');
+  document.getElementById('lbl-location-type').textContent=t('locationtype');
+  document.getElementById('lbl-room-type').textContent=t('roomtype');
+  document.getElementById('lbl-other-type').textContent=t('othertype');
+  document.getElementById('lbl-otherloc').textContent=t('otherloc');
+  ol.placeholder=t('otherlocplaceholder');
   document.getElementById('ticketModal').classList.remove('hidden');
 }
 
 async function submitTicket(){
-  const room=parseInt(document.getElementById('ticket-room').value);
   const description=document.getElementById('ticket-desc').value.trim();
   if(!description){alert(t('ticketerror'));return;}
-  const ticket={id:Date.now(),room,type:getType(room),description,ts:new Date().toLocaleString(),status:'open',username:currentUser,priority:selectedPriority,eta:null};
+  let room,type,locationLabel;
+  if(selectedLocType==='room'){
+    room=parseInt(document.getElementById('ticket-room').value);
+    type=getType(room);
+    locationLabel=null;
+  }else{
+    const otherLoc=document.getElementById('ticket-other-loc').value.trim();
+    if(!otherLoc){alert(t('locerror'));return;}
+    room=0;type='Other';locationLabel=otherLoc;
+  }
+  const ticket={id:Date.now(),room,type,description,ts:new Date().toLocaleString(),status:'open',username:currentUser,priority:selectedPriority,eta:null,location_label:locationLabel};
   tickets.unshift(ticket);renderTickets();closeModal('ticketModal');
   await saveTicket(ticket);toast(t('newcall')+' ✓');
 }
@@ -554,6 +598,11 @@ function filterTickets(f,btn){
   ticketFilter=f;
   document.querySelectorAll('#ticket-filter .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');renderTickets();
+}
+
+function getLocLabel(tk){
+  if(tk.type==='Other'&&tk.location_label)return'📍 '+tk.location_label;
+  return'Room '+tk.room;
 }
 
 function getETALabel(eta){
@@ -574,7 +623,7 @@ function renderTickets(){
     const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5;margin-top:4px;display:block"><i class="ti ti-clock"></i> '+getETALabel(tk.eta)+'</span>':'';
     return'<div class="ticket-card '+tk.status+(tk.priority==='urgent'?' urgent':'')+'" onclick="openTicket('+tk.id+')">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
-      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-weight:600">Room '+tk.room+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span>'+urgentBadge+'</div>'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-weight:600">'+getLocLabel(tk)+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span>'+urgentBadge+'</div>'
       +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+';white-space:nowrap">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
       +'</div>'
       +'<p style="font-size:13px;color:#888;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
@@ -587,7 +636,7 @@ function renderTickets(){
 function openTicket(id){
   const tk=tickets.find(x=>x.id===id);if(!tk)return;
   currentTicketId=id;
-  document.getElementById('td-title').textContent='Room '+tk.room+' - '+tk.type;
+  document.getElementById('td-title').textContent=getLocLabel(tk)+' - '+tk.type;
   const urgentBanner=tk.priority==='urgent'?'<div class="urgent-banner">🔴 '+t('urgent')+'</div>':'';
   document.getElementById('td-body').innerHTML=
     urgentBanner
@@ -686,7 +735,7 @@ function openManagerDash(){
     const urgentBadge=tk.priority==='urgent'?'<span class="badge-urgent">🔴 '+t('urgent')+'</span> ':'';
     const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5"> · '+getETALabel(tk.eta)+'</span>':'';
     return'<div class="ticket-card open'+(tk.priority==='urgent'?' urgent':'')+'" onclick="closeModal(\'managerDashModal\');openTicket('+tk.id+')">'
-      +'<div style="font-weight:600">'+urgentBadge+'Room '+tk.room+' <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
+      +'<div style="font-weight:600">'+urgentBadge+getLocLabel(tk)+' <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
       +'<p style="font-size:13px;color:#888;margin-top:4px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
       +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · '+tk.ts+etaLabel+'</p>'
       +'</div>';
