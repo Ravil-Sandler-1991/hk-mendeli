@@ -509,7 +509,12 @@ function renderRoomModal(){
   const roomNotes=notes[currentRoom]||[];
   const notesList=document.getElementById('room-notes-list');
   if(roomNotes.length===0){notesList.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nonotes')+'</p>';}
-  else{notesList.innerHTML=roomNotes.map(n=>{const delBtn=isManager?'<button class="note-delete" onclick="deleteNote('+n.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>':'';return'<div class="note-item"><div class="note-text" style="direction:'+getDir(n.text)+';text-align:'+getAlign(n.text)+'">'+n.text+'</div><div class="note-translation" id="ntr-'+n.id+'"></div><div class="note-meta"><i class="ti ti-user"></i> '+(n.username||'Unknown')+' · <i class="ti ti-clock"></i> '+n.ts+'<button class="note-translate" id="ntb-'+n.id+'" onclick="translateText(\''+n.text.replace(/'/g,"\\'").replace(/\n/g,' ')+'\',document.getElementById(\'ntb-'+n.id+'\'),document.getElementById(\'ntr-'+n.id+'\'))"><i class="ti ti-language"></i> '+t('translate')+'</button>'+delBtn+'</div></div>';}).join('');}
+  else{
+    notesList.innerHTML=roomNotes.map(n=>{
+      const delBtn=isManager?'<button class="note-delete" onclick="deleteNote('+n.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>':'';
+      return'<div class="note-item"><div class="note-text" style="direction:'+getDir(n.text)+';text-align:'+getAlign(n.text)+'">'+n.text+'</div><div class="note-translation" id="ntr-'+n.id+'"></div><div class="note-meta"><i class="ti ti-user"></i> '+(n.username||'Unknown')+' · <i class="ti ti-clock"></i> '+n.ts+'<button class="note-translate" id="ntb-'+n.id+'" data-noteid="'+n.id+'" onclick="doNoteTranslate(this)"><i class="ti ti-language"></i> '+t('translate')+'</button>'+delBtn+'</div></div>';
+    }).join('');
+  }
   const ta=document.getElementById('new-note-text');ta.value='';ta.placeholder=t('addnote');ta.style.direction='ltr';ta.style.textAlign='left';
 }
 
@@ -648,7 +653,8 @@ function openTicket(id){
     +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+'">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
     +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-top:0.75rem;padding:12px;background:#f5f5f0;border-radius:10px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</div>'
     +'<div class="note-translation" id="td-translation"></div>'
-    +'<button class="note-translate" id="td-translate-btn" onclick="translateText(\''+tk.description.replace(/'/g,"\\'").replace(/\n/g,' ')+'\',document.getElementById(\'td-translate-btn\'),document.getElementById(\'td-translation\'))"><i class="ti ti-language"></i> '+t('translate')+'</button>';
+    +'<button class="note-translate" id="td-translate-btn" onclick="doTicketTranslate()"><i class="ti ti-language"></i> '+t('translate')+'</button>';
+  document.getElementById('td-translate-btn').setAttribute('data-text',tk.description);
 
   // ETA section
   document.getElementById('lbl-eta-title').textContent=t('etatitle');
@@ -753,6 +759,21 @@ async function resetAllData(){
   if(!confirm(t('confirmreset')))return;
   rooms={};tickets=[];notes={};renderAll();closeModal('managerDashModal');
   await resetAll();toast(t('reset'));
+}
+
+function doNoteTranslate(btn){
+  const nid=btn.getAttribute('data-noteid');
+  const noteObj=(notes[currentRoom]||[]).find(n=>n.id==nid);
+  if(!noteObj)return;
+  const res=document.getElementById('ntr-'+nid);
+  translateText(noteObj.text,btn,res);
+}
+
+function doTicketTranslate(){
+  const btn=document.getElementById('td-translate-btn');
+  const res=document.getElementById('td-translation');
+  const text=btn.getAttribute('data-text');
+  translateText(text,btn,res);
 }
 
 async function translateText(text,btnEl,resultEl){
