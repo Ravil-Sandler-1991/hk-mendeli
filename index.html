@@ -457,7 +457,7 @@ async function loadAll(){
     rooms={};(rm||[]).forEach(r=>rooms[r.room]=r.clean);
     tickets=tk||[];
     notes={};(nt||[]).forEach(n=>{if(!notes[n.room])notes[n.room]=[];notes[n.room].push(n);});
-    ticketComments={};(tc||[]).forEach(c=>{if(!ticketComments[c.ticket_id])ticketComments[c.ticket_id]=[];ticketComments[c.ticket_id].push(c);});
+    ticketComments={};(tc||[]).forEach(c=>{const key=String(c.ticket_id);if(!ticketComments[key])ticketComments[key]=[];ticketComments[key].push(c);});
     setSyncStatus('ok');renderAll();
   }catch(e){setSyncStatus('error');console.error(e);}
 }
@@ -823,7 +823,7 @@ async function printOpenCalls(){
       const loc=tk.type==='Other'&&tk.location_label?'📍 '+tk.location_label:'Room '+tk.room;
       const pri=tk.priority==='urgent'?'🔴 '+t('urgent'):'🟡 '+t('normal');
       const desc=descriptions[i]||tk.description;
-      const comments=(ticketComments[tk.id]||[]).map(c=>'<div style="font-size:11px;color:#666;margin-top:3px;padding-left:8px;border-left:2px solid #185FA5">💬 '+(c.username||'?')+': '+c.text+'</div>').join('');
+      const comments=(ticketComments[String(tk.id)]||[]).map(c=>'<div style="font-size:11px;color:#666;margin-top:3px;padding-left:8px;border-left:2px solid #185FA5">💬 '+(c.username||'?')+': '+c.text+'</div>').join('');
       return'<tr>'
         +'<td>'+loc+'</td>'
         +'<td>'+tk.type+'</td>'
@@ -876,7 +876,7 @@ async function printOpenCalls(){
 }
 
 function renderTicketComments(ticketId){
-  const comments=ticketComments[ticketId]||[];
+  const comments=ticketComments[String(ticketId)]||[];
   const list=document.getElementById('ticket-comments-list');
   const ta=document.getElementById('new-ticket-comment');
   if(ta){ta.value='';ta.placeholder=t('addcomment');ta.style.direction='ltr';ta.style.textAlign='left';}
@@ -912,15 +912,15 @@ async function addTicketComment(){
   const text=ta.value.trim();
   if(!text){alert(t('noteerror'));return;}
   const comment={id:Date.now(),ticket_id:currentTicketId,text,ts:new Date().toLocaleString(),username:currentUser};
-  if(!ticketComments[currentTicketId])ticketComments[currentTicketId]=[];
-  ticketComments[currentTicketId].push(comment);
+  if(!ticketComments[String(currentTicketId)])ticketComments[String(currentTicketId)]=[];
+  ticketComments[String(currentTicketId)].push(comment);
   renderTicketComments(currentTicketId);
   await saveTicketComment(comment);toast(t('commentadded'));
 }
 
 async function deleteTicketComment(id){
   if(!confirm(t('confirmdelete')))return;
-  ticketComments[currentTicketId]=ticketComments[currentTicketId].filter(c=>c.id!==id);
+  ticketComments[String(currentTicketId)]=(ticketComments[String(currentTicketId)]||[]).filter(c=>c.id!==id);
   renderTicketComments(currentTicketId);
   await deleteTicketCommentDB(id);toast(t('commentdeleted'));
 }
