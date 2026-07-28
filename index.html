@@ -149,8 +149,9 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
         <div id="room-list"></div>
       </div>
       <div id="tab-maintenance" class="hidden">
-        <div style="margin-bottom:1rem">
+        <div style="margin-bottom:1rem;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="openNewTicket()"><i class="ti ti-plus"></i> <span id="lbl-newcall">New call</span></button>
+          <button class="btn" onclick="printOpenCalls()" style="border-color:#185FA5;color:#185FA5"><i class="ti ti-printer"></i> <span id="lbl-print">Print open calls</span></button>
         </div>
         <div id="ticket-filter" class="filter-row">
           <button class="filter-btn active" onclick="filterTickets('all',this)" id="lbl-all">All</button>
@@ -323,7 +324,8 @@ const LANGS={
     locationtype:'Location type',roomtype:'Room',othertype:'Other location',otherloc:'Location',
     otherlocplaceholder:'e.g. Lobby, Floor -1, Dining room...',locerror:'Please enter a location.',
     translate:'Translate',translating:'Translating...',transerror:'Translation failed',
-    markresolved:'Mark resolved',reopen:'Reopen'
+    markresolved:'Mark resolved',reopen:'Reopen',
+    print:'Print open calls',printitle:'Open Maintenance Calls',printroom:'Room',printtype:'Type',printdesc:'Description',printpriority:'Priority',printeta:'ETA',printby:'Reported by',printnoeta:'—',printnone:'No open maintenance calls'
   },
   ru:{
     manager:'Менеджер',rooms:'Номера',maintenance:'Обслуживание',dirty:'Грязный',clean:'Ви',hasnotes:'Есть заметки',
@@ -343,7 +345,8 @@ const LANGS={
     locationtype:'Тип места',roomtype:'Номер',othertype:'Другое место',otherloc:'Местоположение',
     otherlocplaceholder:'напр. Лобби, Этаж -1, Столовая...',locerror:'Пожалуйста, укажите местоположение.',
     translate:'Перевести',translating:'Перевожу...',transerror:'Ошибка перевода',
-    markresolved:'Отметить решённым',reopen:'Переоткрыть'
+    markresolved:'Отметить решённым',reopen:'Переоткрыть',
+    print:'Печать открытых вызовов',printitle:'Открытые вызовы обслуживания',printroom:'Номер',printtype:'Тип',printdesc:'Описание',printpriority:'Приоритет',printeta:'Срок',printby:'Кто сообщил',printnoeta:'—',printnone:'Нет открытых вызовов'
   },
   he:{
     manager:'מנהל',rooms:'חדרים',maintenance:'תחזוקה',dirty:'מלוכלך',clean:'וי',hasnotes:'יש הערות',
@@ -363,7 +366,8 @@ const LANGS={
     locationtype:'סוג מיקום',roomtype:'חדר',othertype:'מיקום אחר',otherloc:'מיקום',
     otherlocplaceholder:'לדוגמה: לובי, קומה -1, חדר אוכל...',locerror:'נא להזין מיקום.',
     translate:'תרגם',translating:'מתרגם...',transerror:'שגיאת תרגום',
-    markresolved:'סמן כטופל',reopen:'פתח מחדש'
+    markresolved:'סמן כטופל',reopen:'פתח מחדש',
+    print:'הדפס קריאות פתוחות',printitle:'קריאות תחזוקה פתוחות',printroom:'חדר',printtype:'סוג',printdesc:'תיאור',printpriority:'עדיפות',printeta:'זמן טיפול',printby:'דווח ע"י',printnoeta:'—',printnone:'אין קריאות תחזוקה פתוחות'
   }
 };
 
@@ -395,7 +399,7 @@ function setLang(l){
 }
 
 function applyLang(){
-  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-urgent':'urgent','lbl-normal':'normal','lbl-priority-label':'prioritylabel','lbl-eta-title':'etatitle','lbl-today':'today','lbl-parts':'parts','lbl-pickdate':'pickdate','lbl-urgent-filter-text':'urgent'};
+  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-urgent':'urgent','lbl-normal':'normal','lbl-priority-label':'prioritylabel','lbl-eta-title':'etatitle','lbl-today':'today','lbl-parts':'parts','lbl-pickdate':'pickdate','lbl-urgent-filter-text':'urgent','lbl-print':'print'};
   Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
   const np=document.getElementById('name-input');if(np)np.placeholder=t('nameplaceholder');
   const nt=document.getElementById('new-note-text');if(nt)nt.placeholder=t('addnote');
@@ -764,6 +768,96 @@ async function resetAllData(){
   await resetAll();toast(t('reset'));
 }
 
+async function printOpenCalls(){
+  const open=tickets.filter(tk=>tk.status==='open').sort((a,b)=>{
+    const ra=a.room||99999,rb=b.room||99999;
+    return ra-rb;
+  });
+  const now=new Date().toLocaleString();
+  const getEtaText=(eta)=>{
+    if(!eta)return t('printnoeta');
+    if(eta==='today')return t('today');
+    if(eta==='parts')return t('parts');
+    return eta;
+  };
+
+  // Auto-translate descriptions if language is Russian
+  const langMap={en:'en',ru:'ru',he:'iw'};
+  const targetLang=langMap[lang]||'en';
+  let descriptions=open.map(tk=>tk.description);
+
+  if(lang==='ru'){
+    toast(t('translating'));
+    try{
+      descriptions=await Promise.all(open.map(async tk=>{
+        if(!tk.description)return'';
+        try{
+          const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(tk.description)+'&langpair=autodetect|ru');
+          const data=await res.json();
+          const translated=data.responseData?.translatedText;
+          return(translated&&translated!==tk.description)?translated:tk.description;
+        }catch(e){return tk.description;}
+      }));
+    }catch(e){}
+  }
+
+  const rows=open.length===0
+    ?'<tr><td colspan="6" style="text-align:center;padding:20px;color:#888">'+t('printnone')+'</td></tr>'
+    :open.map((tk,i)=>{
+      const loc=tk.type==='Other'&&tk.location_label?'📍 '+tk.location_label:'Room '+tk.room;
+      const pri=tk.priority==='urgent'?'🔴 '+t('urgent'):'🟡 '+t('normal');
+      const desc=descriptions[i]||tk.description;
+      return'<tr>'
+        +'<td>'+loc+'</td>'
+        +'<td>'+tk.type+'</td>'
+        +'<td>'+desc+'</td>'
+        +'<td>'+pri+'</td>'
+        +'<td>'+getEtaText(tk.eta)+'</td>'
+        +'<td>'+(tk.username||'—')+'</td>'
+        +'</tr>';
+    }).join('');
+
+  const html=`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${t('printitle')}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:13px;margin:20px;color:#1a1a1a}
+  h1{font-size:18px;margin-bottom:4px}
+  .subtitle{font-size:12px;color:#888;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th{background:#185FA5;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
+  td{padding:8px 10px;border-bottom:0.5px solid #e0dfd8;vertical-align:top;font-size:12px}
+  tr:nth-child(even){background:#f9f8f4}
+  @media print{body{margin:10px}}
+</style>
+</head>
+<body>
+<h1>HK&amp;Maintenance-Mendeli</h1>
+<div class="subtitle">${t('printitle')} &nbsp;·&nbsp; ${now}</div>
+<table>
+<thead><tr>
+  <th>${t('printroom')}</th>
+  <th>${t('printtype')}</th>
+  <th>${t('printdesc')}</th>
+  <th>${t('printpriority')}</th>
+  <th>${t('printeta')}</th>
+  <th>${t('printby')}</th>
+</tr></thead>
+<tbody>${rows}</tbody>
+</table>
+<div style="margin-top:20px;font-size:11px;color:#aaa">HK&amp;Maintenance-Mendeli © 2025 · All rights reserved</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(),500);
+}
+
 function doNoteTranslate(btn){
   const nid=btn.getAttribute('data-noteid');
   const noteObj=(notes[currentRoom]||[]).find(n=>n.id==nid);
@@ -805,5 +899,4 @@ async function translateText(text,btnEl,resultEl){
 initUser();loadAll();startPolling();
 </script>
 </body>
-</html>
 </html>
