@@ -241,7 +241,16 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
     </div>
     <div id="td-body"></div>
 
-    <!-- ETA Section - visible to everyone -->
+    <!-- Ticket Comments Section -->
+    <div class="notes-section" style="margin-top:1rem">
+      <div class="notes-header"><i class="ti ti-message-circle"></i> <span id="lbl-ticketcomments">Updates / Comments</span></div>
+      <div id="ticket-comments-list"></div>
+      <div class="add-note-row">
+        <textarea id="new-ticket-comment" rows="2" oninput="autoDir(this)"></textarea>
+        <button class="btn btn-primary" style="align-self:flex-end;white-space:nowrap" onclick="addTicketComment()"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+
     <div class="eta-section" id="eta-section">
       <div class="eta-title" id="lbl-eta-title">⏱ When will this be fixed?</div>
       <button class="eta-btn" id="eta-today" onclick="setETA('today')"><span style="font-size:20px">✅</span> <span id="lbl-today">Will be done today</span></button>
@@ -325,7 +334,8 @@ const LANGS={
     otherlocplaceholder:'e.g. Lobby, Floor -1, Dining room...',locerror:'Please enter a location.',
     translate:'Translate',translating:'Translating...',transerror:'Translation failed',
     markresolved:'Mark resolved',reopen:'Reopen',
-    print:'Print open calls',printitle:'Open Maintenance Calls',printroom:'Room',printtype:'Type',printdesc:'Description',printpriority:'Priority',printeta:'ETA',printby:'Reported by',printnoeta:'—',printnone:'No open maintenance calls'
+    print:'Print open calls',printitle:'Open Maintenance Calls',printroom:'Room',printtype:'Type',printdesc:'Description',printpriority:'Priority',printeta:'ETA',printby:'Reported by',printnoeta:'—',printnone:'No open maintenance calls',
+    ticketcomments:'Updates / Comments',nocomments:'No updates yet',addcomment:'Write an update...',commentadded:'Update added',commentdeleted:'Update deleted'
   },
   ru:{
     manager:'Менеджер',rooms:'Номера',maintenance:'Обслуживание',dirty:'Грязный',clean:'Ви',hasnotes:'Есть заметки',
@@ -346,7 +356,8 @@ const LANGS={
     otherlocplaceholder:'напр. Лобби, Этаж -1, Столовая...',locerror:'Пожалуйста, укажите местоположение.',
     translate:'Перевести',translating:'Перевожу...',transerror:'Ошибка перевода',
     markresolved:'Отметить решённым',reopen:'Переоткрыть',
-    print:'Печать открытых вызовов',printitle:'Открытые вызовы обслуживания',printroom:'Номер',printtype:'Тип',printdesc:'Описание',printpriority:'Приоритет',printeta:'Срок',printby:'Кто сообщил',printnoeta:'—',printnone:'Нет открытых вызовов'
+    print:'Печать открытых вызовов',printitle:'Открытые вызовы обслуживания',printroom:'Номер',printtype:'Тип',printdesc:'Описание',printpriority:'Приоритет',printeta:'Срок',printby:'Кто сообщил',printnoeta:'—',printnone:'Нет открытых вызовов',
+    ticketcomments:'Обновления / Комментарии',nocomments:'Обновлений пока нет',addcomment:'Написать обновление...',commentadded:'Обновление добавлено',commentdeleted:'Обновление удалено'
   },
   he:{
     manager:'מנהל',rooms:'חדרים',maintenance:'תחזוקה',dirty:'מלוכלך',clean:'וי',hasnotes:'יש הערות',
@@ -367,7 +378,8 @@ const LANGS={
     otherlocplaceholder:'לדוגמה: לובי, קומה -1, חדר אוכל...',locerror:'נא להזין מיקום.',
     translate:'תרגם',translating:'מתרגם...',transerror:'שגיאת תרגום',
     markresolved:'סמן כטופל',reopen:'פתח מחדש',
-    print:'הדפס קריאות פתוחות',printitle:'קריאות תחזוקה פתוחות',printroom:'חדר',printtype:'סוג',printdesc:'תיאור',printpriority:'עדיפות',printeta:'זמן טיפול',printby:'דווח ע"י',printnoeta:'—',printnone:'אין קריאות תחזוקה פתוחות'
+    print:'הדפס קריאות פתוחות',printitle:'קריאות תחזוקה פתוחות',printroom:'חדר',printtype:'סוג',printdesc:'תיאור',printpriority:'עדיפות',printeta:'זמן טיפול',printby:'דווח ע"י',printnoeta:'—',printnone:'אין קריאות תחזוקה פתוחות',
+    ticketcomments:'עדכונים / הערות',nocomments:'אין עדכונים עדיין',addcomment:'כתוב עדכון...',commentadded:'עדכון נוסף',commentdeleted:'עדכון נמחק'
   }
 };
 
@@ -399,14 +411,14 @@ function setLang(l){
 }
 
 function applyLang(){
-  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-urgent':'urgent','lbl-normal':'normal','lbl-priority-label':'prioritylabel','lbl-eta-title':'etatitle','lbl-today':'today','lbl-parts':'parts','lbl-pickdate':'pickdate','lbl-urgent-filter-text':'urgent','lbl-print':'print'};
+  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-urgent':'urgent','lbl-normal':'normal','lbl-priority-label':'prioritylabel','lbl-eta-title':'etatitle','lbl-today':'today','lbl-parts':'parts','lbl-pickdate':'pickdate','lbl-urgent-filter-text':'urgent','lbl-print':'print','lbl-ticketcomments':'ticketcomments'};
   Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
   const np=document.getElementById('name-input');if(np)np.placeholder=t('nameplaceholder');
   const nt=document.getElementById('new-note-text');if(nt)nt.placeholder=t('addnote');
   const td=document.getElementById('ticket-desc');if(td)td.placeholder=t('problem')+'...';
 }
 
-let rooms={},tickets=[],notes={};
+let rooms={},tickets=[],notes={},ticketComments={};
 let currentRoom=null,currentTicketId=null,isManager=false,ticketFilter='all';
 let pollInterval=null,currentUser='',selectedPriority='normal';
 
@@ -441,10 +453,11 @@ async function api(path,method='GET',body=null){
 async function loadAll(){
   setSyncStatus('syncing');
   try{
-    const[rm,tk,nt]=await Promise.all([api('rooms?select=room,clean'),api('tickets?select=*&order=id.desc'),api('notes?select=*&order=id.asc')]);
+    const[rm,tk,nt,tc]=await Promise.all([api('rooms?select=room,clean'),api('tickets?select=*&order=id.desc'),api('notes?select=*&order=id.asc'),api('ticket_comments?select=*&order=id.asc')]);
     rooms={};(rm||[]).forEach(r=>rooms[r.room]=r.clean);
     tickets=tk||[];
     notes={};(nt||[]).forEach(n=>{if(!notes[n.room])notes[n.room]=[];notes[n.room].push(n);});
+    ticketComments={};(tc||[]).forEach(c=>{if(!ticketComments[c.ticket_id])ticketComments[c.ticket_id]=[];ticketComments[c.ticket_id].push(c);});
     setSyncStatus('ok');renderAll();
   }catch(e){setSyncStatus('error');console.error(e);}
 }
@@ -453,6 +466,8 @@ async function saveRoomStatus(room,clean){setSyncStatus('syncing');try{await api
 async function saveTicket(tk){setSyncStatus('syncing');try{await api('tickets','POST',[tk]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
 async function updateTicketField(id,fields){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'PATCH',fields);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
 async function deleteTicketDB(id){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function saveTicketComment(c){setSyncStatus('syncing');try{await api('ticket_comments','POST',[c]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function deleteTicketCommentDB(id){setSyncStatus('syncing');try{await api('ticket_comments?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
 async function saveNote(note){setSyncStatus('syncing');try{await api('notes','POST',[note]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
 async function deleteNoteDB(id){setSyncStatus('syncing');try{await api('notes?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
 async function resetAll(){setSyncStatus('syncing');try{await api('rooms?room=gt.0','DELETE');await api('tickets?id=gt.0','DELETE');await api('notes?id=gt.0','DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
@@ -678,6 +693,7 @@ function openTicket(id){
   const ma=document.getElementById('td-manager-actions');const rb=document.getElementById('td-resolve-btn');
   if(isManager){ma.classList.remove('hidden');rb.textContent=tk.status==='open'?t('markresolved'):t('reopen');}
   else{ma.classList.add('hidden');}
+  renderTicketComments(currentTicketId);
   document.getElementById('ticketDetailModal').classList.remove('hidden');
 }
 
@@ -764,7 +780,7 @@ function openManagerDash(){
 
 async function resetAllData(){
   if(!confirm(t('confirmreset')))return;
-  rooms={};tickets=[];notes={};renderAll();closeModal('managerDashModal');
+  rooms={};tickets=[];notes={};ticketComments={};renderAll();closeModal('managerDashModal');
   await resetAll();toast(t('reset'));
 }
 
@@ -807,10 +823,11 @@ async function printOpenCalls(){
       const loc=tk.type==='Other'&&tk.location_label?'📍 '+tk.location_label:'Room '+tk.room;
       const pri=tk.priority==='urgent'?'🔴 '+t('urgent'):'🟡 '+t('normal');
       const desc=descriptions[i]||tk.description;
+      const comments=(ticketComments[tk.id]||[]).map(c=>'<div style="font-size:11px;color:#666;margin-top:3px;padding-left:8px;border-left:2px solid #185FA5">💬 '+(c.username||'?')+': '+c.text+'</div>').join('');
       return'<tr>'
         +'<td>'+loc+'</td>'
         +'<td>'+tk.type+'</td>'
-        +'<td>'+desc+'</td>'
+        +'<td>'+desc+comments+'</td>'
         +'<td>'+pri+'</td>'
         +'<td>'+getEtaText(tk.eta)+'</td>'
         +'<td>'+(tk.username||'—')+'</td>'
@@ -856,6 +873,56 @@ async function printOpenCalls(){
   w.document.close();
   w.focus();
   setTimeout(()=>w.print(),500);
+}
+
+function renderTicketComments(ticketId){
+  const comments=ticketComments[ticketId]||[];
+  const list=document.getElementById('ticket-comments-list');
+  const ta=document.getElementById('new-ticket-comment');
+  if(ta){ta.value='';ta.placeholder=t('addcomment');ta.style.direction='ltr';ta.style.textAlign='left';}
+  const header=document.getElementById('lbl-ticketcomments');
+  if(header)header.textContent=t('ticketcomments');
+  if(!list)return;
+  if(comments.length===0){
+    list.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nocomments')+'</p>';
+  }else{
+    list.innerHTML=comments.map(c=>{
+      const delBtn=isManager?'<button class="note-delete" onclick="deleteTicketComment('+c.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>':'';
+      return'<div class="note-item">'
+        +'<div class="note-text" style="direction:'+getDir(c.text)+';text-align:'+getAlign(c.text)+'">'+c.text+'</div>'
+        +'<div class="note-translation" id="tctr-'+c.id+'" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
+        +'<div class="note-meta"><i class="ti ti-user"></i> '+(c.username||'Unknown')+' · <i class="ti ti-clock"></i> '+c.ts
+        +'<button class="note-translate" id="tctb-'+c.id+'" data-commentid="'+c.id+'" onclick="doCommentTranslate(this)"><i class="ti ti-language"></i> '+t('translate')+'</button>'
+        +delBtn+'</div></div>';
+    }).join('');
+  }
+}
+
+function doCommentTranslate(btn){
+  const cid=btn.getAttribute('data-commentid');
+  const allComments=Object.values(ticketComments).flat();
+  const comment=allComments.find(c=>c.id==cid);
+  if(!comment)return;
+  const res=document.getElementById('tctr-'+cid);
+  translateText(comment.text,btn,res);
+}
+
+async function addTicketComment(){
+  const ta=document.getElementById('new-ticket-comment');
+  const text=ta.value.trim();
+  if(!text){alert(t('noteerror'));return;}
+  const comment={id:Date.now(),ticket_id:currentTicketId,text,ts:new Date().toLocaleString(),username:currentUser};
+  if(!ticketComments[currentTicketId])ticketComments[currentTicketId]=[];
+  ticketComments[currentTicketId].push(comment);
+  renderTicketComments(currentTicketId);
+  await saveTicketComment(comment);toast(t('commentadded'));
+}
+
+async function deleteTicketComment(id){
+  if(!confirm(t('confirmdelete')))return;
+  ticketComments[currentTicketId]=ticketComments[currentTicketId].filter(c=>c.id!==id);
+  renderTicketComments(currentTicketId);
+  await deleteTicketCommentDB(id);toast(t('commentdeleted'));
 }
 
 function doNoteTranslate(btn){
