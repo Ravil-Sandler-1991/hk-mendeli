@@ -155,9 +155,24 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
         </div>
         <div id="ticket-filter" class="filter-row">
           <button class="filter-btn active" onclick="filterTickets('all',this)" id="lbl-all">All</button>
-          <button class="filter-btn" onclick="filterTickets('urgent',this)" id="lbl-urgent-filter" style="color:#A32D2D;border-color:#E24B4A">🔴 <span id="lbl-urgent-filter-text">Urgent</span></button>
           <button class="filter-btn" onclick="filterTickets('open',this)" id="lbl-open">Open</button>
           <button class="filter-btn" onclick="filterTickets('resolved',this)" id="lbl-resolved">Resolved</button>
+          <button class="filter-btn" onclick="filterTickets('history',this)" id="lbl-history">History</button>
+        </div>
+        <div id="history-search" class="hidden" style="margin-bottom:1rem;padding:12px;background:#f9f8f4;border-radius:10px;border:0.5px solid #e8e7e0">
+          <div class="field-group">
+            <label class="field-label">Date from</label>
+            <input type="date" id="history-date-from">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Date to</label>
+            <input type="date" id="history-date-to">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Room number</label>
+            <input type="number" id="history-room-search" placeholder="e.g. 101" min="1">
+          </div>
+          <button class="btn" onclick="clearHistoryFilters()" style="width:100%">Clear filters</button>
         </div>
         <div id="ticket-list"></div>
       </div>
@@ -214,15 +229,23 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
       <input type="text" id="ticket-other-loc" oninput="autoDir(this)">
     </div>
     <div class="field-group">
+      <label class="field-label" id="lbl-category">Issue category</label>
+      <div class="priority-row">
+        <button class="priority-btn" id="cat-paint" onclick="selectCategory('Paint')" style="border-color:#9B59B6;color:#9B59B6">🎨 Paint</button>
+        <button class="priority-btn" id="cat-electric" onclick="selectCategory('Electricity')" style="border-color:#F39C12;color:#F39C12">⚡ Electric</button>
+      </div>
+      <div class="priority-row">
+        <button class="priority-btn" id="cat-plumb" onclick="selectCategory('Plumbing')" style="border-color:#3498DB;color:#3498DB">🚰 Plumbing</button>
+        <button class="priority-btn selected" id="cat-general" onclick="selectCategory('General repairs')" style="border-color:#185FA5;color:#185FA5">🔧 General</button>
+      </div>
+    </div>
+    <div class="field-group">
       <label class="field-label" id="lbl-problem">Problem description</label>
       <textarea id="ticket-desc" rows="3" oninput="autoDir(this)"></textarea>
     </div>
-    <div class="field-group">
-      <label class="field-label" id="lbl-priority-label">Priority</label>
-      <div class="priority-row">
-        <button class="priority-btn urgent" id="pri-urgent" onclick="selectPriority('urgent')">🔴 <span id="lbl-urgent">Urgent</span></button>
-        <button class="priority-btn normal selected" id="pri-normal" onclick="selectPriority('normal')">🟡 <span id="lbl-normal">Normal</span></button>
-      </div>
+    <div id="duplicate-warning" class="hidden" style="background:#FCEBEB;border:1px solid #E24B4A;border-radius:10px;padding:12px;margin-bottom:1rem;color:#A32D2D;font-size:13px">
+      <div style="margin-bottom:8px">⚠️ <strong id="dup-warning-text">Room 101 already has an open PAINT ticket</strong></div>
+      <button class="btn" onclick="viewExistingTicket()" style="width:100%;font-size:12px">View existing call</button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="submitTicket()"><i class="ti ti-send"></i> <span id="lbl-submit">Submit</span></button>
@@ -323,11 +346,11 @@ const LANGS={
     dashboard:'Manager dashboard',resetall:'Reset all',opencalls:'Open maintenance calls',
     welcome:'Welcome!',entername:'Enter your name once',start:'Start',synced:'Synced',syncing:'Syncing…',offline:'Offline',
     roomclean:'Room is Vi ✅',roomdirty:'Room needs cleaning',incorrectpin:'Incorrect PIN',
-    open:'Open',resolved:'Resolved',all:'All',cleanrooms:'Clean rooms',opencallsstat:'Open calls',resolvedstat:'Resolved',
+    open:'Open',resolved:'Resolved',all:'All',history:'History',cleanrooms:'Clean rooms',opencallsstat:'Open calls',resolvedstat:'Resolved',
     nameplaceholder:'Your name',confirmdelete:'Delete?',confirmreset:'Reset ALL data?',noteerror:'Please write a note.',
     ticketerror:'Please describe the problem.',markedvi:'marked as Vi',markeddirty:'marked as dirty',
     noteadded:'Note added',notedeleted:'Note deleted',deleted:'Deleted',markedresolved:'Marked as resolved',reopened:'Reopened',reset:'All data reset',
-    urgent:'Urgent',normal:'Normal',prioritylabel:'Priority',
+    category:'Issue category',
     etatitle:'When will this be fixed?',today:'Will be done today',parts:'Waiting for parts / technician',pickdate:'Pick a date',
     etaset:'ETA updated',urgentcalls:'Urgent calls',
     locationtype:'Location type',roomtype:'Room',othertype:'Other location',otherloc:'Location',
@@ -345,11 +368,11 @@ const LANGS={
     dashboard:'Панель менеджера',resetall:'Сбросить всё',opencalls:'Открытые вызовы',
     welcome:'Добро пожаловать!',entername:'Введите своё имя один раз',start:'Начать',synced:'Синхронизировано',syncing:'Синхронизация…',offline:'Офлайн',
     roomclean:'Номер чист ✅',roomdirty:'Номер требует уборки',incorrectpin:'Неверный PIN',
-    open:'Открыт',resolved:'Решено',all:'Все',cleanrooms:'Чистые номера',opencallsstat:'Открытые вызовы',resolvedstat:'Решено',
+    open:'Открыт',resolved:'Решено',all:'Все',history:'История',cleanrooms:'Чистые номера',opencallsstat:'Открытые вызовы',resolvedstat:'Решено',
     nameplaceholder:'Ваше имя',confirmdelete:'Удалить?',confirmreset:'Сбросить ВСЕ данные?',noteerror:'Пожалуйста, напишите заметку.',
     ticketerror:'Пожалуйста, опишите проблему.',markedvi:'отмечен как Ви',markeddirty:'отмечен как грязный',
     noteadded:'Заметка добавлена',notedeleted:'Заметка удалена',deleted:'Удалено',markedresolved:'Отмечено как решённое',reopened:'Переоткрыто',reset:'Все данные сброшены',
-    urgent:'Срочно',normal:'Обычный',prioritylabel:'Приоритет',
+    category:'Категория проблемы',
     etatitle:'Когда будет исправлено?',today:'Будет сделано сегодня',parts:'Ожидание запчастей / техника',pickdate:'Выбрать дату',
     etaset:'Срок обновлён',urgentcalls:'Срочные вызовы',
     locationtype:'Тип места',roomtype:'Номер',othertype:'Другое место',otherloc:'Местоположение',
@@ -367,11 +390,11 @@ const LANGS={
     dashboard:'לוח מנהל',resetall:'אפס הכל',opencalls:'קריאות פתוחות',
     welcome:'ברוך הבא!',entername:'הכנס שמך פעם אחת',start:'התחל',synced:'מסונכרן',syncing:'מסנכרן…',offline:'לא מחובר',
     roomclean:'החדר נקי ✅',roomdirty:'החדר טעון ניקיון',incorrectpin:'קוד שגוי',
-    open:'פתוח',resolved:'טופל',all:'הכל',cleanrooms:'חדרים נקיים',opencallsstat:'קריאות פתוחות',resolvedstat:'טופל',
+    open:'פתוח',resolved:'טופל',all:'הכל',history:'היסטוריה',cleanrooms:'חדרים נקיים',opencallsstat:'קריאות פתוחות',resolvedstat:'טופל',
     nameplaceholder:'שמך',confirmdelete:'למחוק?',confirmreset:'לאפס את כל הנתונים?',noteerror:'נא לכתוב הערה.',
     ticketerror:'נא לתאר את הבעיה.',markedvi:'סומן כוי',markeddirty:'סומן כמלוכלך',
     noteadded:'הערה נוספה',notedeleted:'הערה נמחקה',deleted:'נמחק',markedresolved:'סומן כטופל',reopened:'נפתח מחדש',reset:'כל הנתונים אופסו',
-    urgent:'דחוף',normal:'רגיל',prioritylabel:'עדיפות',
+    category:'קטגוריה של הבעיה',
     etatitle:'מתי זה יתוקן?',today:'יסתיים היום',parts:'ממתין לחלקים / טכנאי',pickdate:'בחר תאריך',
     etaset:'זמן עדכון עודכן',urgentcalls:'קריאות דחופות',
     locationtype:'סוג מיקום',roomtype:'חדר',othertype:'מיקום אחר',otherloc:'מיקום',
@@ -385,7 +408,7 @@ const LANGS={
 
 const ROOMS=[101,102,103,104,105,106,107,108,109,110,111,112,113,114,201,202,203,204,205,206,207,208,209,210,211,212,213,214,301,302,303,304,305,306,307,308,309,310,311,312,313,314,401,402,403,404,405,406,407,408,409,410,411,412,413,501,502,503,504,505,506,507,508,509,510,511];
 const TYPES={101:'Superior',112:'Deluxe',113:'Superior',114:'Classic',201:'Superior',202:'Spa',211:'Superior',212:'Deluxe',213:'Superior',214:'Superior',301:'Superior',311:'Superior',312:'Deluxe',313:'Superior',314:'Superior',401:'Suite',409:'Superior',411:'Superior',412:'Deluxe',413:'Superior',501:'Superior',502:'Superior',503:'Loft',504:'Loft',505:'Loft',506:'Superior',507:'Loft',508:'PremDlx',509:'Loft',510:'PremDlx',511:'Superior'};
-const BADGE_CLASS={Superior:'badge-sup',Deluxe:'badge-dlx',Suite:'badge-suite',Loft:'badge-loft',PremDlx:'badge-premdlx',Classic:'badge-classic',Spa:'badge-spa',Other:'badge-other'};
+const BADGE_CLASS={Superior:'badge-sup',Deluxe:'badge-dlx',Suite:'badge-suite',Loft:'badge-loft',PremDlx:'badge-premdlx',Classic:'badge-classic',Spa:'badge-spa',Other:'badge-other',Paint:'badge-other',Electricity:'badge-other',Plumbing:'badge-other','General repairs':'badge-other'};
 
 function getType(r){return TYPES[r]||'Classic';}
 function getBadgeClass(tp){return BADGE_CLASS[tp]||'badge-classic';}
@@ -411,7 +434,7 @@ function setLang(l){
 }
 
 function applyLang(){
-  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-urgent':'urgent','lbl-normal':'normal','lbl-priority-label':'prioritylabel','lbl-eta-title':'etatitle','lbl-today':'today','lbl-parts':'parts','lbl-pickdate':'pickdate','lbl-urgent-filter-text':'urgent','lbl-print':'print','lbl-ticketcomments':'ticketcomments'};
+  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-history':'history','lbl-category':'category','lbl-print':'print','lbl-ticketcomments':'ticketcomments'};
   Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
   const np=document.getElementById('name-input');if(np)np.placeholder=t('nameplaceholder');
   const nt=document.getElementById('new-note-text');if(nt)nt.placeholder=t('addnote');
@@ -420,7 +443,8 @@ function applyLang(){
 
 let rooms={},tickets=[],notes={},ticketComments={};
 let currentRoom=null,currentTicketId=null,isManager=false,ticketFilter='all';
-let pollInterval=null,currentUser='',selectedPriority='normal';
+let pollInterval=null,currentUser='',selectedCategory='General repairs';
+let historyFilters={dateFrom:'',dateTo:'',room:''};
 
 function initUser(){
   const savedLang=localStorage.getItem('hk-lang');
@@ -567,10 +591,43 @@ async function deleteNote(id){
   await deleteNoteDB(id);toast(t('notedeleted'));
 }
 
-function selectPriority(p){
-  selectedPriority=p;
-  document.getElementById('pri-urgent').classList.toggle('selected',p==='urgent');
-  document.getElementById('pri-normal').classList.toggle('selected',p==='normal');
+function selectCategory(cat){
+  selectedCategory=cat;
+  document.getElementById('cat-paint').classList.toggle('selected',cat==='Paint');
+  document.getElementById('cat-electric').classList.toggle('selected',cat==='Electricity');
+  document.getElementById('cat-plumb').classList.toggle('selected',cat==='Plumbing');
+  document.getElementById('cat-general').classList.toggle('selected',cat==='General repairs');
+  checkDuplicateTicket();
+}
+
+function checkDuplicateTicket(){
+  if(selectedLocType!=='room')return;
+  const room=parseInt(document.getElementById('ticket-room').value);
+  const existing=tickets.find(tk=>tk.room===room&&tk.status==='open'&&tk.type===selectedCategory);
+  const warning=document.getElementById('duplicate-warning');
+  if(existing){
+    warning.classList.remove('hidden');
+    document.getElementById('dup-warning-text').textContent='Room '+room+' already has an open '+selectedCategory+' ticket';
+  }else{
+    warning.classList.add('hidden');
+  }
+}
+
+function viewExistingTicket(){
+  const room=parseInt(document.getElementById('ticket-room').value);
+  const existing=tickets.find(tk=>tk.room===room&&tk.status==='open'&&tk.type===selectedCategory);
+  if(existing){
+    closeModal('ticketModal');
+    setTimeout(()=>openTicket(existing.id),200);
+  }
+}
+
+function clearHistoryFilters(){
+  historyFilters={dateFrom:'',dateTo:'',room:''};
+  document.getElementById('history-date-from').value='';
+  document.getElementById('history-date-to').value='';
+  document.getElementById('history-room-search').value='';
+  renderTickets();
 }
 
 let selectedLocType='room';
@@ -589,21 +646,20 @@ function openNewTicket(){
   sel.innerHTML=ROOMS.map(r=>'<option value="'+r+'">Room '+r+' - '+getType(r)+'</option>').join('');
   const ta=document.getElementById('ticket-desc');ta.value='';ta.placeholder=t('problem')+'...';ta.style.direction='ltr';ta.style.textAlign='left';
   const ol=document.getElementById('ticket-other-loc');ol.value='';ol.style.direction='ltr';ol.style.textAlign='left';
-  selectedPriority='normal';selectPriority('normal');
+  selectedCategory='General repairs';selectCategory('General repairs');
   selectedLocType='room';selectLocType('room');
   document.getElementById('lbl-newcall-title').textContent=t('newcall');
   document.getElementById('lbl-selectroom').textContent=t('selectroom');
   document.getElementById('lbl-problem').textContent=t('problem');
   document.getElementById('lbl-submit').textContent=t('submit');
   document.getElementById('lbl-cancel').textContent=t('cancel');
-  document.getElementById('lbl-priority-label').textContent=t('prioritylabel');
-  document.getElementById('lbl-urgent').textContent=t('urgent');
-  document.getElementById('lbl-normal').textContent=t('normal');
+  document.getElementById('lbl-category').textContent=t('category');
   document.getElementById('lbl-location-type').textContent=t('locationtype');
   document.getElementById('lbl-room-type').textContent=t('roomtype');
   document.getElementById('lbl-other-type').textContent=t('othertype');
   document.getElementById('lbl-otherloc').textContent=t('otherloc');
   ol.placeholder=t('otherlocplaceholder');
+  document.getElementById('duplicate-warning').classList.add('hidden');
   document.getElementById('ticketModal').classList.remove('hidden');
 }
 
@@ -613,14 +669,14 @@ async function submitTicket(){
   let room,type,locationLabel;
   if(selectedLocType==='room'){
     room=parseInt(document.getElementById('ticket-room').value);
-    type=getType(room);
+    type=selectedCategory;
     locationLabel=null;
   }else{
     const otherLoc=document.getElementById('ticket-other-loc').value.trim();
     if(!otherLoc){alert(t('locerror'));return;}
-    room=0;type='Other';locationLabel=otherLoc;
+    room=0;type=selectedCategory;locationLabel=otherLoc;
   }
-  const ticket={id:Date.now(),room,type,description,ts:new Date().toLocaleString(),status:'open',username:currentUser,priority:selectedPriority,eta:null,location_label:locationLabel};
+  const ticket={id:Date.now(),room,type,description,ts:new Date().toLocaleString(),status:'open',username:currentUser,priority:'normal',eta:null,location_label:locationLabel};
   tickets.unshift(ticket);renderTickets();closeModal('ticketModal');
   await saveTicket(ticket);toast(t('newcall')+' ✓');
 }
@@ -628,7 +684,14 @@ async function submitTicket(){
 function filterTickets(f,btn){
   ticketFilter=f;
   document.querySelectorAll('#ticket-filter .filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');renderTickets();
+  btn.classList.add('active');
+  const searchBox=document.getElementById('history-search');
+  if(f==='history'){
+    searchBox.classList.remove('hidden');
+  }else{
+    searchBox.classList.add('hidden');
+  }
+  renderTickets();
 }
 
 function getLocLabel(tk){
@@ -645,33 +708,122 @@ function getETALabel(eta){
 
 function renderTickets(){
   const list=document.getElementById('ticket-list');if(!list)return;
-  let filtered=tickets.filter(tk=>ticketFilter==='all'||tk.status===ticketFilter||(ticketFilter==='urgent'&&tk.priority==='urgent'&&tk.status==='open'));
+  let filtered=[];
+  
+  // Filter based on current filter
+  if(ticketFilter==='all'){
+    // All: open + resolved from last 2 days
+    const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000).toDateString();
+    filtered=tickets.filter(tk=>tk.status==='open'||tk.status==='resolved');
+  }else if(ticketFilter==='open'){
+    // Open only
+    filtered=tickets.filter(tk=>tk.status==='open');
+  }else if(ticketFilter==='resolved'){
+    // Resolved from last 2 days only
+    const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000);
+    filtered=tickets.filter(tk=>{
+      if(tk.status!=='resolved')return false;
+      const tDate=new Date(tk.resolved_ts||tk.ts);
+      return tDate>=twoDaysAgo;
+    });
+  }else if(ticketFilter==='history'){
+    // All resolved tickets (lifetime) with search filters
+    filtered=tickets.filter(tk=>tk.status==='resolved');
+    
+    // Apply date filters
+    if(historyFilters.dateFrom){
+      const df=new Date(historyFilters.dateFrom);
+      filtered=filtered.filter(tk=>{
+        const tDate=new Date(tk.resolved_ts||tk.ts);
+        return tDate>=df;
+      });
+    }
+    if(historyFilters.dateTo){
+      const dt=new Date(historyFilters.dateTo);
+      dt.setDate(dt.getDate()+1);
+      filtered=filtered.filter(tk=>{
+        const tDate=new Date(tk.resolved_ts||tk.ts);
+        return tDate<dt;
+      });
+    }
+    
+    // Apply room filter
+    if(historyFilters.room){
+      const room=parseInt(historyFilters.room);
+      filtered=filtered.filter(tk=>tk.room===room);
+    }
+  }
+  
   if(!filtered.length){list.innerHTML='<p style="color:#bbb;font-size:14px;text-align:center;padding:2rem 0">'+t('opencalls')+' — 0</p>';return;}
-  // Sort urgent first
-  filtered.sort((a,b)=>{if(a.priority==='urgent'&&b.priority!=='urgent')return-1;if(b.priority==='urgent'&&a.priority!=='urgent')return 1;return 0;});
-  list.innerHTML=filtered.map(tk=>{
-    const urgentBadge=tk.priority==='urgent'?'<span class="badge-urgent">🔴 '+t('urgent')+'</span>':'';
-    const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5;margin-top:4px;display:block"><i class="ti ti-clock"></i> '+getETALabel(tk.eta)+'</span>':'';
-    return'<div class="ticket-card '+tk.status+(tk.priority==='urgent'?' urgent':'')+'" onclick="openTicket('+tk.id+')">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
-      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-weight:600">'+getLocLabel(tk)+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span>'+urgentBadge+'</div>'
-      +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+';white-space:nowrap">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
-      +'</div>'
-      +'<p style="font-size:13px;color:#888;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
-      +etaLabel
-      +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
-      +'</div>';
-  }).join('');
+  
+  // Separate public areas from room tickets
+  const publicAreas=filtered.filter(tk=>!tk.room||tk.type==='Other');
+  const roomTickets=filtered.filter(tk=>tk.room&&tk.type!=='Other');
+  
+  // Sort each group
+  const sortTickets=(a,b)=>{
+    // Open first, then Resolved
+    if(a.status!==b.status){return a.status==='open'?-1:1;}
+    return 0;
+  };
+  
+  publicAreas.sort(sortTickets);
+  
+  roomTickets.sort((a,b)=>{
+    // Sort by floor, then room number, then status
+    const floorA=a.room?Math.floor(a.room/100):999;
+    const floorB=b.room?Math.floor(b.room/100):999;
+    if(floorA!==floorB)return floorA-floorB;
+    if(a.room!==b.room)return a.room-b.room;
+    return sortTickets(a,b);
+  });
+  
+  // Build HTML with sections
+  let html='';
+  
+  // Public Areas Section
+  if(publicAreas.length>0){
+    html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:#185FA5;margin-bottom:8px">📍 Common Areas</div>';
+    html+=publicAreas.map(tk=>buildTicketCard(tk)).join('');
+    html+='</div>';
+  }
+  
+  // Rooms by Floor
+  let currentFloor=null;
+  roomTickets.forEach(tk=>{
+    const floor=Math.floor(tk.room/100);
+    if(floor!==currentFloor){
+      if(currentFloor!==null)html+='</div>';
+      const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
+      html+='<div style="margin-bottom:12px"><div class="floor-label">'+floorName+'</div>';
+      currentFloor=floor;
+    }
+    html+=buildTicketCard(tk);
+  });
+  if(currentFloor!==null)html+='</div>';
+  
+  list.innerHTML=html;
+}
+
+function buildTicketCard(tk){
+  const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5;margin-top:4px;display:block"><i class="ti ti-clock"></i> '+getETALabel(tk.eta)+'</span>':'';
+  return'<div class="ticket-card '+tk.status+'" onclick="openTicket('+tk.id+')">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-weight:600">'+getLocLabel(tk)+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
+    +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+';white-space:nowrap">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
+    +'</div>'
+    +'<p style="font-size:13px;color:#888;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
+    +etaLabel
+    +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
+    +'</div>';
 }
 
 function openTicket(id){
   const tk=tickets.find(x=>x.id===id);if(!tk)return;
   currentTicketId=id;
   document.getElementById('td-title').textContent=getLocLabel(tk)+' - '+tk.type;
-  const urgentBanner=tk.priority==='urgent'?'<div class="urgent-banner">🔴 '+t('urgent')+'</div>':'';
   document.getElementById('td-body').innerHTML=
-    urgentBanner
-    +'<p style="font-size:13px;color:#aaa;margin-bottom:8px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
+    '<p style="font-size:13px;color:#aaa;margin-bottom:8px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
     +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+'">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
     +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-top:0.75rem;padding:12px;background:#f5f5f0;border-radius:10px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</div>'
     +'<div class="note-translation" id="td-translation" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
@@ -962,6 +1114,22 @@ async function translateText(text,btnEl,resultEl){
     btnEl.disabled=false;
   }
 }
+
+// Setup history search event listeners
+document.addEventListener('DOMContentLoaded',function(){
+  const df=document.getElementById('history-date-from');
+  const dt=document.getElementById('history-date-to');
+  const rm=document.getElementById('history-room-search');
+  if(df)df.addEventListener('change',function(){historyFilters.dateFrom=this.value;renderTickets();});
+  if(dt)dt.addEventListener('change',function(){historyFilters.dateTo=this.value;renderTickets();});
+  if(rm)rm.addEventListener('input',function(){historyFilters.room=this.value;renderTickets();});
+});
+
+// Also check room selection changes for duplicate detection
+document.addEventListener('DOMContentLoaded',function(){
+  const roomSel=document.getElementById('ticket-room');
+  if(roomSel)roomSel.addEventListener('change',checkDuplicateTicket);
+});
 
 initUser();loadAll();startPolling();
 </script>
