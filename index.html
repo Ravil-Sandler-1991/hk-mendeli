@@ -293,6 +293,24 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
   </div>
 </div>
 
+<!-- Ticket Success Modal -->
+<div class="modal-bg hidden" id="ticketSuccessModal">
+  <div class="modal" style="text-align:center;max-width:380px">
+    <div class="modal-handle"></div>
+    <i class="ti ti-circle-check" style="font-size:48px;margin-bottom:1rem;color:#639922"></i>
+    <h3 style="margin-bottom:0.5rem">✓ Call Created!</h3>
+    <div id="success-details" style="text-align:left;background:#f9f8f4;border-radius:10px;padding:12px;margin-bottom:1.25rem;font-size:13px">
+      <div style="margin-bottom:8px"><strong id="success-room">Room: 101</strong></div>
+      <div id="success-category" style="color:#888">Category: Paint</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-direction:column">
+      <button class="btn" onclick="sendToManagerWhatsAppFromSuccess()" style="border-color:#25D366;color:#25D366;font-weight:600"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
+      <button class="btn btn-primary" onclick="createAnotherTicket()">Create Another Call</button>
+      <button class="btn" onclick="closeModal('ticketSuccessModal')">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- PIN Modal -->
 <div class="modal-bg hidden" id="pinModal">
   <div class="modal" style="text-align:center">
@@ -449,6 +467,7 @@ let rooms={},tickets=[],notes={},ticketComments={};
 let currentRoom=null,currentTicketId=null,isManager=false,ticketFilter='all';
 let pollInterval=null,currentUser='',selectedCategory='General repairs';
 let historyFilters={dateFrom:'',dateTo:'',room:''};
+let lastCreatedTicket=null;
 
 function initUser(){
   const savedLang=localStorage.getItem('hk-lang');
@@ -685,8 +704,37 @@ async function submitTicket(){
     room=0;type=selectedCategory;locationLabel=otherLoc;
   }
   const ticket={id:Date.now(),room,type,description,ts:new Date().toLocaleString(),status:'open',username:currentUser,priority:'normal',eta:null,location_label:locationLabel};
+  lastCreatedTicket=ticket;
   tickets.unshift(ticket);renderTickets();closeModal('ticketModal');
-  await saveTicket(ticket);toast(t('newcall')+' ✓');
+  await saveTicket(ticket);
+  
+  // Show success modal
+  showTicketSuccessModal(ticket);
+}
+
+function showTicketSuccessModal(ticket){
+  const roomText=ticket.room?'Room: '+ticket.room:'Location: '+(ticket.location_label||'Other');
+  document.getElementById('success-room').textContent=roomText;
+  document.getElementById('success-category').textContent='Category: '+ticket.type;
+  document.getElementById('ticketSuccessModal').classList.remove('hidden');
+}
+
+function sendToManagerWhatsAppFromSuccess(){
+  if(!lastCreatedTicket)return;
+  const tk=lastCreatedTicket;
+  const MANAGER_PHONE='+972542232133';
+  const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
+  const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\n👉 View: '+appLink;
+  const encodedMsg=encodeURIComponent(message);
+  const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
+  window.open(whatsappUrl,'_blank');
+  toast('Opening WhatsApp...');
+}
+
+function createAnotherTicket(){
+  closeModal('ticketSuccessModal');
+  openNewTicket();
 }
 
 function filterTickets(f,btn){
