@@ -286,6 +286,10 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
       <button class="btn btn-success" id="td-resolve-btn" onclick="resolveTicket()">Mark resolved</button>
       <button class="btn btn-danger" onclick="deleteTicket()"><i class="ti ti-trash"></i> <span id="lbl-delete">Delete</span></button>
     </div>
+
+    <div style="margin-top:1rem;display:flex;gap:8px">
+      <button class="btn" onclick="sendToManagerWhatsApp()" style="flex:1;border-color:#25D366;color:#25D366"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
+    </div>
   </div>
 </div>
 
@@ -613,13 +617,17 @@ function checkDuplicateTicket(){
   }
 }
 
-function viewExistingTicket(){
-  const room=parseInt(document.getElementById('ticket-room').value);
-  const existing=tickets.find(tk=>tk.room===room&&tk.status==='open'&&tk.type===selectedCategory);
-  if(existing){
-    closeModal('ticketModal');
-    setTimeout(()=>openTicket(existing.id),200);
-  }
+function sendToManagerWhatsApp(){
+  const tk=tickets.find(x=>x.id===currentTicketId);
+  if(!tk)return;
+  const MANAGER_PHONE='+972542232133';
+  const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
+  const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\n👉 View: '+appLink;
+  const encodedMsg=encodeURIComponent(message);
+  const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
+  window.open(whatsappUrl,'_blank');
+  toast('Opening WhatsApp...');
 }
 
 function clearHistoryFilters(){
