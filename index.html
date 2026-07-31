@@ -772,10 +772,8 @@ function renderTickets(){
     const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000).toDateString();
     filtered=tickets.filter(tk=>tk.status==='open'||tk.status==='resolved');
   }else if(ticketFilter==='open'){
-    // Open only
     filtered=tickets.filter(tk=>tk.status==='open');
   }else if(ticketFilter==='resolved'){
-    // Resolved from last 2 days only
     const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000);
     filtered=tickets.filter(tk=>{
       if(tk.status!=='resolved')return false;
@@ -783,10 +781,7 @@ function renderTickets(){
       return tDate>=twoDaysAgo;
     });
   }else if(ticketFilter==='history'){
-    // All resolved tickets (lifetime) with search filters
     filtered=tickets.filter(tk=>tk.status==='resolved');
-    
-    // Apply date filters
     if(historyFilters.dateFrom){
       const df=new Date(historyFilters.dateFrom);
       filtered=filtered.filter(tk=>{
@@ -802,8 +797,6 @@ function renderTickets(){
         return tDate<dt;
       });
     }
-    
-    // Apply room filter
     if(historyFilters.room){
       const room=parseInt(historyFilters.room);
       filtered=filtered.filter(tk=>tk.room===room);
@@ -812,53 +805,82 @@ function renderTickets(){
   
   if(!filtered.length){list.innerHTML='<p style="color:#bbb;font-size:14px;text-align:center;padding:2rem 0">'+t('opencalls')+' — 0</p>';return;}
   
-  // Separate public areas from room tickets
-  const publicAreas=filtered.filter(tk=>!tk.room||tk.type==='Other');
-  const roomTickets=filtered.filter(tk=>tk.room&&tk.type!=='Other');
-  
-  // Sort each group
-  const sortTickets=(a,b)=>{
-    // Open first, then Resolved
-    if(a.status!==b.status){return a.status==='open'?-1:1;}
-    return 0;
-  };
-  
-  publicAreas.sort(sortTickets);
-  
+  // Special handling for "all" view: separate open and resolved
+  if(ticketFilter==='all'){
+    const openTickets=filtered.filter(tk=>tk.status==='open');
+    const resolvedTickets=filtered.filter(tk=>tk.status==='resolved');
+    let html='';
+    if(openTickets.length>0){html+=renderTicketSection(openTickets,'open');}
+    if(resolvedTickets.length>0){html+=renderTicketSection(resolvedTickets,'resolved');}
+    list.innerHTML=html;
+  }else{
+    const publicAreas=filtered.filter(tk=>!tk.room||tk.type==='Other');
+    const roomTickets=filtered.filter(tk=>tk.room&&tk.type!=='Other');
+    const sortTickets=(a,b)=>{if(a.status!==b.status){return a.status==='open'?-1:1;}return 0;};
+    publicAreas.sort(sortTickets);
+    roomTickets.sort((a,b)=>{
+      const floorA=a.room?Math.floor(a.room/100):999;
+      const floorB=b.room?Math.floor(b.room/100):999;
+      if(floorA!==floorB)return floorA-floorB;
+      if(a.room!==b.room)return a.room-b.room;
+      return sortTickets(a,b);
+    });
+    let html='';
+    if(publicAreas.length>0){
+      html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:#185FA5;margin-bottom:8px">📍 Common Areas</div>';
+      html+=publicAreas.map(tk=>buildTicketCard(tk)).join('');
+      html+='</div>';
+    }
+    let currentFloor=null;
+    roomTickets.forEach(tk=>{
+      const floor=Math.floor(tk.room/100);
+      if(floor!==currentFloor){
+        if(currentFloor!==null)html+='</div>';
+        const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
+        html+='<div style="margin-bottom:12px"><div class="floor-label">'+floorName+'</div>';
+        currentFloor=floor;
+      }
+      html+=buildTicketCard(tk);
+    });
+    if(currentFloor!==null)html+='</div>';
+    list.innerHTML=html;
+  }
+}
+
+function renderTicketSection(tickets,status){
+  const publicAreas=tickets.filter(tk=>!tk.room||tk.type==='Other');
+  const roomTickets=tickets.filter(tk=>tk.room&&tk.type!=='Other');
   roomTickets.sort((a,b)=>{
-    // Sort by floor, then room number, then status
     const floorA=a.room?Math.floor(a.room/100):999;
     const floorB=b.room?Math.floor(b.room/100):999;
     if(floorA!==floorB)return floorA-floorB;
-    if(a.room!==b.room)return a.room-b.room;
-    return sortTickets(a,b);
+    return a.room-b.room;
   });
-  
-  // Build HTML with sections
   let html='';
-  
-  // Public Areas Section
   if(publicAreas.length>0){
-    html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:#185FA5;margin-bottom:8px">📍 Common Areas</div>';
+    const statusLabel=status==='open'?'OPEN':'RESOLVED';
+    const statusColor=status==='open'?'#185FA5':'#639922';
+    html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:'+statusColor+';margin-bottom:8px">📍 Common Areas — '+statusLabel+'</div>';
     html+=publicAreas.map(tk=>buildTicketCard(tk)).join('');
     html+='</div>';
   }
-  
-  // Rooms by Floor
-  let currentFloor=null;
-  roomTickets.forEach(tk=>{
-    const floor=Math.floor(tk.room/100);
-    if(floor!==currentFloor){
-      if(currentFloor!==null)html+='</div>';
-      const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
-      html+='<div style="margin-bottom:12px"><div class="floor-label">'+floorName+'</div>';
-      currentFloor=floor;
-    }
-    html+=buildTicketCard(tk);
-  });
-  if(currentFloor!==null)html+='</div>';
-  
-  list.innerHTML=html;
+  if(roomTickets.length>0){
+    let currentFloor=null;
+    roomTickets.forEach(tk=>{
+      const floor=Math.floor(tk.room/100);
+      if(floor!==currentFloor){
+        if(currentFloor!==null)html+='</div>';
+        const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
+        const statusLabel=status==='open'?'OPEN':'RESOLVED';
+        const statusColor=status==='open'?'#185FA5':'#639922';
+        html+='<div style="margin-bottom:12px"><div class="floor-label" style="color:'+statusColor+'">'+floorName+' — '+statusLabel+'</div>';
+        currentFloor=floor;
+      }
+      html+=buildTicketCard(tk);
+    });
+    if(currentFloor!==null)html+='</div>';
+  }
+  return html;
 }
 
 function buildTicketCard(tk){
