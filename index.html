@@ -615,11 +615,18 @@ async function deleteNote(id){
 }
 
 function selectCategory(cat){
+  console.log('selectCategory called with:', cat);
   selectedCategory=cat;
-  document.getElementById('cat-paint').classList.toggle('selected',cat==='Paint');
-  document.getElementById('cat-electric').classList.toggle('selected',cat==='Electricity');
-  document.getElementById('cat-plumb').classList.toggle('selected',cat==='Plumbing');
-  document.getElementById('cat-general').classList.toggle('selected',cat==='General repairs');
+  // Clear all selections
+  document.getElementById('cat-paint').classList.remove('selected');
+  document.getElementById('cat-electric').classList.remove('selected');
+  document.getElementById('cat-plumb').classList.remove('selected');
+  document.getElementById('cat-general').classList.remove('selected');
+  // Add selected to clicked button
+  if(cat==='Paint')document.getElementById('cat-paint').classList.add('selected');
+  else if(cat==='Electricity')document.getElementById('cat-electric').classList.add('selected');
+  else if(cat==='Plumbing')document.getElementById('cat-plumb').classList.add('selected');
+  else if(cat==='General repairs')document.getElementById('cat-general').classList.add('selected');
   checkDuplicateTicket();
 }
 
@@ -642,7 +649,7 @@ function sendToManagerWhatsApp(){
   const MANAGER_PHONE='+972542232133';
   const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
   const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
-  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\n👉 View: '+appLink;
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\n👉 View: '+appLink;
   const encodedMsg=encodeURIComponent(message);
   const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
   window.open(whatsappUrl,'_blank');
@@ -725,7 +732,7 @@ function sendToManagerWhatsAppFromSuccess(){
   const MANAGER_PHONE='+972542232133';
   const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
   const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
-  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\n👉 View: '+appLink;
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\n👉 View: '+appLink;
   const encodedMsg=encodeURIComponent(message);
   const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
   window.open(whatsappUrl,'_blank');
