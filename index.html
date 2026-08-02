@@ -964,10 +964,14 @@ function buildTicketCard(tk){
 function renderStatsByRooms(){
   const list=document.getElementById('ticket-list');
   
+  // Maintenance categories only (filter out room types)
+  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
+  const roomTypes=['Superior','Deluxe','Suite','Loft','PremDlx','Classic','Spa','Other'];
+  
   // Group tickets by year
   const statsByYear={};
   tickets.forEach(tk=>{
-    if(tk.room){
+    if(tk.room && maintenanceCategories.includes(tk.type)){
       const ticketDate=new Date(tk.ts);
       const year=ticketDate.getFullYear();
       if(!statsByYear[year])statsByYear[year]={};
@@ -1010,7 +1014,7 @@ function renderStatsByRooms(){
       html+='<span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+data.count+'</span>';
       html+='</div>';
       
-      // Category breakdown
+      // Category breakdown (maintenance categories only)
       html+='<div id="'+roomCardId+'" class="hidden" style="margin-top:12px;padding-left:30px">';
       Object.entries(data.categories).sort((a,b)=>b[1]-a[1]).forEach(([cat,count])=>{
         const pct=Math.round((count/data.count)*100);
