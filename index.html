@@ -1037,6 +1037,18 @@ function toggleYear(yearId){
   }
 }
 
+function toggleRoomStats(roomCardId){
+  const roomCard=document.getElementById(roomCardId);
+  const arrow=document.getElementById(roomCardId+'-arrow');
+  if(roomCard.classList.contains('hidden')){
+    roomCard.classList.remove('hidden');
+    arrow.textContent='▼';
+  }else{
+    roomCard.classList.add('hidden');
+    arrow.textContent='▶';
+  }
+}
+
 function renderStatsByCategory(){
   const list=document.getElementById('ticket-list');
   const year=new Date().getFullYear();
