@@ -970,13 +970,14 @@ function renderStatsByRooms(){
   
   // Group tickets by year
   const statsByYear={};
+  const currentYear=new Date().getFullYear();
   tickets.forEach(tk=>{
     if(tk.room && maintenanceCategories.includes(tk.type)){
       const ticketDate=new Date(tk.ts);
       let year=ticketDate.getFullYear();
-      // Handle invalid dates
+      // Handle invalid dates - use current year
       if(isNaN(year)){
-        year='Unknown';
+        year=currentYear;
       }
       if(!statsByYear[year])statsByYear[year]={};
       
@@ -991,12 +992,8 @@ function renderStatsByRooms(){
     }
   });
   
-  // Sort years descending (newest first, Unknown last)
-  const sortedYears=Object.keys(statsByYear).sort((a,b)=>{
-    if(a==='Unknown')return 1;
-    if(b==='Unknown')return -1;
-    return b-a;
-  });
+  // Sort years descending (newest first)
+  const sortedYears=Object.keys(statsByYear).sort((a,b)=>b-a);
   
   let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Top Problem Rooms</h3>';
   
