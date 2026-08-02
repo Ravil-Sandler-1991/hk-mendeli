@@ -973,7 +973,11 @@ function renderStatsByRooms(){
   tickets.forEach(tk=>{
     if(tk.room && maintenanceCategories.includes(tk.type)){
       const ticketDate=new Date(tk.ts);
-      const year=ticketDate.getFullYear();
+      let year=ticketDate.getFullYear();
+      // Handle invalid dates
+      if(isNaN(year)){
+        year='Unknown';
+      }
       if(!statsByYear[year])statsByYear[year]={};
       
       if(!statsByYear[year][tk.room]){
@@ -987,8 +991,12 @@ function renderStatsByRooms(){
     }
   });
   
-  // Sort years descending (newest first)
-  const sortedYears=Object.keys(statsByYear).sort((a,b)=>b-a);
+  // Sort years descending (newest first, Unknown last)
+  const sortedYears=Object.keys(statsByYear).sort((a,b)=>{
+    if(a==='Unknown')return 1;
+    if(b==='Unknown')return -1;
+    return b-a;
+  });
   
   let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Top Problem Rooms</h3>';
   
@@ -1056,15 +1064,25 @@ function toggleRoomStats(roomCardId){
 function renderStatsByCategory(){
   const list=document.getElementById('ticket-list');
   const year=new Date().getFullYear();
+  
+  // Maintenance categories only
+  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
+  
   const catStats={};
   tickets.forEach(tk=>{
-    if(!catStats[tk.type])catStats[tk.type]=0;
-    catStats[tk.type]++;
+    // Only count maintenance issue categories, skip room types
+    if(maintenanceCategories.includes(tk.type)){
+      if(!catStats[tk.type])catStats[tk.type]=0;
+      catStats[tk.type]++;
+    }
   });
+  
   const sorted=Object.entries(catStats).sort((a,b)=>b[1]-a[1]);
+  const totalIssues=sorted.reduce((sum,item)=>sum+item[1],0);
+  
   let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Issues by Category ('+year+')</h3>';
   sorted.forEach(([cat,count])=>{
-    const pct=Math.round((count/tickets.length)*100);
+    const pct=Math.round((count/totalIssues)*100);
     html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:600">'+cat+'</span><span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+count+' ('+pct+'%)</span></div><div style="background:#E8E8E8;height:8px;border-radius:4px;overflow:hidden"><div style="background:#185FA5;height:100%;width:'+pct+'%"></div></div></div>';
   });
   html+='</div>';
@@ -1074,7 +1092,11 @@ function renderStatsByCategory(){
 function renderStatsBySearchRoom(){
   const list=document.getElementById('ticket-list');
   const year=new Date().getFullYear();
-  const roomTickets=tickets.filter(tk=>tk.room===currentSearchRoom);
+  
+  // Maintenance categories only
+  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
+  
+  const roomTickets=tickets.filter(tk=>tk.room===currentSearchRoom && maintenanceCategories.includes(tk.type));
   if(!roomTickets.length){list.innerHTML='<p style="color:#bbb;text-align:center;padding:2rem">No issues found for Room '+currentSearchRoom+'</p>';return;}
   const catStats={};
   roomTickets.forEach(tk=>{
@@ -1083,7 +1105,7 @@ function renderStatsBySearchRoom(){
   });
   let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Room '+currentSearchRoom+' - '+year+' Breakdown</h3>';
   let totalIssues=0;
-  Object.entries(catStats).forEach(([cat,count])=>{totalIssues+=count;html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+cat+'</span><span style="font-weight:600">'+count+' times</span></div></div>';});
+  Object.entries(catStats).sort((a,b)=>b[1]-a[1]).forEach(([cat,count])=>{totalIssues+=count;html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+cat+'</span><span style="font-weight:600">'+count+' times</span></div></div>';});
   html+='<div class="section-card" style="padding:1rem;margin-bottom:8px;background:#f0f0f0"><div style="display:flex;justify-content:space-between;font-weight:600"><span>TOTAL</span><span>'+totalIssues+' issues</span></div></div>';
   html+='</div>';
   list.innerHTML=html;
