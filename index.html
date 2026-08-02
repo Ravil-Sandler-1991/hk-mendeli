@@ -967,18 +967,47 @@ function renderStatsByRooms(){
   const roomStats={};
   tickets.forEach(tk=>{
     if(tk.room){
-      if(!roomStats[tk.room])roomStats[tk.room]={count:0,issues:[]};
+      if(!roomStats[tk.room]){
+        roomStats[tk.room]={count:0,categories:{}};
+      }
       roomStats[tk.room].count++;
-      roomStats[tk.room].issues.push(tk);
+      if(!roomStats[tk.room].categories[tk.type]){
+        roomStats[tk.room].categories[tk.type]=0;
+      }
+      roomStats[tk.room].categories[tk.type]++;
     }
   });
   const sorted=Object.entries(roomStats).sort((a,b)=>b[1].count-a[1].count).slice(0,20);
   let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Top Problem Rooms ('+year+')</h3>';
   sorted.forEach(([room,data],idx)=>{
-    html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">'+idx+1+'. Room '+room+'</span><span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+data.count+' issues</span></div></div>';
+    const cardId='room-stats-'+room;
+    const isExpanded=false;
+    html+='<div class="section-card" style="margin-bottom:12px;overflow:hidden;border-radius:10px">';
+    html+='<div onclick="toggleRoomStats(\''+cardId+'\')" style="padding:1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#f9f8f4;border:0.5px solid #e8e7e0">';
+    html+='<div style="display:flex;align-items:center;gap:12px;flex:1"><span id="'+cardId+'-arrow" style="font-size:16px">▶</span><span style="font-weight:600">'+idx+1+'. Room '+room+' - '+data.count+' issues</span></div>';
+    html+='<span style="background:#185FA5;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600">'+data.count+' total</span>';
+    html+='</div>';
+    html+='<div id="'+cardId+'" class="hidden" style="padding:1rem;background:#fff;border-top:0.5px solid #e8e7e0">';
+    Object.entries(data.categories).sort((a,b)=>b[1]-a[1]).forEach(([cat,count])=>{
+      const pct=Math.round((count/data.count)*100);
+      html+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px">'+cat+'</span><span style="font-weight:600;color:#185FA5">'+count+' ('+pct+'%)</span></div><div style="background:#E8E8E8;height:6px;border-radius:3px"><div style="background:#185FA5;height:100%;width:'+pct+'%;border-radius:3px"></div></div></div>';
+    });
+    html+='</div></div>';
   });
   html+='</div>';
   list.innerHTML=html;
+}
+
+function toggleRoomStats(cardId){
+  const card=document.getElementById(cardId);
+  const arrow=document.getElementById(cardId+'-arrow');
+  if(card.classList.contains('hidden')){
+    card.classList.remove('hidden');
+    arrow.textContent='▼';
+  }else{
+    card.classList.add('hidden');
+    arrow.textContent='▶';
+  }
 }
 
 function renderStatsByCategory(){
