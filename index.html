@@ -159,6 +159,7 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
           <button class="filter-btn" onclick="filterTickets('open',this)" id="lbl-open">Open</button>
           <button class="filter-btn" onclick="filterTickets('resolved',this)" id="lbl-resolved">Resolved</button>
           <button class="filter-btn" onclick="filterTickets('history',this)" id="lbl-history">History</button>
+          <button class="filter-btn" onclick="filterTickets('statistics',this)" id="lbl-statistics">📊 Statistics</button>
         </div>
         <div id="history-search" class="hidden" style="margin-bottom:1rem;padding:12px;background:#f9f8f4;border-radius:10px;border:0.5px solid #e8e7e0">
           <div class="field-group">
@@ -174,6 +175,17 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
             <input type="number" id="history-room-search" placeholder="e.g. 101" min="1">
           </div>
           <button class="btn" onclick="clearHistoryFilters()" style="width:100%">Clear filters</button>
+        </div>
+        <div id="statistics-controls" class="hidden" style="margin-bottom:1rem;padding:12px;background:#f9f8f4;border-radius:10px;border:0.5px solid #e8e7e0">
+          <div style="display:flex;gap:8px;margin-bottom:1rem">
+            <button class="btn" id="stat-rooms-btn" onclick="showStatistics('rooms')" style="flex:1;background:#185FA5;color:#fff">Top Rooms</button>
+            <button class="btn" id="stat-category-btn" onclick="showStatistics('category')" style="flex:1">By Category</button>
+            <button class="btn" id="stat-search-btn" onclick="showStatistics('search')" style="flex:1">Search Room</button>
+          </div>
+          <div id="search-room-input" class="hidden">
+            <input type="number" id="stat-room-num" placeholder="Enter room number" min="1" style="width:100%;padding:10px;border-radius:8px;border:0.5px solid #ddd;margin-bottom:8px">
+            <button class="btn" onclick="searchRoomStats()" style="width:100%">Search</button>
+          </div>
         </div>
         <div id="ticket-list"></div>
       </div>
@@ -237,6 +249,9 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
       </div>
       <div class="priority-row">
         <button class="priority-btn" id="cat-plumb" onclick="selectCategory('Plumbing')" style="border-color:#3498DB;color:#3498DB">🚰 Plumbing</button>
+        <button class="priority-btn" id="cat-ac" onclick="selectCategory('AC Issues')" style="border-color:#00BCD4;color:#00BCD4">❄️ AC</button>
+      </div>
+      <div class="priority-row">
         <button class="priority-btn selected" id="cat-general" onclick="selectCategory('General repairs')" style="border-color:#185FA5;color:#185FA5">🔧 General</button>
       </div>
     </div>
@@ -622,11 +637,13 @@ function selectCategory(cat){
   document.getElementById('cat-paint').classList.remove('selected');
   document.getElementById('cat-electric').classList.remove('selected');
   document.getElementById('cat-plumb').classList.remove('selected');
+  document.getElementById('cat-ac').classList.remove('selected');
   document.getElementById('cat-general').classList.remove('selected');
   // Add selected to clicked button
   if(cat==='Paint')document.getElementById('cat-paint').classList.add('selected');
   else if(cat==='Electricity')document.getElementById('cat-electric').classList.add('selected');
   else if(cat==='Plumbing')document.getElementById('cat-plumb').classList.add('selected');
+  else if(cat==='AC Issues')document.getElementById('cat-ac').classList.add('selected');
   else if(cat==='General repairs')document.getElementById('cat-general').classList.add('selected');
   checkDuplicateTicket();
 }
@@ -665,7 +682,29 @@ function clearHistoryFilters(){
   renderTickets();
 }
 
-let selectedLocType='room';
+let currentStatView='rooms';
+function showStatistics(view){
+  currentStatView=view;
+  document.getElementById('stat-rooms-btn').style.background=view==='rooms'?'#185FA5':'#fff';
+  document.getElementById('stat-rooms-btn').style.color=view==='rooms'?'#fff':'#1a1a1a';
+  document.getElementById('stat-category-btn').style.background=view==='category'?'#185FA5':'#fff';
+  document.getElementById('stat-category-btn').style.color=view==='category'?'#fff':'#1a1a1a';
+  document.getElementById('stat-search-btn').style.background=view==='search'?'#185FA5':'#fff';
+  document.getElementById('stat-search-btn').style.color=view==='search'?'#fff':'#1a1a1a';
+  const searchInput=document.getElementById('search-room-input');
+  if(view==='search'){searchInput.classList.remove('hidden');}else{searchInput.classList.add('hidden');}
+  renderTickets();
+}
+
+function searchRoomStats(){
+  const roomNum=parseInt(document.getElementById('stat-room-num').value);
+  if(!roomNum){alert('Please enter a room number');return;}
+  currentStatView='searchresult';
+  currentSearchRoom=roomNum;
+  renderTickets();
+}
+
+let currentSearchRoom=null;
 function selectLocType(type){
   selectedLocType=type;
   document.getElementById('loc-room').style.background=type==='room'?'#185FA5':'#fff';
@@ -750,10 +789,17 @@ function filterTickets(f,btn){
   document.querySelectorAll('#ticket-filter .filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const searchBox=document.getElementById('history-search');
+  const statsBox=document.getElementById('statistics-controls');
   if(f==='history'){
     searchBox.classList.remove('hidden');
+    statsBox.classList.add('hidden');
+  }else if(f==='statistics'){
+    searchBox.classList.add('hidden');
+    statsBox.classList.remove('hidden');
+    showStatistics('rooms');
   }else{
     searchBox.classList.add('hidden');
+    statsBox.classList.add('hidden');
   }
   renderTickets();
 }
@@ -772,6 +818,16 @@ function getETALabel(eta){
 
 function renderTickets(){
   const list=document.getElementById('ticket-list');if(!list)return;
+  
+  // Handle statistics view
+  if(ticketFilter==='statistics'){
+    if(currentStatView==='rooms'){renderStatsByRooms();}
+    else if(currentStatView==='category'){renderStatsByCategory();}
+    else if(currentStatView==='search'){list.innerHTML='<p style="color:#bbb;text-align:center;padding:2rem">Enter a room number to search</p>';}
+    else if(currentStatView==='searchresult'){renderStatsBySearchRoom();}
+    return;
+  }
+  
   let filtered=[];
   
   // Filter based on current filter
@@ -902,6 +958,59 @@ function buildTicketCard(tk){
     +etaLabel
     +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
     +'</div>';
+}
+
+function renderStatsByRooms(){
+  const list=document.getElementById('ticket-list');
+  const roomStats={};
+  tickets.forEach(tk=>{
+    if(tk.room){
+      if(!roomStats[tk.room])roomStats[tk.room]={count:0,issues:[]};
+      roomStats[tk.room].count++;
+      roomStats[tk.room].issues.push(tk);
+    }
+  });
+  const sorted=Object.entries(roomStats).sort((a,b)=>b[1].count-a[1].count).slice(0,20);
+  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Top Problem Rooms (2025)</h3>';
+  sorted.forEach(([room,data],idx)=>{
+    html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">'+idx+1+'. Room '+room+'</span><span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+data.count+' issues</span></div></div>';
+  });
+  html+='</div>';
+  list.innerHTML=html;
+}
+
+function renderStatsByCategory(){
+  const list=document.getElementById('ticket-list');
+  const catStats={};
+  tickets.forEach(tk=>{
+    if(!catStats[tk.type])catStats[tk.type]=0;
+    catStats[tk.type]++;
+  });
+  const sorted=Object.entries(catStats).sort((a,b)=>b[1]-a[1]);
+  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Issues by Category (2025)</h3>';
+  sorted.forEach(([cat,count])=>{
+    const pct=Math.round((count/tickets.length)*100);
+    html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:600">'+cat+'</span><span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+count+' ('+pct+'%)</span></div><div style="background:#E8E8E8;height:8px;border-radius:4px;overflow:hidden"><div style="background:#185FA5;height:100%;width:'+pct+'%"></div></div></div>';
+  });
+  html+='</div>';
+  list.innerHTML=html;
+}
+
+function renderStatsBySearchRoom(){
+  const list=document.getElementById('ticket-list');
+  const roomTickets=tickets.filter(tk=>tk.room===currentSearchRoom);
+  if(!roomTickets.length){list.innerHTML='<p style="color:#bbb;text-align:center;padding:2rem">No issues found for Room '+currentSearchRoom+'</p>';return;}
+  const catStats={};
+  roomTickets.forEach(tk=>{
+    if(!catStats[tk.type])catStats[tk.type]=0;
+    catStats[tk.type]++;
+  });
+  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Room '+currentSearchRoom+' - 2025 Breakdown</h3>';
+  let totalIssues=0;
+  Object.entries(catStats).forEach(([cat,count])=>{totalIssues+=count;html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+cat+'</span><span style="font-weight:600">'+count+' times</span></div></div>';});
+  html+='<div class="section-card" style="padding:1rem;margin-bottom:8px;background:#f0f0f0"><div style="display:flex;justify-content:space-between;font-weight:600"><span>TOTAL</span><span>'+totalIssues+' issues</span></div></div>';
+  html+='</div>';
+  list.innerHTML=html;
 }
 
 function openTicket(id){
