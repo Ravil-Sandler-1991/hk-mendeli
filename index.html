@@ -1329,7 +1329,7 @@ function renderTicketComments(ticketId){
     list.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nocomments')+'</p>';
   }else{
     list.innerHTML=comments.map(c=>{
-      const delBtn=isManager?'<button class="note-delete" onclick="deleteTicketComment('+c.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>':'';
+      const delBtn='<button class="note-delete" onclick="deleteTicketComment('+c.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>';
       return'<div class="note-item">'
         +'<div class="note-text" style="direction:'+getDir(c.text)+';text-align:'+getAlign(c.text)+'">'+c.text+'</div>'
         +'<div class="note-translation" id="tctr-'+c.id+'" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
@@ -1361,6 +1361,16 @@ async function addTicketComment(){
 }
 
 async function deleteTicketComment(id){
+  // Ask for PIN before deleting
+  const enteredPin=prompt('Enter PIN to delete comment:');
+  if(!enteredPin)return;
+  
+  // Verify PIN
+  if(enteredPin!==PIN){
+    alert('Incorrect PIN!');
+    return;
+  }
+  
   if(!confirm(t('confirmdelete')))return;
   ticketComments[String(currentTicketId)]=(ticketComments[String(currentTicketId)]||[]).filter(c=>c.id!==id);
   renderTicketComments(currentTicketId);
