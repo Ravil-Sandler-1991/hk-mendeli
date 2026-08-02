@@ -984,7 +984,7 @@ function renderStatsByRooms(){
     const isExpanded=false;
     html+='<div class="section-card" style="margin-bottom:12px;overflow:hidden;border-radius:10px">';
     html+='<div onclick="toggleRoomStats(\''+cardId+'\')" style="padding:1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#f9f8f4;border:0.5px solid #e8e7e0">';
-    html+='<div style="display:flex;align-items:center;gap:12px;flex:1"><span id="'+cardId+'-arrow" style="font-size:16px">▶</span><span style="font-weight:600">'+idx+1+'. Room '+room+' - '+data.count+' issues</span></div>';
+    html+='<div style="display:flex;align-items:center;gap:12px;flex:1"><span id="'+cardId+'-arrow" style="font-size:16px">▶</span><span style="font-weight:600">'+(idx+1)+'. Room '+room+' - '+data.count+' issues</span></div>';
     html+='<span style="background:#185FA5;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600">'+data.count+' total</span>';
     html+='</div>';
     html+='<div id="'+cardId+'" class="hidden" style="padding:1rem;background:#fff;border-top:0.5px solid #e8e7e0">';
