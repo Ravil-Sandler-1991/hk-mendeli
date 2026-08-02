@@ -597,7 +597,7 @@ function renderRoomModal(){
   if(roomNotes.length===0){notesList.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nonotes')+'</p>';}
   else{
     notesList.innerHTML=roomNotes.map(n=>{
-      const delBtn=isManager?'<button class="note-delete" onclick="deleteNote('+n.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>':'';
+      const delBtn='<button class="note-delete" onclick="deleteNote('+n.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>';
       return'<div class="note-item"><div class="note-text" style="direction:'+getDir(n.text)+';text-align:'+getAlign(n.text)+'">'+n.text+'</div><div class="note-translation" id="ntr-'+n.id+'"></div><div class="note-meta"><i class="ti ti-user"></i> '+(n.username||'Unknown')+' · <i class="ti ti-clock"></i> '+n.ts+'<button class="note-translate" id="ntb-'+n.id+'" data-noteid="'+n.id+'" onclick="doNoteTranslate(this)"><i class="ti ti-language"></i> '+t('translate')+'</button>'+delBtn+'</div></div>';
     }).join('');
   }
@@ -625,6 +625,16 @@ async function addNote(){
   await saveNote(note);toast(t('noteadded'));
 }
 async function deleteNote(id){
+  // Ask for PIN before deleting
+  const enteredPin=prompt('Enter PIN to delete note:');
+  if(!enteredPin)return;
+  
+  // Verify PIN
+  if(enteredPin!==PIN){
+    alert('Incorrect PIN!');
+    return;
+  }
+  
   if(!confirm(t('confirmdelete')))return;
   notes[currentRoom]=notes[currentRoom].filter(n=>n.id!==id);
   renderRoomModal();renderRooms();updateStats();
