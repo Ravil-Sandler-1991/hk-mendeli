@@ -678,7 +678,7 @@ function sendToManagerWhatsApp(){
   const MANAGER_PHONE='+972542232133';
   const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
   const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
-  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\n👉 View: '+appLink;
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\nDescription: '+tk.description+'\n👉 View: '+appLink;
   const encodedMsg=encodeURIComponent(message);
   const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
   window.open(whatsappUrl,'_blank');
@@ -783,7 +783,7 @@ function sendToManagerWhatsAppFromSuccess(){
   const MANAGER_PHONE='+972542232133';
   const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
   const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
-  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\n👉 View: '+appLink;
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\nDescription: '+tk.description+'\n👉 View: '+appLink;
   const encodedMsg=encodeURIComponent(message);
   const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
   window.open(whatsappUrl,'_blank');
