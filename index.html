@@ -960,6 +960,7 @@ function renderTicketSection(tickets,status){
 
 function buildTicketCard(tk){
   const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5;margin-top:4px;display:block"><i class="ti ti-clock"></i> '+getETALabel(tk.eta)+'</span>':'';
+  const resolverInfo=tk.status==='resolved'&&tk.resolved_by?'<br><i class="ti ti-check"></i> Resolved by: '+(tk.resolved_by)+' · '+tk.resolved_ts:'';
   return'<div class="ticket-card '+tk.status+'" onclick="openTicket('+tk.id+')">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
     +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-weight:600">'+getLocLabel(tk)+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
@@ -967,7 +968,7 @@ function buildTicketCard(tk){
     +'</div>'
     +'<p style="font-size:13px;color:#888;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
     +etaLabel
-    +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
+    +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> Created by: '+(tk.username||'Unknown')+' · '+tk.ts+resolverInfo+'</p>'
     +'</div>';
 }
 
@@ -1122,8 +1123,9 @@ function openTicket(id){
   const tk=tickets.find(x=>x.id===id);if(!tk)return;
   currentTicketId=id;
   document.getElementById('td-title').textContent=getLocLabel(tk)+' - '+tk.type;
+  const resolverInfo=tk.status==='resolved'&&tk.resolved_by?'<br><i class="ti ti-check"></i> Resolved by: '+(tk.resolved_by)+' · '+tk.resolved_ts:'';
   document.getElementById('td-body').innerHTML=
-    '<p style="font-size:13px;color:#aaa;margin-bottom:8px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · <i class="ti ti-clock"></i> '+tk.ts+'</p>'
+    '<p style="font-size:13px;color:#aaa;margin-bottom:8px"><i class="ti ti-user"></i> Created by: '+(tk.username||'Unknown')+' · '+tk.ts+resolverInfo+'</p>'
     +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+'">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
     +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-top:0.75rem;padding:12px;background:#f5f5f0;border-radius:10px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</div>'
     +'<div class="note-translation" id="td-translation" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
@@ -1178,9 +1180,30 @@ async function setETADate(val){
 
 async function resolveTicket(){
   const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
-  const ns=tk.status==='open'?'resolved':'open';tk.status=ns;
+  const ns=tk.status==='open'?'resolved':'open';
+  tk.status=ns;
+  
+  // Capture resolver info when marking as resolved
+  if(ns==='resolved'){
+    tk.resolved_by=currentUser;
+    tk.resolved_ts=new Date().toLocaleString();
+  }else{
+    // If reopening, clear resolver info
+    tk.resolved_by=null;
+    tk.resolved_ts=null;
+  }
+  
   renderTickets();closeModal('ticketDetailModal');
-  await updateTicketField(currentTicketId,{status:ns});toast(ns==='resolved'?t('markedresolved'):t('reopened'));
+  const updateData={status:ns};
+  if(ns==='resolved'){
+    updateData.resolved_by=tk.resolved_by;
+    updateData.resolved_ts=tk.resolved_ts;
+  }else{
+    updateData.resolved_by=null;
+    updateData.resolved_ts=null;
+  }
+  await updateTicketField(currentTicketId,updateData);
+  toast(ns==='resolved'?t('markedresolved'):t('reopened'));
 }
 async function deleteTicket(){
   if(!confirm(t('confirmdelete')))return;
