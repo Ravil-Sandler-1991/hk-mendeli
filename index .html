@@ -816,7 +816,6 @@ function filterTickets(f,btn){
 }
 
 function getLocLabel(tk){
-  if(tk.room===0&&tk.location_label)return'📍 '+tk.location_label;
   if(tk.type==='Other'&&tk.location_label)return'📍 '+tk.location_label;
   return'Room '+tk.room;
 }
