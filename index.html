@@ -106,6 +106,29 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
 .eta-btn.selected{background:#185FA5;border-color:#185FA5;color:#fff}
 .eta-btn:active{opacity:0.75}
 .urgent-banner{background:#FCEBEB;border:0.5px solid #E24B4A;border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#A32D2D}
+.chat-sidebar{position:fixed;right:-350px;top:0;width:350px;height:100vh;background:#fff;border-left:2px solid #185FA5;box-shadow:-2px 0 10px rgba(0,0,0,0.1);transition:right 0.3s ease;z-index:1000;display:flex;flex-direction:column}
+.chat-sidebar.visible{right:0}
+.chat-header{background:#185FA5;color:#fff;padding:1rem;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.chat-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+.chat-messages{flex:1;overflow-y:auto;padding:1rem;background:#f9f9f9}
+.chat-msg{margin-bottom:12px;display:flex;flex-direction:column;animation:slideIn 0.3s ease}
+.chat-msg.sent{align-items:flex-end}
+.chat-msg.received{align-items:flex-start}
+.msg-sender{font-size:12px;color:#999;font-weight:600}
+.msg-text{background:#e0e0e0;padding:8px 12px;border-radius:8px;margin:4px 0;max-width:90%;word-wrap:break-word}
+.chat-msg.sent .msg-text{background:#185FA5;color:#fff}
+.msg-text.urgent{background:#ff6b6b;color:#fff;font-weight:600}
+.msg-time{font-size:11px;color:#bbb}
+.chat-input-group{display:flex;gap:8px;padding:12px;border-top:1px solid #e0e0e0;background:#fff}
+.chat-input{flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.chat-send{padding:8px 16px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600}
+.chat-online-status{padding:8px 12px;font-size:12px;color:#999;border-top:1px solid #e0e0e0;text-align:center}
+.chat-bubble{position:fixed;bottom:30px;right:30px;width:60px;height:60px;background:#185FA5;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:28px;z-index:999;transition:transform 0.2s ease}
+.chat-bubble:hover{transform:scale(1.1)}
+.unread-badge{position:absolute;top:-5px;right:-5px;background:#ff6b6b;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}
+.unread-badge.hidden{display:none}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.chat-sidebar{width:100%;right:-100%}}
 </style>
 </head>
 <body>
@@ -305,6 +328,7 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
 
     <div style="margin-top:1rem;display:flex;gap:8px">
       <button class="btn" onclick="sendToManagerWhatsApp()" style="flex:1;border-color:#25D366;color:#25D366"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
+      <button class="btn" onclick="openChatForTicket(currentTicketId)" style="flex:1;border-color:#185FA5;color:#185FA5"><i class="ti ti-message-circle"></i> 💬 Chat</button>
     </div>
   </div>
 </div>
@@ -1465,7 +1489,164 @@ document.addEventListener('DOMContentLoaded',function(){
   if(roomSel)roomSel.addEventListener('change',checkDuplicateTicket);
 });
 
-initUser();loadAll();startPolling();
+<div id="chatSidebar" class="chat-sidebar">
+  <div class="chat-header">
+    <span>💬 Live Chat</span>
+    <button onclick="toggleChat()" class="chat-close">✕</button>
+  </div>
+  <div id="chatMessages" class="chat-messages"></div>
+  <div class="chat-input-group">
+    <input type="text" id="chatInput" placeholder="Type message..." class="chat-input" onkeypress="if(event.key==='Enter')sendChatMessage()">
+    <button onclick="sendChatMessage()" class="chat-send">Send</button>
+  </div>
+  <div class="chat-online-status">
+    <span id="onlineCount">Online: 0</span>
+  </div>
+</div>
+
+<div id="chatBubble" class="chat-bubble" onclick="toggleChat()">
+  <span>💬</span>
+  <span id="unreadBadge" class="unread-badge hidden">!</span>
+</div>
+
+<audio id="notificationSound" preload="auto">
+  <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAAA=" type="audio/wav">
+</audio>
+
+<script>
+// Initialize chat system
+let currentChatTicketId = null;
+let chatMessages = [];
+let onlineUsers = {};
+
+function initChat() {
+  loadOnlineUsers();
+  setInterval(updateOnlineStatus, 5000);
+}
+
+function toggleChat() {
+  const sidebar = document.getElementById('chatSidebar');
+  const bubble = document.getElementById('chatBubble');
+  sidebar.classList.toggle('visible');
+  if(sidebar.classList.contains('visible')) {
+    loadChatMessages();
+    document.getElementById('unreadBadge').classList.add('hidden');
+  }
+}
+
+function openChatForTicket(ticketId) {
+  currentChatTicketId = ticketId;
+  document.getElementById('chatSidebar').classList.add('visible');
+  loadChatMessages();
+}
+
+async function loadChatMessages() {
+  if(!currentChatTicketId) return;
+  try {
+    const res = await fetch(apiUrl + '/chat_messages?ticket_id=eq.' + currentChatTicketId + '&order=created_at.asc', {
+      headers: {'Authorization': 'Bearer ' + SUPABASE_KEY}
+    });
+    const msgs = await res.json();
+    chatMessages = msgs;
+    renderChatMessages();
+  } catch(e) {
+    console.log('Chat load error:', e);
+  }
+}
+
+function renderChatMessages() {
+  const msgContainer = document.getElementById('chatMessages');
+  msgContainer.innerHTML = chatMessages.map(m => 
+    '<div class="chat-msg ' + (m.sender === currentUser ? 'sent' : 'received') + '">' +
+    '<div class="msg-sender">' + m.sender + '</div>' +
+    '<div class="msg-text ' + (m.is_urgent ? 'urgent' : '') + '">' + m.message + '</div>' +
+    '<div class="msg-time">' + new Date(m.created_at).toLocaleTimeString() + '</div>' +
+    '</div>'
+  ).join('');
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg || !currentChatTicketId) return;
+  
+  try {
+    await fetch(apiUrl + '/chat_messages', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ticket_id: currentChatTicketId,
+        sender: currentUser,
+        message: msg,
+        is_urgent: false
+      })
+    });
+    input.value = '';
+    loadChatMessages();
+  } catch(e) {
+    console.log('Send error:', e);
+  }
+}
+
+function playNotificationSound() {
+  const audio = document.getElementById('notificationSound');
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.value = 800;
+  oscillator.type = 'sine';
+  
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.5);
+}
+
+async function loadOnlineUsers() {
+  try {
+    const res = await fetch(apiUrl + '/chat_users_online', {
+      headers: {'Authorization': 'Bearer ' + SUPABASE_KEY}
+    });
+    onlineUsers = {};
+    const users = await res.json();
+    users.forEach(u => onlineUsers[u.username] = u.is_online);
+    updateOnlineCount();
+  } catch(e) {
+    console.log('Online load error:', e);
+  }
+}
+
+async function updateOnlineStatus() {
+  try {
+    await fetch(apiUrl + '/chat_users_online?username=eq.' + currentUser, {
+      method: 'UPSERT',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: currentUser,
+        is_online: true,
+        last_active: new Date().toISOString()
+      })
+    });
+  } catch(e) {}
+}
+
+function updateOnlineCount() {
+  const count = Object.values(onlineUsers).filter(x => x).length;
+  document.getElementById('onlineCount').textContent = 'Online: ' + count;
+}
+
+// Initialize when user loads
+initChat();
 </script>
-</body>
-</html>
