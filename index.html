@@ -2229,8 +2229,15 @@ function startChatPolling() {
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('💬 Chat system initializing...');
-  registerServiceWorker();
+  
+  // REQUEST PERMISSION FIRST (before Service Worker registration)
   requestNotificationPermission();
+  
+  // THEN register Service Worker
+  setTimeout(() => {
+    registerServiceWorker();
+  }, 500);
+  
   loadChatState();
   initDraggable();
   startChatPolling();

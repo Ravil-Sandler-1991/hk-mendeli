@@ -54,7 +54,15 @@ async function checkForNewMessages() {
 
 // Show notification
 function showNotification(msg) {
-  console.log('🔔 SW: Showing notification for message from', msg.sender);
+  console.log('🔔 SW: Attempting to show notification...');
+  
+  // Check if notification permission is granted
+  if(Notification.permission !== 'granted') {
+    console.log('❌ SW: Notification permission NOT granted. Permission:', Notification.permission);
+    return;
+  }
+  
+  console.log('✅ SW: Notification permission GRANTED. Showing notification...');
   
   const options = {
     body: msg.sender + ': ' + msg.message.substring(0, 50),
@@ -65,8 +73,13 @@ function showNotification(msg) {
     data: { url: '/' }
   };
 
-  self.registration.showNotification('💬 New Message', options);
-  console.log('✅ SW: Notification displayed');
+  self.registration.showNotification('💬 New Message', options)
+    .then(() => {
+      console.log('✅✅ SW: Notification displayed successfully!');
+    })
+    .catch(err => {
+      console.log('❌ SW: Failed to show notification:', err);
+    });
 }
 
 // Handle notification clicks
