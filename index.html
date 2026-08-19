@@ -458,6 +458,7 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
 
     <div style="margin-top:1rem;display:flex;gap:8px">
       <button class="btn" onclick="sendToManagerWhatsApp()" style="flex:1;border-color:#25D366;color:#25D366"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
+      <button class="btn" onclick="openChatForTicket(currentTicketId)" style="flex:1;border-color:#185FA5;color:#185FA5"><i class="ti ti-message-circle"></i> Chat</button>
     </div>
   </div>
 </div>
@@ -474,6 +475,7 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
     </div>
     <div style="display:flex;gap:8px;flex-direction:column">
       <button class="btn" onclick="sendToManagerWhatsAppFromSuccess()" style="border-color:#25D366;color:#25D366;font-weight:600"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
+      <button class="btn" onclick="openChatForTicket(lastCreatedTicket)" style="border-color:#185FA5;color:#185FA5;font-weight:600"><i class="ti ti-message-circle"></i> Chat</button>
       <button class="btn btn-primary" onclick="createAnotherTicket()">Create Another Call</button>
       <button class="btn" onclick="closeModal('ticketSuccessModal')">Done</button>
     </div>
