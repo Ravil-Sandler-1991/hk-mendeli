@@ -2061,7 +2061,8 @@ async function loadMessages() {
     if(!chatState.isOpen && msgs.length > 0) {
       console.log('🔍 Checking for new messages (window closed)');
       msgs.forEach((msg, idx) => {
-        const msgId = msg.id || msg.sender + msg.created_at;
+        // Convert msgId to string to avoid errors
+        const msgId = String(msg.id || (msg.sender + msg.created_at));
         const isSeen = chatState.seenMessageIds.includes(msgId);
         const isMine = msg.sender === currentUser;
         
@@ -2080,7 +2081,7 @@ async function loadMessages() {
     
     // Add all seen IDs
     msgs.forEach(msg => {
-      const msgId = msg.id || msg.sender + msg.created_at;
+      const msgId = String(msg.id || (msg.sender + msg.created_at));
       if(!chatState.seenMessageIds.includes(msgId)) {
         chatState.seenMessageIds.push(msgId);
       }
