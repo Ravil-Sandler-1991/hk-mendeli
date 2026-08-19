@@ -1519,13 +1519,18 @@ let onlineUsers = {};
 let chatPolling = null;
 
 function initChat(){
-  loadOnlineUsers();
-  if(chatPolling) clearInterval(chatPolling);
-  chatPolling = setInterval(() => {
-    if(currentChatTicketId) loadChatMessages();
-    updateOnlineStatus();
-    loadOnlineUsers();
-  }, 3000);
+  // Wait a moment for app to initialize before starting chat polling
+  setTimeout(() => {
+    if(apiUrl) {
+      loadOnlineUsers();
+      if(chatPolling) clearInterval(chatPolling);
+      chatPolling = setInterval(() => {
+        if(currentChatTicketId && apiUrl) loadChatMessages();
+        if(apiUrl) updateOnlineStatus();
+        if(apiUrl) loadOnlineUsers();
+      }, 3000);
+    }
+  }, 500);
 }
 
 function toggleChat(){
@@ -1544,7 +1549,7 @@ function openChatForTicket(ticketId){
 }
 
 async function loadChatMessages(){
-  if(!currentChatTicketId) return;
+  if(!currentChatTicketId || !apiUrl) return;
   try{
     const res = await fetch(apiUrl + '/chat_messages?ticket_id=eq.' + currentChatTicketId + '&order=created_at.asc', {
       headers: {'Authorization': 'Bearer ' + SUPABASE_KEY}
@@ -1574,7 +1579,7 @@ function renderChatMessages(){
 async function sendChatMessage(){
   const input = document.getElementById('chatInput');
   const msg = input.value.trim();
-  if(!msg || !currentChatTicketId) return;
+  if(!msg || !currentChatTicketId || !apiUrl) return;
   
   try{
     await fetch(apiUrl + '/chat_messages', {
@@ -1623,6 +1628,7 @@ function playMaintenanceSound(){
 }
 
 async function loadOnlineUsers(){
+  if(!apiUrl) return;
   try{
     const res = await fetch(apiUrl + '/chat_users_online', {
       headers: {'Authorization': 'Bearer ' + SUPABASE_KEY}
@@ -1638,6 +1644,7 @@ async function loadOnlineUsers(){
 }
 
 async function updateOnlineStatus(){
+  if(!apiUrl || !currentUser) return;
   try{
     await fetch(apiUrl + '/chat_users_online', {
       method: 'POST',
