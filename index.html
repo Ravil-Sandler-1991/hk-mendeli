@@ -1719,27 +1719,58 @@ initUser();loadAll();startPolling();
 
 // REGISTER SERVICE WORKER FOR BACKGROUND NOTIFICATIONS
 function registerServiceWorker() {
+  console.log('🔧 Attempting to register Service Worker...');
+  console.log('📍 Service Worker path: service-worker.js');
+  
   if('serviceWorker' in navigator) {
+    console.log('✅ Browser supports Service Workers');
+    
     navigator.serviceWorker.register('service-worker.js')
       .then(reg => {
-        console.log('✅ Service Worker registered');
+        console.log('✅✅✅ Service Worker REGISTERED successfully!');
+        console.log('  Scope:', reg.scope);
+        console.log('  Active:', reg.active);
+        console.log('  Installing:', reg.installing);
+        console.log('  Waiting:', reg.waiting);
+        
         // Save config to IndexedDB for service worker
         saveConfigToIndexedDB();
+        
+        // Check if service worker is already activated
+        if(reg.active) {
+          console.log('✅ Service Worker already ACTIVE');
+        } else if(reg.waiting) {
+          console.log('⏳ Service Worker WAITING');
+        } else if(reg.installing) {
+          console.log('⏳ Service Worker INSTALLING');
+        }
       })
-      .catch(err => console.log('❌ Service Worker error:', err));
+      .catch(err => {
+        console.log('❌❌❌ Service Worker registration FAILED:');
+        console.log('  Error:', err.message);
+        console.log('  Stack:', err.stack);
+      });
+  } else {
+    console.log('❌ Browser does NOT support Service Workers');
   }
 }
 
 // SAVE CONFIG TO INDEXED DB FOR SERVICE WORKER
 function saveConfigToIndexedDB() {
+  console.log('💾 Saving config to IndexedDB...');
+  
   const request = indexedDB.open('HKChatDB', 1);
   
-  request.onerror = () => console.log('❌ IndexedDB error');
+  request.onerror = () => {
+    console.log('❌ IndexedDB error:', request.error);
+  };
   
   request.onupgradeneeded = (e) => {
+    console.log('📝 IndexedDB schema upgrade needed');
     const db = e.target.result;
     if(!db.objectStoreNames.contains('config')) {
       db.createObjectStore('config');
+      console.log('  ✅ Created config object store');
     }
   };
   
@@ -1747,33 +1778,53 @@ function saveConfigToIndexedDB() {
     const db = e.target.result;
     const txn = db.transaction(['config'], 'readwrite');
     const store = txn.objectStore('config');
-    store.put({
+    
+    const config = {
       supaUrl: SUPA_URL,
       supaKey: SUPA_KEY,
       currentUser: currentUser
-    }, 'app-config');
-    console.log('💾 Config saved to IndexedDB');
+    };
+    
+    store.put(config, 'app-config');
+    console.log('✅ Config saved to IndexedDB');
+    console.log('  - URL:', SUPA_URL.substring(0, 30) + '...');
+    console.log('  - User:', currentUser);
   };
 }
 function requestNotificationPermission() {
+  console.log('🔔 Checking notification permissions...');
+  
   if(!('Notification' in window)) {
-    console.log('⚠️ Notifications not supported in this browser');
+    console.log('❌ Notifications NOT supported in this browser');
     return;
   }
+  
+  console.log('✅ Notifications supported');
+  console.log('  Current permission:', Notification.permission);
   
   if(Notification.permission === 'granted') {
-    console.log('✅ Notifications already enabled');
+    console.log('✅ Notifications already GRANTED');
     return;
   }
   
-  if(Notification.permission !== 'denied') {
+  if(Notification.permission === 'denied') {
+    console.log('❌ Notifications DENIED - user blocked notifications');
+    console.log('   To fix: Go to browser settings and allow notifications for this site');
+    return;
+  }
+  
+  if(Notification.permission === 'default') {
+    console.log('⏳ Asking user for permission...');
     Notification.requestPermission().then(permission => {
+      console.log('📝 User response:', permission);
       if(permission === 'granted') {
-        console.log('✅ Notifications enabled!');
+        console.log('✅ Notifications GRANTED!');
         showTestNotification();
       } else {
-        console.log('❌ Notifications denied');
+        console.log('❌ Notifications DENIED by user');
       }
+    }).catch(err => {
+      console.log('❌ Permission request error:', err);
     });
   }
 }
@@ -1781,14 +1832,75 @@ function requestNotificationPermission() {
 // SHOW TEST NOTIFICATION
 function showTestNotification() {
   if(Notification.permission === 'granted') {
-    new Notification('HK & Maintenance', {
-      body: 'Chat notifications enabled! 🔔',
-      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
-      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
-      tag: 'hk-test',
-      requireInteraction: false
-    });
+    try {
+      new Notification('HK & Maintenance', {
+        body: 'Chat notifications enabled! 🔔',
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
+        badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
+        tag: 'hk-test',
+        requireInteraction: false
+      });
+      console.log('✅ Test notification shown');
+    } catch(e) {
+      console.log('❌ Test notification error:', e);
+    }
+  } else {
+    console.log('❌ Cannot show test notification - permission not granted');
   }
+}
+
+// MANUAL TEST FUNCTION - Call from console: testNotifications()
+function testNotifications() {
+  console.log('🧪 STARTING NOTIFICATION TEST...');
+  console.log('='.repeat(50));
+  
+  // 1. Check browser support
+  console.log('1️⃣ Browser Support:');
+  console.log('  Service Worker:', 'serviceWorker' in navigator ? '✅' : '❌');
+  console.log('  Notifications:', 'Notification' in window ? '✅' : '❌');
+  console.log('  Vibration:', 'vibrate' in navigator ? '✅' : '❌');
+  
+  // 2. Check permissions
+  console.log('2️⃣ Permissions:');
+  console.log('  Notification permission:', Notification.permission);
+  
+  // 3. Check Service Worker
+  console.log('3️⃣ Service Worker Status:');
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations()
+      .then(registrations => {
+        console.log('  Registrations found:', registrations.length);
+        registrations.forEach((reg, i) => {
+          console.log('  [' + i + '] Scope:', reg.scope);
+          console.log('      Active:', reg.active ? '✅' : '❌');
+          console.log('      Waiting:', reg.waiting ? '✅' : '❌');
+          console.log('      Installing:', reg.installing ? '✅' : '❌');
+        });
+      })
+      .catch(err => console.log('  Error:', err));
+  }
+  
+  // 4. Check config in IndexedDB
+  console.log('4️⃣ Config in IndexedDB:');
+  const dbRequest = indexedDB.open('HKChatDB', 1);
+  dbRequest.onsuccess = (e) => {
+    const db = e.target.result;
+    const txn = db.transaction(['config'], 'readonly');
+    const store = txn.objectStore('config');
+    const getRequest = store.get('app-config');
+    getRequest.onsuccess = () => {
+      if(getRequest.result) {
+        console.log('  ✅ Config found');
+        console.log('    URL:', getRequest.result.supaUrl.substring(0, 30) + '...');
+        console.log('    User:', getRequest.result.currentUser);
+      } else {
+        console.log('  ❌ Config NOT found');
+      }
+    };
+  };
+  
+  console.log('='.repeat(50));
+  console.log('✅ Test complete - check results above');
 }
 const chatState = {
   isOpen: false,
