@@ -1706,7 +1706,42 @@ document.addEventListener('DOMContentLoaded',function(){
 
 initUser();loadAll();startPolling();
 
-// ENHANCED CHAT SYSTEM - Simple & Reliable
+// REQUEST NOTIFICATION PERMISSION ON LOAD
+function requestNotificationPermission() {
+  if(!('Notification' in window)) {
+    console.log('⚠️ Notifications not supported in this browser');
+    return;
+  }
+  
+  if(Notification.permission === 'granted') {
+    console.log('✅ Notifications already enabled');
+    return;
+  }
+  
+  if(Notification.permission !== 'denied') {
+    Notification.requestPermission().then(permission => {
+      if(permission === 'granted') {
+        console.log('✅ Notifications enabled!');
+        showTestNotification();
+      } else {
+        console.log('❌ Notifications denied');
+      }
+    });
+  }
+}
+
+// SHOW TEST NOTIFICATION
+function showTestNotification() {
+  if(Notification.permission === 'granted') {
+    new Notification('HK & Maintenance', {
+      body: 'Chat notifications enabled! 🔔',
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
+      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
+      tag: 'hk-test',
+      requireInteraction: false
+    });
+  }
+}
 const chatState = {
   isOpen: false,
   messages: [],
@@ -1817,14 +1852,18 @@ function toggleChat() {
   if(!win) return;
   
   chatState.isOpen = !chatState.isOpen;
+  console.log('🔔 Chat window toggled - Now:', chatState.isOpen ? 'OPEN' : 'CLOSED');
+  
   if(chatState.isOpen) {
     win.classList.add('visible');
     loadMessages();
     chatState.unreadCount = 0;
     updateBadge();
     saveChatState();
+    console.log('✅ Chat opened, badge cleared');
   } else {
     win.classList.remove('visible');
+    console.log('✅ Chat closed, ready for notifications');
   }
 }
 
@@ -1856,18 +1895,24 @@ async function loadMessages() {
     }
     
     const msgs = await res.json();
+    console.log('📨 Messages loaded:', msgs.length, 'Chat open?', chatState.isOpen, 'Seen:', chatState.seenMessageIds.length);
     
     // Check for NEW messages only
     if(!chatState.isOpen && msgs.length > 0) {
-      msgs.forEach(msg => {
+      console.log('🔍 Checking for new messages (window closed)');
+      msgs.forEach((msg, idx) => {
         const msgId = msg.id || msg.sender + msg.created_at;
+        const isSeen = chatState.seenMessageIds.includes(msgId);
+        const isMine = msg.sender === currentUser;
         
-        if(!chatState.seenMessageIds.includes(msgId) && msg.sender !== currentUser) {
+        console.log('  Message', idx, '- ID:', msgId.substring(0, 20), 'From:', msg.sender, 'Seen?', isSeen, 'Mine?', isMine);
+        
+        if(!isSeen && !isMine) {
+          console.log('✅ NEW MESSAGE from', msg.sender, ':', msg.message);
           chatState.seenMessageIds.push(msgId);
           chatState.unreadCount++;
           updateBadge();
           playNotificationSound();
-          console.log('📢 New message from ' + msg.sender + ': ' + msg.message);
           saveChatState();
         }
       });
@@ -1946,42 +1991,91 @@ function sendChatMessage() {
 }
 
 function playNotificationSound() {
+  console.log('🔊 Notification triggered!');
+  
+  // 1. SYSTEM NOTIFICATION (WhatsApp style)
+  if(Notification.permission === 'granted') {
+    const recentMsg = chatState.messages[chatState.messages.length - 1];
+    if(recentMsg && recentMsg.sender !== currentUser) {
+      new Notification('💬 New Message', {
+        body: recentMsg.sender + ': ' + recentMsg.message.substring(0, 50),
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">💬</text></svg>',
+        badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23E24B4A"/></svg>',
+        tag: 'chat-message',
+        requireInteraction: false,
+        vibrate: [200, 100, 200]
+      });
+      console.log('🔔 System notification shown');
+    }
+  }
+  
+  // 2. PHONE VIBRATION (if supported)
+  if(navigator.vibrate) {
+    navigator.vibrate([100, 50, 100, 50, 200]); // Pattern: vibrate 100ms, pause 50ms, etc
+    console.log('📳 Phone vibrated');
+  }
+  
+  // 3. SOUND CHIME
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if(!AudioContext) {
+      console.log('❌ AudioContext not supported');
+      return;
+    }
+    
+    const ctx = new AudioContext();
+    console.log('🎵 AudioContext created, state:', ctx.state);
+    
+    // Resume if suspended (required by browsers)
+    if(ctx.state === 'suspended') {
+      ctx.resume().then(() => console.log('✅ AudioContext resumed'));
+    }
+    
     const t = ctx.currentTime;
     
-    // Simple pleasant chime - 3 notes
+    // Musical chime - 3 notes
     const notes = [
-      { f: 523.25, s: 0, d: 0.15 },
-      { f: 659.25, s: 0.12, d: 0.15 },
-      { f: 783.99, s: 0.24, d: 0.25 }
+      { f: 523.25, s: 0, d: 0.15 },      // C5
+      { f: 659.25, s: 0.12, d: 0.15 },   // E5
+      { f: 783.99, s: 0.24, d: 0.25 }    // G5
     ];
     
-    notes.forEach(n => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.frequency.setValueAtTime(n.f, t + n.s);
-      o.type = 'sine';
-      g.gain.setValueAtTime(0.25, t + n.s);
-      g.gain.exponentialRampToValueAtTime(0.01, t + n.s + n.d);
-      o.start(t + n.s);
-      o.stop(t + n.s + n.d);
+    console.log('🎶 Playing chime with', notes.length, 'notes');
+    
+    notes.forEach((n, i) => {
+      try {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.frequency.setValueAtTime(n.f, t + n.s);
+        o.type = 'sine';
+        g.gain.setValueAtTime(0.25, t + n.s);
+        g.gain.exponentialRampToValueAtTime(0.01, t + n.s + n.d);
+        o.start(t + n.s);
+        o.stop(t + n.s + n.d);
+        console.log('  Note', i, '- Freq:', n.f, 'Hz');
+      } catch(e) {
+        console.log('  Note', i, 'error:', e);
+      }
     });
-    console.log('🔔 Sound played');
+    
+    console.log('✅ Sound scheduled to play');
   } catch(e) {
-    console.log('Sound error:', e);
+    console.log('❌ Sound error:', e.message);
   }
 }
 
 function startChatPolling() {
+  console.log('⏱️ Starting chat polling every 2 seconds');
+  
   // Initial load
   setTimeout(loadMessages, 500);
   
   // Poll every 2 seconds
   setInterval(function() {
     if(!chatState.isDragging) {
+      console.log('⏱️ Polling for messages...');
       loadMessages();
     }
   }, 2000);
@@ -1989,6 +2083,7 @@ function startChatPolling() {
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('💬 Chat system initializing...');
+  requestNotificationPermission();
   loadChatState();
   initDraggable();
   startChatPolling();
