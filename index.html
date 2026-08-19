@@ -539,14 +539,34 @@ function openChatForTicket(ticketId) {
 }
 
 function sendChatMessage() {
+  console.log('sendChatMessage called');
+  console.log('apiUrl:', typeof apiUrl, 'currentUser:', currentUser, 'ticketId:', currentChatTicketId);
+  
   if(typeof apiUrl === 'undefined') {
-    console.log('API not ready yet');
+    console.log('❌ API not ready yet');
     return;
   }
+  
   const input = document.getElementById('chatInput');
-  if(!input) return;
+  if(!input) {
+    console.log('❌ Input element not found');
+    return;
+  }
+  
   const msg = input.value.trim();
-  if(!msg || !currentChatTicketId) return;
+  console.log('Message:', msg, 'TicketId:', currentChatTicketId);
+  
+  if(!msg) {
+    console.log('❌ Message is empty');
+    return;
+  }
+  
+  if(!currentChatTicketId) {
+    console.log('❌ No ticket selected');
+    return;
+  }
+  
+  console.log('✅ All checks passed, sending message...');
   
   try{
     fetch(apiUrl + '/chat_messages', {
@@ -563,11 +583,12 @@ function sendChatMessage() {
         created_at: new Date().toISOString()
       })
     });
+    console.log('✅ Message sent!');
     input.value = '';
     if(window.playMaintenanceSound) window.playMaintenanceSound();
     if(window.loadChatMessages) window.loadChatMessages();
   }catch(e){
-    console.log('Send error:', e);
+    console.log('❌ Send error:', e);
   }
 }
 
