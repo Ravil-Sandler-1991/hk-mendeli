@@ -509,6 +509,85 @@ let pollInterval=null,currentUser='',selectedCategory='General repairs';
 let historyFilters={dateFrom:'',dateTo:'',room:''};
 let lastCreatedTicket=null;
 let selectedLocType='room';
+let currentChatTicketId = null;
+let chatMessages = [];
+let onlineUsers = {};
+let chatPolling = null;
+
+// Chat functions - defined early so onclick handlers can find them
+function toggleChat() {
+  const sidebar = document.getElementById('chatSidebar');
+  if(!sidebar) return;
+  sidebar.classList.toggle('visible');
+  if(sidebar.classList.contains('visible')){
+    if(window.loadChatMessages) window.loadChatMessages();
+    const badge = document.getElementById('unreadBadge');
+    if(badge) badge.classList.add('hidden');
+  }
+}
+
+function openChatForTicket(ticketId) {
+  if(!apiUrl || !SUPABASE_KEY) {
+    console.log('Chat not ready yet');
+    return;
+  }
+  currentChatTicketId = ticketId;
+  const sidebar = document.getElementById('chatSidebar');
+  if(sidebar) sidebar.classList.add('visible');
+  if(window.loadChatMessages) window.loadChatMessages();
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  if(!input) return;
+  const msg = input.value.trim();
+  if(!msg || !currentChatTicketId || !apiUrl) return;
+  
+  try{
+    fetch(apiUrl + '/chat_messages', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ticket_id: currentChatTicketId,
+        sender: currentUser,
+        message: msg,
+        is_urgent: false,
+        created_at: new Date().toISOString()
+      })
+    });
+    input.value = '';
+    if(window.playMaintenanceSound) window.playMaintenanceSound();
+    if(window.loadChatMessages) window.loadChatMessages();
+  }catch(e){
+    console.log('Send error:', e);
+  }
+}
+
+function playMaintenanceSound(){
+  try{
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.15);
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  }catch(e){
+    console.log('Sound error:', e);
+  }
+}
 
 function initUser(){
   const savedLang=localStorage.getItem('hk-lang');
@@ -1516,234 +1595,6 @@ setTimeout(() => { if(window.initChat) window.initChat(); }, 2000);
 </button>
 
 
-
-let currentChatTicketId = null;
-let chatMessages = [];
-let onlineUsers = {};
-let chatPolling = null;
-
-// Define ALL chat functions immediately
-window.toggleChat = function() {
-  const sidebar = document.getElementById('chatSidebar');
-  sidebar.classList.toggle('visible');
-  if(sidebar.classList.contains('visible')){
-    if(window.loadChatMessages) window.loadChatMessages();
-    document.getElementById('unreadBadge').classList.add('hidden');
-  }
-};
-
-// Also define as regular function for onclick handlers
-function toggleChat() {
-  const sidebar = document.getElementById('chatSidebar');
-  sidebar.classList.toggle('visible');
-  if(sidebar.classList.contains('visible')){
-    if(window.loadChatMessages) window.loadChatMessages();
-    document.getElementById('unreadBadge').classList.add('hidden');
-  }
-}
-
-window.openChatForTicket = function(ticketId) {
-  if(!apiUrl || !SUPABASE_KEY) {
-    console.log('Chat not ready yet, please wait...');
-    return;
-  }
-  currentChatTicketId = ticketId;
-  document.getElementById('chatSidebar').classList.add('visible');
-  if(window.loadChatMessages) window.loadChatMessages();
-};
-
-// Also define as regular function
-function openChatForTicket(ticketId) {
-  if(!apiUrl || !SUPABASE_KEY) {
-    console.log('Chat not ready yet, please wait...');
-    return;
-  }
-  currentChatTicketId = ticketId;
-  document.getElementById('chatSidebar').classList.add('visible');
-  if(window.loadChatMessages) window.loadChatMessages();
-}
-
-window.sendChatMessage = function() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if(!msg || !currentChatTicketId || !apiUrl) return;
-  
-  try{
-    fetch(apiUrl + '/chat_messages', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ticket_id: currentChatTicketId,
-        sender: currentUser,
-        message: msg,
-        is_urgent: false,
-        created_at: new Date().toISOString()
-      })
-    });
-    input.value = '';
-    if(window.playMaintenanceSound) window.playMaintenanceSound();
-    if(window.loadChatMessages) window.loadChatMessages();
-  }catch(e){
-    console.log('Send error:', e);
-  }
-};
-
-// Also define as regular function for onclick handlers
-function sendChatMessage() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if(!msg || !currentChatTicketId || !apiUrl) return;
-  
-  try{
-    fetch(apiUrl + '/chat_messages', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ticket_id: currentChatTicketId,
-        sender: currentUser,
-        message: msg,
-        is_urgent: false,
-        created_at: new Date().toISOString()
-      })
-    });
-    input.value = '';
-    if(window.playMaintenanceSound) window.playMaintenanceSound();
-    if(window.loadChatMessages) window.loadChatMessages();
-  }catch(e){
-    console.log('Send error:', e);
-  }
-}
-
-window.initChat = function() {
-  if(!apiUrl || !currentUser || !SUPABASE_KEY) {
-    console.log('App still initializing, will try again...');
-    setTimeout(() => { if(window.initChat) window.initChat(); }, 1000);
-    return;
-  }
-  if(window.loadOnlineUsers) window.loadOnlineUsers();
-  if(chatPolling) clearInterval(chatPolling);
-  chatPolling = setInterval(() => {
-    if(currentChatTicketId && apiUrl && SUPABASE_KEY) {
-      if(window.loadChatMessages) window.loadChatMessages();
-    }
-    if(apiUrl && SUPABASE_KEY && currentUser) {
-      if(window.updateOnlineStatus) window.updateOnlineStatus();
-      if(window.loadOnlineUsers) window.loadOnlineUsers();
-    }
-  }, 3000);
-};
-
-function toggleChat(){
-  const sidebar = document.getElementById('chatSidebar');
-  sidebar.classList.toggle('visible');
-  if(sidebar.classList.contains('visible')){
-    loadChatMessages();
-    document.getElementById('unreadBadge').classList.add('hidden');
-  }
-}
-
-function openChatForTicket(ticketId){
-  if(!apiUrl || !SUPABASE_KEY) {
-    console.log('Chat not ready yet, please wait...');
-    return;
-  }
-  currentChatTicketId = ticketId;
-  document.getElementById('chatSidebar').classList.add('visible');
-  loadChatMessages();
-}
-
-window.loadChatMessages = async function() {
-  if(!currentChatTicketId) {
-    console.log('No ticket selected');
-    return;
-  }
-  if(!apiUrl || !SUPABASE_KEY) {
-    console.log('API not initialized yet');
-    return;
-  }
-  try{
-    const res = await fetch(apiUrl + '/chat_messages?ticket_id=eq.' + currentChatTicketId + '&order=created_at.asc', {
-      headers: {'Authorization': 'Bearer ' + SUPABASE_KEY}
-    });
-    if(!res.ok) return;
-    const msgs = await res.json();
-    chatMessages = msgs;
-    if(window.renderChatMessages) window.renderChatMessages();
-  }catch(e){
-    console.log('Chat load error:', e);
-  }
-};
-
-function renderChatMessages(){
-  const msgContainer = document.getElementById('chatMessages');
-  msgContainer.innerHTML = chatMessages.map(m => {
-    const isOwn = m.sender === currentUser;
-    return '<div class="chat-msg ' + (isOwn ? 'sent' : 'received') + '">' +
-      '<div class="msg-sender">' + m.sender + '</div>' +
-      '<div class="msg-text ' + (m.is_urgent ? 'urgent' : '') + '">' + m.message + '</div>' +
-      '<div class="msg-time">' + new Date(m.created_at).toLocaleTimeString() + '</div>' +
-      '</div>';
-  }).join('');
-  msgContainer.scrollTop = msgContainer.scrollHeight;
-}
-
-async function sendChatMessage(){
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if(!msg || !currentChatTicketId || !apiUrl) return;
-  
-  try{
-    await fetch(apiUrl + '/chat_messages', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ticket_id: currentChatTicketId,
-        sender: currentUser,
-        message: msg,
-        is_urgent: false,
-        created_at: new Date().toISOString()
-      })
-    });
-    input.value = '';
-    playMaintenanceSound();
-    loadChatMessages();
-  }catch(e){
-    console.log('Send error:', e);
-  }
-}
-
-function playMaintenanceSound(){
-  try{
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.15);
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
-  }catch(e){
-    console.log('Sound error:', e);
-  }
-}
-window.playMaintenanceSound = playMaintenanceSound;
 
 window.loadOnlineUsers = async function() {
   if(!apiUrl) return;
