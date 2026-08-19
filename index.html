@@ -1944,25 +1944,37 @@ function sendChatMessage() {
   }).catch(e => {});
 }
 
-// SMART NOTIFICATIONS - Only for others' messages
+// SMART NOTIFICATIONS - Only for others' messages - WITH UNIQUE CHIME SOUND
 function playNotificationSound() {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
     
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
+    // Create a musical chime with multiple notes
+    const now = audioContext.currentTime;
+    const notes = [
+      { freq: 523.25, start: 0, duration: 0.2 },      // C5
+      { freq: 659.25, start: 0.15, duration: 0.2 },   // E5
+      { freq: 783.99, start: 0.30, duration: 0.4 }    // G5
+    ];
     
-    osc.frequency.setValueAtTime(800, audioContext.currentTime);
-    osc.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-    osc.type = 'sine';
-    
-    gain.gain.setValueAtTime(0.2, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-    
-    osc.start(audioContext.currentTime);
-    osc.stop(audioContext.currentTime + 0.4);
+    notes.forEach(note => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      
+      osc.frequency.setValueAtTime(note.freq, now + note.start);
+      osc.type = 'sine';
+      
+      // Smooth envelope
+      gain.gain.setValueAtTime(0, now + note.start);
+      gain.gain.linearRampToValueAtTime(0.3, now + note.start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + note.start + note.duration);
+      
+      osc.start(now + note.start);
+      osc.stop(now + note.start + note.duration);
+    });
   } catch(e) {}
 }
 
