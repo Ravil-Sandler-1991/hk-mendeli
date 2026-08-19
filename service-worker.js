@@ -6,7 +6,8 @@ let lastSeenMessages = [];
 // Start checking immediately
 console.log('⏰ Service Worker: Setting up 15-second polling...');
 setInterval(() => {
-  console.log('🔄 Service Worker: Checking for messages...');
+  console.log('🔄 Service Worker: Polling for messages...');
+  console.log('   Notification.permission:', Notification.permission);
   checkForNewMessages().catch(e => console.log('Poll error:', e));
 }, 15000);
 
@@ -54,15 +55,18 @@ async function checkForNewMessages() {
 
 // Show notification
 function showNotification(msg) {
-  console.log('🔔 SW: Attempting to show notification...');
+  console.log('🔔 SW: Preparing notification...');
+  console.log('   Message from:', msg.sender);
+  console.log('   Notification.permission:', Notification.permission);
   
   // Check if notification permission is granted
-  if(Notification.permission !== 'granted') {
-    console.log('❌ SW: Notification permission NOT granted. Permission:', Notification.permission);
+  if(!Notification || Notification.permission !== 'granted') {
+    console.log('⚠️ SW: Notification permission not granted. Skipping notification.');
+    console.log('   Permission:', Notification ? Notification.permission : 'N/A');
     return;
   }
   
-  console.log('✅ SW: Notification permission GRANTED. Showing notification...');
+  console.log('✅ SW: Permission OK. Showing notification...');
   
   const options = {
     body: msg.sender + ': ' + msg.message.substring(0, 50),
@@ -73,13 +77,17 @@ function showNotification(msg) {
     data: { url: '/' }
   };
 
-  self.registration.showNotification('💬 New Message', options)
-    .then(() => {
-      console.log('✅✅ SW: Notification displayed successfully!');
-    })
-    .catch(err => {
-      console.log('❌ SW: Failed to show notification:', err);
-    });
+  try {
+    self.registration.showNotification('💬 New Message', options)
+      .then(() => {
+        console.log('✅✅ SW: Notification displayed successfully!');
+      })
+      .catch(err => {
+        console.log('❌ SW: showNotification error:', err.message);
+      });
+  } catch(e) {
+    console.log('❌ SW: Exception during showNotification:', e.message);
+  }
 }
 
 // Handle notification clicks

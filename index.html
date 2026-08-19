@@ -1774,42 +1774,49 @@ function saveConfigToIndexedDB() {
 }
 
 // NO SERVICE WORKER NEEDED - Just use Notifications API with polling
+// REQUEST NOTIFICATION PERMISSION ON LOAD
 function requestNotificationPermission() {
-  console.log('🔔 Checking notification permissions...');
+  console.log('🔔 Starting notification permission request...');
+  console.log('  Permission status:', Notification.permission);
   
   if(!('Notification' in window)) {
-    console.log('❌ Notifications NOT supported in this browser');
-    return;
+    console.log('❌ Notifications NOT supported');
+    return Promise.reject('Notifications not supported');
   }
   
-  console.log('✅ Notifications supported');
-  console.log('  Current permission:', Notification.permission);
-  
+  // Already granted
   if(Notification.permission === 'granted') {
-    console.log('✅ Notifications already GRANTED');
-    return;
+    console.log('✅ Notifications ALREADY GRANTED');
+    return Promise.resolve('granted');
   }
   
+  // Already denied
   if(Notification.permission === 'denied') {
-    console.log('❌ Notifications DENIED - user blocked notifications');
-    console.log('   To fix: Go to browser settings and allow notifications for this site');
-    return;
+    console.log('❌ Notifications DENIED by user - need to allow in settings');
+    alert('⚠️ Notifications are BLOCKED.\n\nTo get messages:\n1. Click the lock icon 🔒 in address bar\n2. Find "Notifications"\n3. Change to "Allow"');
+    return Promise.reject('denied');
   }
   
-  if(Notification.permission === 'default') {
-    console.log('⏳ Asking user for permission...');
-    Notification.requestPermission().then(permission => {
+  // Not decided yet - ASK
+  console.log('⏳ Asking user for notification permission...');
+  return Notification.requestPermission()
+    .then(permission => {
       console.log('📝 User response:', permission);
+      
       if(permission === 'granted') {
-        console.log('✅ Notifications GRANTED!');
+        console.log('✅✅✅ NOTIFICATIONS GRANTED!');
         showTestNotification();
+        return 'granted';
       } else {
-        console.log('❌ Notifications DENIED by user');
+        console.log('❌ User denied notifications');
+        alert('❌ Notifications were denied. Messages won\'t pop up!');
+        return 'denied';
       }
-    }).catch(err => {
+    })
+    .catch(err => {
       console.log('❌ Permission request error:', err);
+      return 'error';
     });
-  }
 }
 
 // SHOW TEST NOTIFICATION
@@ -2230,14 +2237,22 @@ function startChatPolling() {
 document.addEventListener('DOMContentLoaded', function() {
   console.log('💬 Chat system initializing...');
   
-  // REQUEST PERMISSION FIRST (before Service Worker registration)
-  requestNotificationPermission();
+  // REQUEST PERMISSION FIRST and WAIT for it
+  requestNotificationPermission()
+    .then(result => {
+      console.log('✅ Permission result:', result);
+      if(result === 'granted') {
+        console.log('🎯 Permission granted! NOW registering Service Worker...');
+        registerServiceWorker();
+      } else {
+        console.log('⚠️ Permission not granted. Service Worker NOT registered.');
+      }
+    })
+    .catch(err => {
+      console.log('⚠️ Permission error:', err);
+    });
   
-  // THEN register Service Worker
-  setTimeout(() => {
-    registerServiceWorker();
-  }, 500);
-  
+  // Load chat even without notifications
   loadChatState();
   initDraggable();
   startChatPolling();
@@ -2251,7 +2266,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  console.log('✅ Chat system ready - Background notifications enabled!');
+  console.log('✅ Chat system ready!');
 });
 </script>
 
