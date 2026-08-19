@@ -51,7 +51,7 @@ async function checkForNewMessages() {
   }
 }
 
-// Show notification
+// Show notification with unique sound
 function showNotification(msg) {
   const options = {
     body: msg.sender + ': ' + msg.message.substring(0, 50),
@@ -59,12 +59,54 @@ function showNotification(msg) {
     badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23E24B4A"/></svg>',
     tag: 'chat-' + msg.id,
     requireInteraction: false,
-    vibrate: [200, 100, 200],
+    vibrate: [200, 100, 200, 100, 300], // Unique vibration pattern
     data: { url: '/' }
   };
 
   self.registration.showNotification('💬 New Message', options);
   console.log('🔔 Notification shown for message from ' + msg.sender);
+  
+  // Play unique sound through service worker
+  playUniqueSound();
+}
+
+// Unique sound for service worker
+function playUniqueSound() {
+  try {
+    const AudioContext = (typeof window !== 'undefined' ? window.AudioContext : null) || 
+                        (typeof window !== 'undefined' ? window.webkitAudioContext : null);
+    
+    if(!AudioContext) return;
+    
+    const ctx = new AudioContext();
+    const t = ctx.currentTime;
+    
+    // UNIQUE 5-NOTE HOTEL ALERT
+    const notes = [
+      { f: 800, s: 0, d: 0.1 },         // High ping
+      { f: 800, s: 0.12, d: 0.1 },      // High ping (repeat)
+      { f: 600, s: 0.24, d: 0.15 },     // Mid dong
+      { f: 800, s: 0.42, d: 0.1 },      // High ping again
+      { f: 500, s: 0.54, d: 0.25 }      // Low resonant end
+    ];
+    
+    notes.forEach(n => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.frequency.setValueAtTime(n.f, t + n.s);
+      o.type = 'sine';
+      g.gain.setValueAtTime(0.3, t + n.s);
+      g.gain.exponentialRampToValueAtTime(0.01, t + n.s + n.d);
+      o.start(t + n.s);
+      o.stop(t + n.s + n.d);
+    });
+    
+    console.log('🎶 Unique sound played from service worker');
+  } catch(e) {
+    console.log('Sound error:', e);
+  }
 }
 
 // Handle notification clicks

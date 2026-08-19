@@ -343,6 +343,17 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
   padding: 20px;
 }
 
+.chat-date-header {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 12px;
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 </style>
 </head>
 <body>
@@ -1980,9 +1991,42 @@ function renderMessages() {
   }
   
   let html = '';
+  let lastDate = null;
+  
   chatState.messages.forEach(msg => {
+    const msgDate = new Date(msg.created_at);
+    const todayDate = new Date();
+    
+    // Format date
+    let displayDate = '';
+    const isToday = msgDate.toDateString() === todayDate.toDateString();
+    const yesterday = new Date(todayDate);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = msgDate.toDateString() === yesterday.toDateString();
+    
+    if(isToday) {
+      displayDate = 'Today';
+    } else if(isYesterday) {
+      displayDate = 'Yesterday';
+    } else {
+      displayDate = msgDate.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: msgDate.getFullYear() !== todayDate.getFullYear() ? 'numeric' : undefined
+      });
+    }
+    
+    // Show date header when date changes
+    const currentDate = msgDate.toDateString();
+    if(lastDate !== currentDate) {
+      html += '<div class="chat-date-header">' + displayDate + '</div>';
+      lastDate = currentDate;
+    }
+    
+    // Format time
+    const time = msgDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
     const isOwn = msg.sender === currentUser;
-    const time = new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     
     html += '<div class="chat-msg ' + (isOwn ? 'sent' : 'received') + '">';
     if(!isOwn) {
@@ -2046,13 +2090,13 @@ function playNotificationSound() {
     }
   }
   
-  // 2. PHONE VIBRATION (if supported)
+  // 2. PHONE VIBRATION
   if(navigator.vibrate) {
-    navigator.vibrate([100, 50, 100, 50, 200]); // Pattern: vibrate 100ms, pause 50ms, etc
+    navigator.vibrate([200, 100, 200, 100, 300]); // Unique vibration pattern
     console.log('📳 Phone vibrated');
   }
   
-  // 3. SOUND CHIME
+  // 3. UNIQUE CUSTOM SOUND - Hotel Alert Melody
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if(!AudioContext) {
@@ -2061,23 +2105,25 @@ function playNotificationSound() {
     }
     
     const ctx = new AudioContext();
-    console.log('🎵 AudioContext created, state:', ctx.state);
     
-    // Resume if suspended (required by browsers)
+    // Resume if suspended
     if(ctx.state === 'suspended') {
       ctx.resume().then(() => console.log('✅ AudioContext resumed'));
     }
     
     const t = ctx.currentTime;
     
-    // Musical chime - 3 notes
+    // UNIQUE 5-NOTE MELODY - Hotel Alert Sound
+    // Creates a distinctive "ding-ding-dong" pattern
     const notes = [
-      { f: 523.25, s: 0, d: 0.15 },      // C5
-      { f: 659.25, s: 0.12, d: 0.15 },   // E5
-      { f: 783.99, s: 0.24, d: 0.25 }    // G5
+      { f: 800, s: 0, d: 0.1 },         // High ping
+      { f: 800, s: 0.12, d: 0.1 },      // High ping (repeat)
+      { f: 600, s: 0.24, d: 0.15 },     // Mid dong
+      { f: 800, s: 0.42, d: 0.1 },      // High ping again
+      { f: 500, s: 0.54, d: 0.25 }      // Low resonant end
     ];
     
-    console.log('🎶 Playing chime with', notes.length, 'notes');
+    console.log('🎶 Playing UNIQUE hotel alert with', notes.length, 'notes');
     
     notes.forEach((n, i) => {
       try {
@@ -2087,17 +2133,17 @@ function playNotificationSound() {
         g.connect(ctx.destination);
         o.frequency.setValueAtTime(n.f, t + n.s);
         o.type = 'sine';
-        g.gain.setValueAtTime(0.25, t + n.s);
+        g.gain.setValueAtTime(0.3, t + n.s);
         g.gain.exponentialRampToValueAtTime(0.01, t + n.s + n.d);
         o.start(t + n.s);
         o.stop(t + n.s + n.d);
-        console.log('  Note', i, '- Freq:', n.f, 'Hz');
+        console.log('  Note', i, '- Freq:', n.f, 'Hz, Duration:', n.d);
       } catch(e) {
         console.log('  Note', i, 'error:', e);
       }
     });
     
-    console.log('✅ Sound scheduled to play');
+    console.log('✅ Unique sound scheduled to play');
   } catch(e) {
     console.log('❌ Sound error:', e.message);
   }
