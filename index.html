@@ -246,18 +246,6 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
   display: flex;
   flex-direction: column;
   margin-bottom: 4px;
-  animation: slideIn 0.2s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .chat-msg.sent {
@@ -1718,31 +1706,28 @@ document.addEventListener('DOMContentLoaded',function(){
 
 initUser();loadAll();startPolling();
 
-// ENHANCED CHAT SYSTEM - General Team Chat with Draggable Bubble
+// ENHANCED CHAT SYSTEM - Simple & Reliable
 const chatState = {
   isOpen: false,
   messages: [],
   unreadCount: 0,
   bubblePos: { x: 0, y: 0 },
   isDragging: false,
-  lastMessageCount: 0,
-  lastMessageIds: [] // Track seen messages by ID
+  seenMessageIds: []
 };
 
-// LOAD SAVED STATE
 function loadChatState() {
   try {
     const saved = localStorage.getItem('hotelChatState');
     if(saved) {
-      const state = JSON.parse(saved);
-      chatState.bubblePos = state.bubblePos || { x: 0, y: 0 };
-      chatState.unreadCount = state.unreadCount || 0;
+      const s = JSON.parse(saved);
+      chatState.bubblePos = s.bubblePos || { x: 0, y: 0 };
+      chatState.unreadCount = s.unreadCount || 0;
     }
   } catch(e) {}
   applyBubblePosition();
 }
 
-// SAVE STATE
 function saveChatState() {
   try {
     localStorage.setItem('hotelChatState', JSON.stringify({
@@ -1752,7 +1737,6 @@ function saveChatState() {
   } catch(e) {}
 }
 
-// BUBBLE POSITIONING
 function applyBubblePosition() {
   const bubble = document.getElementById('chatBubble');
   if(!bubble) return;
@@ -1765,7 +1749,6 @@ function applyBubblePosition() {
   }
 }
 
-// DRAGGABLE BUBBLE
 function initDraggable() {
   const bubble = document.getElementById('chatBubble');
   if(!bubble) return;
@@ -1773,6 +1756,7 @@ function initDraggable() {
   let startX, startY, initialX, initialY;
 
   function handleStart(e) {
+    if(chatState.isDragging) return;
     chatState.isDragging = true;
     bubble.classList.add('dragging');
     
@@ -1787,7 +1771,6 @@ function initDraggable() {
 
   function handleMove(e) {
     if(!chatState.isDragging) return;
-    e.preventDefault();
     
     const touch = e.touches ? e.touches[0] : e;
     const deltaX = touch.clientX - startX;
@@ -1809,6 +1792,7 @@ function initDraggable() {
   }
 
   function handleEnd() {
+    if(!chatState.isDragging) return;
     chatState.isDragging = false;
     bubble.classList.remove('dragging');
     
@@ -1828,24 +1812,22 @@ function initDraggable() {
   document.addEventListener('touchend', handleEnd);
 }
 
-// TOGGLE CHAT WINDOW
 function toggleChat() {
-  const chatWindow = document.getElementById('chatWindow');
-  if(!chatWindow) return;
+  const win = document.getElementById('chatWindow');
+  if(!win) return;
   
   chatState.isOpen = !chatState.isOpen;
   if(chatState.isOpen) {
-    chatWindow.classList.add('visible');
+    win.classList.add('visible');
     loadMessages();
     chatState.unreadCount = 0;
     updateBadge();
     saveChatState();
   } else {
-    chatWindow.classList.remove('visible');
+    win.classList.remove('visible');
   }
 }
 
-// UPDATE UNREAD BADGE
 function updateBadge() {
   const badge = document.querySelector('.chat-bubble .unread-badge');
   if(!badge) return;
@@ -1858,7 +1840,6 @@ function updateBadge() {
   }
 }
 
-// LOAD MESSAGES - General Team Chat (no ticket_id)
 async function loadMessages() {
   try {
     const url = SUPA_URL + '/rest/v1/chat_messages?order=created_at.asc';
@@ -1869,72 +1850,79 @@ async function loadMessages() {
       }
     });
     
-    if(!res.ok) return;
+    if(!res.ok) {
+      console.log('❌ Chat fetch failed:', res.status);
+      return;
+    }
     
     const msgs = await res.json();
     
-    // CHECK FOR NEW MESSAGES FROM OTHERS (only when window is closed)
+    // Check for NEW messages only
     if(!chatState.isOpen && msgs.length > 0) {
       msgs.forEach(msg => {
-        // Check if we've already seen this message
-        const messageKey = msg.id || (msg.sender + '-' + msg.created_at);
+        const msgId = msg.id || msg.sender + msg.created_at;
         
-        if(!chatState.lastMessageIds.includes(messageKey)) {
-          // New message we haven't seen before
-          chatState.lastMessageIds.push(messageKey);
-          
-          // Only notify if it's from someone else
-          if(msg.sender !== currentUser) {
-            chatState.unreadCount++;
-            updateBadge();
-            playNotificationSound();
-            console.log('📢 New message from:', msg.sender);
-            saveChatState();
-          }
+        if(!chatState.seenMessageIds.includes(msgId) && msg.sender !== currentUser) {
+          chatState.seenMessageIds.push(msgId);
+          chatState.unreadCount++;
+          updateBadge();
+          playNotificationSound();
+          console.log('📢 New message from ' + msg.sender + ': ' + msg.message);
+          saveChatState();
         }
       });
     }
     
+    // Add all seen IDs
+    msgs.forEach(msg => {
+      const msgId = msg.id || msg.sender + msg.created_at;
+      if(!chatState.seenMessageIds.includes(msgId)) {
+        chatState.seenMessageIds.push(msgId);
+      }
+    });
+    
     chatState.messages = msgs;
     renderMessages();
   } catch(e) {
-    console.log('Load error:', e);
+    console.log('❌ Load error:', e);
   }
 }
 
-// RENDER MESSAGES
 function renderMessages() {
   const container = document.getElementById('chatMessages');
   if(!container) return;
   
-  if(chatState.messages.length === 0) {
-    container.innerHTML = '<div class="chat-empty">👋 No messages yet. Start the conversation!</div>';
+  if(!chatState.messages || chatState.messages.length === 0) {
+    container.innerHTML = '<div class="chat-empty">👋 No messages yet</div>';
     return;
   }
   
-  container.innerHTML = chatState.messages.map(msg => {
+  let html = '';
+  chatState.messages.forEach(msg => {
     const isOwn = msg.sender === currentUser;
     const time = new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     
-    return `
-      <div class="chat-msg ${isOwn ? 'sent' : 'received'}">
-        ${!isOwn ? `<div class="msg-sender">${msg.sender}</div>` : ''}
-        <div class="msg-text">${msg.message}</div>
-        <div class="msg-time">${time}</div>
-      </div>
-    `;
-  }).join('');
+    html += '<div class="chat-msg ' + (isOwn ? 'sent' : 'received') + '">';
+    if(!isOwn) {
+      html += '<div class="msg-sender">' + msg.sender + '</div>';
+    }
+    html += '<div class="msg-text">' + msg.message + '</div>';
+    html += '<div class="msg-time">' + time + '</div>';
+    html += '</div>';
+  });
   
+  container.innerHTML = html;
   container.scrollTop = container.scrollHeight;
 }
 
-// SEND MESSAGE
 function sendChatMessage() {
   const input = document.getElementById('chatInput');
   if(!input) return;
   
   const msg = input.value.trim();
   if(!msg) return;
+  
+  input.value = '';
   
   const payload = {
     sender: currentUser,
@@ -1952,72 +1940,69 @@ function sendChatMessage() {
     body: JSON.stringify(payload)
   }).then(res => {
     if(res.ok) {
-      input.value = '';
-      loadMessages();
+      setTimeout(loadMessages, 500);
     }
   }).catch(e => console.log('Send error:', e));
 }
 
-// UNIQUE NOTIFICATION SOUND - Musical Chime
 function playNotificationSound() {
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const t = ctx.currentTime;
     
-    // Create a pleasant musical chime
-    const now = audioContext.currentTime;
+    // Simple pleasant chime - 3 notes
     const notes = [
-      { freq: 523.25, start: 0, duration: 0.2 },      // C5
-      { freq: 659.25, start: 0.15, duration: 0.2 },   // E5
-      { freq: 783.99, start: 0.30, duration: 0.5 }    // G5
+      { f: 523.25, s: 0, d: 0.15 },
+      { f: 659.25, s: 0.12, d: 0.15 },
+      { f: 783.99, s: 0.24, d: 0.25 }
     ];
     
-    notes.forEach(note => {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-      
-      osc.frequency.setValueAtTime(note.freq, now + note.start);
-      osc.type = 'sine';
-      
-      // Smooth volume envelope
-      gain.gain.setValueAtTime(0, now + note.start);
-      gain.gain.linearRampToValueAtTime(0.25, now + note.start + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + note.start + note.duration);
-      
-      osc.start(now + note.start);
-      osc.stop(now + note.start + note.duration);
+    notes.forEach(n => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.frequency.setValueAtTime(n.f, t + n.s);
+      o.type = 'sine';
+      g.gain.setValueAtTime(0.25, t + n.s);
+      g.gain.exponentialRampToValueAtTime(0.01, t + n.s + n.d);
+      o.start(t + n.s);
+      o.stop(t + n.s + n.d);
     });
-    
-    console.log('🔔 Notification sound played');
+    console.log('🔔 Sound played');
   } catch(e) {
     console.log('Sound error:', e);
   }
 }
 
-// POLL FOR NEW MESSAGES
 function startChatPolling() {
-  setInterval(() => {
-    loadMessages();
+  // Initial load
+  setTimeout(loadMessages, 500);
+  
+  // Poll every 2 seconds
+  setInterval(function() {
+    if(!chatState.isDragging) {
+      loadMessages();
+    }
   }, 2000);
 }
 
-// INIT ON LOAD
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('💬 Chat system initializing...');
   loadChatState();
   initDraggable();
   startChatPolling();
   
-  // Load initial messages to populate lastMessageIds
-  loadMessages();
-  
   const input = document.getElementById('chatInput');
   if(input) {
     input.addEventListener('keypress', function(e) {
-      if(e.key === 'Enter') sendChatMessage();
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        sendChatMessage();
+      }
     });
   }
+  console.log('✅ Chat system ready');
 });
 </script>
 
