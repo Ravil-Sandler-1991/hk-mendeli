@@ -59,7 +59,6 @@ function showNotification(msg) {
     badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23E24B4A"/></svg>',
     tag: 'chat-' + msg.id,
     requireInteraction: false,
-    vibrate: [200, 100, 200, 100, 300], // Unique vibration pattern
     data: { url: '/' }
   };
 
