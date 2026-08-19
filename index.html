@@ -1717,6 +1717,45 @@ document.addEventListener('DOMContentLoaded',function(){
 
 initUser();loadAll();startPolling();
 
+// REGISTER SERVICE WORKER FOR BACKGROUND NOTIFICATIONS
+function registerServiceWorker() {
+  console.log('🔧 Registering Service Worker...');
+  
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => {
+        console.log('✅ Service Worker registered!');
+        saveConfigToIndexedDB();
+      })
+      .catch(err => console.log('❌ SW error:', err.message));
+  }
+}
+
+// SAVE CONFIG TO INDEXED DB FOR SERVICE WORKER
+function saveConfigToIndexedDB() {
+  const request = indexedDB.open('HKChatDB', 1);
+  
+  request.onupgradeneeded = (e) => {
+    const db = e.target.result;
+    if(!db.objectStoreNames.contains('config')) {
+      db.createObjectStore('config');
+    }
+  };
+  
+  request.onsuccess = (e) => {
+    const db = e.target.result;
+    const txn = db.transaction(['config'], 'readwrite');
+    const store = txn.objectStore('config');
+    
+    store.put({
+      supaUrl: SUPA_URL,
+      supaKey: SUPA_KEY,
+      currentUser: currentUser
+    }, 'app-config');
+    console.log('✅ Config saved for Service Worker');
+  };
+}
+
 // NO SERVICE WORKER NEEDED - Just use Notifications API with polling
 function requestNotificationPermission() {
   console.log('🔔 Checking notification permissions...');
@@ -2173,6 +2212,7 @@ function startChatPolling() {
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('💬 Chat system initializing...');
+  registerServiceWorker();
   requestNotificationPermission();
   loadChatState();
   initDraggable();
@@ -2187,7 +2227,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  console.log('✅ Chat system ready - notifications via Polling');
+  console.log('✅ Chat system ready - Background notifications enabled!');
 });
 </script>
 

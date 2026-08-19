@@ -1,28 +1,32 @@
-// Service Worker for Background Push Notifications
-console.log('🔧 Service Worker registered');
+// Service Worker for Background Notifications
+console.log('🔧 Service Worker starting...');
 
 let lastSeenMessages = [];
 
-// Listen for messages from the app
+// Listen for config from app
 self.addEventListener('message', (event) => {
   if(event.data && event.data.type === 'INIT_SW') {
-    console.log('📱 Service Worker initialized with config');
+    console.log('📱 Service Worker initialized');
     lastSeenMessages = event.data.seenMessages || [];
   }
 });
 
-// Background sync to check for new messages
+// Background sync
 self.addEventListener('sync', (event) => {
   if(event.tag === 'check-messages') {
     event.waitUntil(checkForNewMessages());
   }
 });
 
-// Main function to check for messages
+// Check for new messages
 async function checkForNewMessages() {
   try {
+    // Get config from IndexedDB
     const config = await getConfig();
-    if(!config) return;
+    if(!config) {
+      console.log('❌ No config found');
+      return;
+    }
 
     const url = config.supaUrl + '/rest/v1/chat_messages?order=created_at.asc';
     const res = await fetch(url, {
@@ -36,9 +40,9 @@ async function checkForNewMessages() {
 
     const msgs = await res.json();
     
-    // Check for new messages
+    // Check for NEW messages
     msgs.forEach(msg => {
-      const msgId = msg.id || msg.sender + msg.created_at;
+      const msgId = String(msg.id || (msg.sender + msg.created_at));
       
       if(!lastSeenMessages.includes(msgId) && msg.sender !== config.currentUser) {
         // New message from someone else!
@@ -51,7 +55,7 @@ async function checkForNewMessages() {
   }
 }
 
-// Show notification with unique sound
+// Show notification
 function showNotification(msg) {
   const options = {
     body: msg.sender + ': ' + msg.message.substring(0, 50),
@@ -63,49 +67,7 @@ function showNotification(msg) {
   };
 
   self.registration.showNotification('💬 New Message', options);
-  console.log('🔔 Notification shown for message from ' + msg.sender);
-  
-  // Play unique sound through service worker
-  playUniqueSound();
-}
-
-// Unique sound for service worker
-function playUniqueSound() {
-  try {
-    const AudioContext = (typeof window !== 'undefined' ? window.AudioContext : null) || 
-                        (typeof window !== 'undefined' ? window.webkitAudioContext : null);
-    
-    if(!AudioContext) return;
-    
-    const ctx = new AudioContext();
-    const t = ctx.currentTime;
-    
-    // UNIQUE 5-NOTE HOTEL ALERT
-    const notes = [
-      { f: 800, s: 0, d: 0.1 },         // High ping
-      { f: 800, s: 0.12, d: 0.1 },      // High ping (repeat)
-      { f: 600, s: 0.24, d: 0.15 },     // Mid dong
-      { f: 800, s: 0.42, d: 0.1 },      // High ping again
-      { f: 500, s: 0.54, d: 0.25 }      // Low resonant end
-    ];
-    
-    notes.forEach(n => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.frequency.setValueAtTime(n.f, t + n.s);
-      o.type = 'sine';
-      g.gain.setValueAtTime(0.3, t + n.s);
-      g.gain.exponentialRampToValueAtTime(0.01, t + n.s + n.d);
-      o.start(t + n.s);
-      o.stop(t + n.s + n.d);
-    });
-    
-    console.log('🎶 Unique sound played from service worker');
-  } catch(e) {
-    console.log('Sound error:', e);
-  }
+  console.log('🔔 Notification shown');
 }
 
 // Handle notification clicks
