@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>HK&amp;Maintenance-Mendeli</title>
+<title>HK&Maintenance-Mendeli</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -107,119 +107,219 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
 .eta-btn:active{opacity:0.75}
 .urgent-banner{background:#FCEBEB;border:0.5px solid #E24B4A;border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#A32D2D}
 
-/* LIVE CHAT STYLES */
-.chat-sidebar {
+/* ENHANCED CHAT STYLES - FLOATING BUBBLE */
+.chat-bubble {
   position: fixed;
-  right: -350px;
-  top: 0;
-  width: 320px;
-  height: 100vh;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #185FA5 0%, #0d3f7a 100%);
+  color: #fff;
+  border: none;
+  cursor: grab;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(24, 95, 165, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: box-shadow 0.2s ease;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  bottom: 20px;
+  right: 20px;
+}
+
+.chat-bubble:hover {
+  box-shadow: 0 6px 16px rgba(24, 95, 165, 0.4);
+}
+
+.chat-bubble:active {
+  cursor: grabbing;
+}
+
+.chat-bubble.dragging {
+  box-shadow: 0 8px 20px rgba(24, 95, 165, 0.5);
+}
+
+/* Unread badge */
+.chat-bubble .unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #E24B4A;
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(226, 75, 74, 0.3);
+}
+
+.chat-bubble .unread-badge.hidden {
+  display: none;
+}
+
+.chat-window {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 340px;
+  height: 480px;
   background: #fff;
-  border-left: 1px solid #ddd;
+  border-radius: 16px;
+  box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
   display: flex;
   flex-direction: column;
-  box-shadow: -2px 0 8px rgba(0,0,0,0.1);
-  z-index: 10000;
-  transition: right 0.3s ease;
+  z-index: 9999;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.chat-sidebar.visible {
-  right: 0;
+.chat-window.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: all;
 }
 
-.chat-header {
-  background: #185FA5;
+/* Mobile optimization */
+@media (max-width: 600px) {
+  .chat-window {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 100px);
+    bottom: 70px;
+    right: 12px;
+    left: 12px;
+    border-radius: 12px;
+  }
+}
+
+.chat-window-header {
+  background: linear-gradient(135deg, #185FA5 0%, #0d3f7a 100%);
   color: #fff;
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.chat-close {
+.chat-window-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.chat-window-close {
   background: none;
   border: none;
   color: #fff;
   font-size: 20px;
   cursor: pointer;
   padding: 0;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s;
 }
 
-.chat-messages {
+.chat-window-close:active {
+  opacity: 1;
+}
+
+.chat-messages-container {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  background: #fafafa;
 }
 
-.chat-msg {
+.chat-message {
   display: flex;
   flex-direction: column;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  animation: slideIn 0.3s ease;
 }
 
-.chat-msg.sent {
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-message.sent {
   align-items: flex-end;
 }
 
-.chat-msg.received {
+.chat-message.received {
   align-items: flex-start;
 }
 
-.msg-sender {
+.chat-message-sender {
   font-size: 11px;
   color: #888;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
+  padding: 0 6px;
 }
 
-.msg-text {
-  background: #f0f0f0;
-  padding: 8px 10px;
-  border-radius: 8px;
+.chat-message-bubble {
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 12px;
   font-size: 13px;
   word-wrap: break-word;
   max-width: 85%;
+  border: 1px solid #e0dfd8;
+  line-height: 1.4;
 }
 
-.chat-msg.sent .msg-text {
+.chat-message.sent .chat-message-bubble {
   background: #185FA5;
   color: #fff;
+  border-color: #185FA5;
 }
 
-.msg-time {
+.chat-message-time {
   font-size: 10px;
-  color: #ccc;
+  color: #aaa;
   margin-top: 2px;
+  padding: 0 6px;
 }
 
 .chat-input-area {
-  padding: 12px;
-  border-top: 1px solid #eee;
+  padding: 10px;
+  background: #fff;
+  border-top: 1px solid #e0dfd8;
   display: flex;
   gap: 8px;
-  background: #fff;
+  flex-shrink: 0;
 }
 
 .chat-input {
   flex: 1;
-  border: 0.5px solid #ddd;
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
   outline: none;
-  min-height: 40px;
-  box-sizing: border-box;
-  -webkit-appearance: none;
-  appearance: none;
-  color: #333;
-  background: #fff;
-}
-
-.chat-input::placeholder {
-  color: #aaa;
+  background: #f5f5f0;
 }
 
 .chat-input:focus {
@@ -227,1583 +327,350 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
   background: #fff;
 }
 
-.chat-send {
+.chat-send-btn {
   background: #185FA5;
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 10px 16px;
+  border-radius: 20px;
+  width: 36px;
+  height: 36px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  min-height: 40px;
-  min-width: 60px;
-  -webkit-appearance: none;
-  appearance: none;
-  flex-shrink: 0;
-}
-
-.chat-send:active {
-  opacity: 0.8;
-}
-
-@media (max-width: 767px) {
-  .chat-input-area {
-    padding: 14px;
-    gap: 10px;
-  }
-  
-  .chat-input {
-    padding: 12px 14px;
-    font-size: 16px;
-    min-height: 44px;
-  }
-  
-  .chat-send {
-    padding: 12px 18px;
-    min-height: 44px;
-    min-width: 70px;
-    font-size: 15px;
-  }
-}
-
-.chat-bubble {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #185FA5;
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(24, 95, 165, 0.3);
-  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
+  transition: background 0.2s;
+  flex-shrink: 0;
 }
 
-.chat-bubble:active {
-  opacity: 0.9;
+.chat-send-btn:active {
+  background: #0d3f7a;
+}
+
+.chat-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #aaa;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
 }
 
 </style>
-</head>
-<body>
-<div id="app">
-  <div class="header">
-    <div class="brand-logo">HK</div>
-    <div>
-      <div class="header-title">HK&amp;Maintenance-Mendeli</div>
-      <div class="header-sub" id="header-sub">66 rooms · 5 floors</div>
-    </div>
-    <div class="sync-indicator" style="margin-left:auto">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-label">Synced</span>
-    </div>
-    <div class="lang-switcher">
-      <button class="lang-btn active" onclick="setLang('en')">EN</button>
-      <button class="lang-btn" onclick="setLang('ru')">RU</button>
-      <button class="lang-btn" onclick="setLang('he')">HE</button>
-    </div>
-    <div>
-      <button class="btn" id="managerBtn" style="font-size:13px;padding:8px 12px"><i class="ti ti-lock"></i> <span id="lbl-manager">Manager</span></button>
-    </div>
-  </div>
-
-  <div class="section-card">
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('rooms',event)"><i class="ti ti-door"></i> <span id="lbl-rooms">Rooms</span></button>
-      <button class="tab" onclick="showTab('maintenance',event)"><i class="ti ti-tool"></i> <span id="lbl-maintenance">Maintenance</span></button>
-    </div>
-    <div style="padding:14px">
-      <div id="tab-rooms">
-        <div class="legend">
-          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#D3D1C7"></span><span id="lbl-dirty">Dirty</span></div>
-          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#639922"></span><span id="lbl-clean">Vi</span></div>
-          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#EF9F27"></span><span id="lbl-hasnotes">Has notes</span></div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:1.25rem">
-          <div class="stat-card"><div class="stat-num" id="s-dirty">-</div><div class="stat-lbl" id="lbl-stat-dirty">Dirty</div></div>
-          <div class="stat-card"><div class="stat-num" id="s-clean">-</div><div class="stat-lbl" id="lbl-stat-clean">Vi</div></div>
-          <div class="stat-card"><div class="stat-num" id="s-notes">-</div><div class="stat-lbl" id="lbl-stat-notes">Has notes</div></div>
-        </div>
-        <div id="room-list"></div>
-      </div>
-      <div id="tab-maintenance" class="hidden">
-        <div style="margin-bottom:1rem;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="openNewTicket()"><i class="ti ti-plus"></i> <span id="lbl-newcall">New call</span></button>
-          <button class="btn" onclick="printOpenCalls()" style="border-color:#185FA5;color:#185FA5"><i class="ti ti-printer"></i> <span id="lbl-print">Print open calls</span></button>
-        </div>
-        <div id="ticket-filter" class="filter-row">
-          <button class="filter-btn active" onclick="filterTickets('all',this)" id="lbl-all">All</button>
-          <button class="filter-btn" onclick="filterTickets('open',this)" id="lbl-open">Open</button>
-          <button class="filter-btn" onclick="filterTickets('resolved',this)" id="lbl-resolved">Resolved</button>
-          <button class="filter-btn" onclick="filterTickets('history',this)" id="lbl-history">History</button>
-          <button class="filter-btn" onclick="filterTickets('statistics',this)" id="lbl-statistics">📊 Statistics</button>
-        </div>
-        <div id="history-search" class="hidden" style="margin-bottom:1rem;padding:12px;background:#f9f8f4;border-radius:10px;border:0.5px solid #e8e7e0">
-          <div class="field-group">
-            <label class="field-label">Date from</label>
-            <input type="date" id="history-date-from">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Date to</label>
-            <input type="date" id="history-date-to">
-          </div>
-          <div class="field-group">
-            <label class="field-label">Room number</label>
-            <input type="number" id="history-room-search" placeholder="e.g. 101" min="1">
-          </div>
-          <button class="btn" onclick="clearHistoryFilters()" style="width:100%">Clear filters</button>
-        </div>
-        <div id="statistics-controls" class="hidden" style="margin-bottom:1rem;padding:12px;background:#f9f8f4;border-radius:10px;border:0.5px solid #e8e7e0">
-          <div style="display:flex;gap:8px;margin-bottom:1rem">
-            <button class="btn" id="stat-rooms-btn" onclick="showStatistics('rooms')" style="flex:1;background:#185FA5;color:#fff">Top Rooms</button>
-            <button class="btn" id="stat-category-btn" onclick="showStatistics('category')" style="flex:1">By Category</button>
-            <button class="btn" id="stat-search-btn" onclick="showStatistics('search')" style="flex:1">Search Room</button>
-          </div>
-          <div id="search-room-input" class="hidden">
-            <input type="number" id="stat-room-num" placeholder="Enter room number" min="1" style="width:100%;padding:10px;border-radius:8px;border:0.5px solid #ddd;margin-bottom:8px">
-            <button class="btn" onclick="searchRoomStats()" style="width:100%">Search</button>
-          </div>
-        </div>
-        <div id="ticket-list"></div>
-      </div>
-    </div>
-  </div>
-  <div style="text-align:center;font-size:11px;color:#ccc;padding-bottom:1rem">HK&Maintenance-Mendeli © 2026 · All rights reserved</div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<!-- Room Modal -->
-<div class="modal-bg hidden" id="roomModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div><h3 id="modal-room-title">Room 101</h3><span id="modal-room-badge" class="badge" style="margin-top:4px;display:inline-block"></span></div>
-      <button class="close-btn" onclick="closeModal('roomModal')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="clean-status" id="room-status-display"></div>
-    <button class="btn-clean" id="btn-mark-clean" onclick="markRoomClean()"><i class="ti ti-checks"></i> <span id="lbl-markclean">Mark as Vi ✅</span></button>
-    <button class="btn-dirty hidden" id="btn-mark-dirty" onclick="markRoomDirty()"><i class="ti ti-refresh"></i> <span id="lbl-markdirty">Mark as Dirty</span></button>
-    <div class="notes-section">
-      <div class="notes-header"><i class="ti ti-notes"></i> <span id="lbl-roomnotes">Room notes</span></div>
-      <div id="room-notes-list"></div>
-      <div class="add-note-row">
-        <textarea id="new-note-text" rows="2" oninput="autoDir(this)"></textarea>
-        <button class="btn btn-primary" style="align-self:flex-end;white-space:nowrap" onclick="addNote()"><i class="ti ti-send"></i></button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- New Ticket Modal -->
-<div class="modal-bg hidden" id="ticketModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <h3 id="lbl-newcall-title">New call</h3>
-      <button class="close-btn" onclick="closeModal('ticketModal')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="field-group">
-      <label class="field-label" id="lbl-location-type">Location type</label>
-      <div class="priority-row">
-        <button class="priority-btn" id="loc-room" onclick="selectLocType('room')" style="border-color:#185FA5;color:#185FA5"><i class="ti ti-door"></i> <span id="lbl-room-type">Room</span></button>
-        <button class="priority-btn" id="loc-other" onclick="selectLocType('other')" style="border-color:#888;color:#888"><i class="ti ti-map-pin"></i> <span id="lbl-other-type">Other location</span></button>
-      </div>
-    </div>
-    <div class="field-group" id="room-select-group">
-      <label class="field-label" id="lbl-selectroom">Select room</label>
-      <select id="ticket-room"></select>
-    </div>
-    <div class="field-group hidden" id="other-loc-group">
-      <label class="field-label" id="lbl-otherloc">Location</label>
-      <input type="text" id="ticket-other-loc" oninput="autoDir(this)">
-    </div>
-    <div class="field-group">
-      <label class="field-label" id="lbl-category">Issue category</label>
-      <div class="priority-row">
-        <button class="priority-btn" id="cat-paint" onclick="selectCategory('Paint')" style="border-color:#9B59B6;color:#9B59B6">🎨 Paint</button>
-        <button class="priority-btn" id="cat-electric" onclick="selectCategory('Electricity')" style="border-color:#F39C12;color:#F39C12">⚡ Electric</button>
-      </div>
-      <div class="priority-row">
-        <button class="priority-btn" id="cat-plumb" onclick="selectCategory('Plumbing')" style="border-color:#3498DB;color:#3498DB">🚰 Plumbing</button>
-        <button class="priority-btn" id="cat-ac" onclick="selectCategory('AC Issues')" style="border-color:#00BCD4;color:#00BCD4">❄️ AC</button>
-      </div>
-      <div class="priority-row">
-        <button class="priority-btn selected" id="cat-general" onclick="selectCategory('General repairs')" style="border-color:#185FA5;color:#185FA5">🔧 General</button>
-      </div>
-    </div>
-    <div class="field-group">
-      <label class="field-label" id="lbl-problem">Problem description</label>
-      <textarea id="ticket-desc" rows="3" oninput="autoDir(this)"></textarea>
-    </div>
-    <div id="duplicate-warning" class="hidden" style="background:#FCEBEB;border:1px solid #E24B4A;border-radius:10px;padding:12px;margin-bottom:1rem;color:#A32D2D;font-size:13px">
-      <div style="margin-bottom:8px">⚠️ <strong id="dup-warning-text">Room 101 already has an open PAINT ticket</strong></div>
-      <button class="btn" onclick="viewExistingTicket()" style="width:100%;font-size:12px">View existing call</button>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="submitTicket()"><i class="ti ti-send"></i> <span id="lbl-submit">Submit</span></button>
-      <button class="btn" onclick="closeModal('ticketModal')" id="lbl-cancel">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Ticket Detail Modal -->
-<div class="modal-bg hidden" id="ticketDetailModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <h3 id="td-title">Maintenance call</h3>
-      <button class="close-btn" onclick="closeModal('ticketDetailModal')"><i class="ti ti-x"></i></button>
-    </div>
-    <div id="td-body"></div>
-
-    <!-- Ticket Comments Section -->
-    <div class="notes-section" style="margin-top:1rem">
-      <div class="notes-header"><i class="ti ti-message-circle"></i> <span id="lbl-ticketcomments">Updates / Comments</span></div>
-      <div id="ticket-comments-list"></div>
-      <div class="add-note-row">
-        <textarea id="new-ticket-comment" rows="2" oninput="autoDir(this)"></textarea>
-        <button class="btn btn-primary" style="align-self:flex-end;white-space:nowrap" onclick="addTicketComment()"><i class="ti ti-send"></i></button>
-      </div>
-    </div>
-
-    <div class="eta-section" id="eta-section">
-      <div class="eta-title" id="lbl-eta-title">⏱ When will this be fixed?</div>
-      <button class="eta-btn" id="eta-today" onclick="setETA('today')"><span style="font-size:20px">✅</span> <span id="lbl-today">Will be done today</span></button>
-      <button class="eta-btn" id="eta-parts" onclick="setETA('parts')"><span style="font-size:20px">⏳</span> <span id="lbl-parts">Waiting for parts / technician</span></button>
-      <button class="eta-btn" id="eta-date" onclick="setETA('date')"><span style="font-size:20px">📅</span> <span id="lbl-pickdate">Pick a date</span></button>
-      <input type="date" id="eta-date-input" class="hidden" style="margin-top:8px" onchange="setETADate(this.value)">
-    </div>
-
-    <div id="td-manager-actions" class="hidden" style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-success" id="td-resolve-btn" onclick="resolveTicket()">Mark resolved</button>
-      <button class="btn btn-danger" onclick="deleteTicket()"><i class="ti ti-trash"></i> <span id="lbl-delete">Delete</span></button>
-    </div>
-
-    <div style="margin-top:1rem;display:flex;gap:8px">
-      <button class="btn" onclick="sendToManagerWhatsApp()" style="flex:1;border-color:#25D366;color:#25D366"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
-      <button class="btn" onclick="openChatForTicket(currentTicketId)" style="flex:1;border-color:#185FA5;color:#185FA5"><i class="ti ti-message-circle"></i> Chat</button>
-    </div>
-  </div>
-</div>
-
-<!-- Ticket Success Modal -->
-<div class="modal-bg hidden" id="ticketSuccessModal">
-  <div class="modal" style="text-align:center;max-width:380px">
-    <div class="modal-handle"></div>
-    <i class="ti ti-circle-check" style="font-size:48px;margin-bottom:1rem;color:#639922"></i>
-    <h3 style="margin-bottom:0.5rem">✓ Call Created!</h3>
-    <div id="success-details" style="text-align:left;background:#f9f8f4;border-radius:10px;padding:12px;margin-bottom:1.25rem;font-size:13px">
-      <div style="margin-bottom:8px"><strong id="success-room">Room: 101</strong></div>
-      <div id="success-category" style="color:#888">Category: Paint</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-direction:column">
-      <button class="btn" onclick="sendToManagerWhatsAppFromSuccess()" style="border-color:#25D366;color:#25D366;font-weight:600"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
-      <button class="btn" onclick="openChatForTicket(lastCreatedTicket)" style="border-color:#185FA5;color:#185FA5;font-weight:600"><i class="ti ti-message-circle"></i> Chat</button>
-      <button class="btn btn-primary" onclick="createAnotherTicket()">Create Another Call</button>
-      <button class="btn" onclick="closeModal('ticketSuccessModal')">Done</button>
-    </div>
-  </div>
-</div>
-
-<!-- PIN Modal -->
-<div class="modal-bg hidden" id="pinModal">
-  <div class="modal" style="text-align:center">
-    <div class="modal-handle"></div>
-    <div class="modal-header" style="justify-content:flex-end"><button class="close-btn" onclick="closeModal('pinModal')"><i class="ti ti-x"></i></button></div>
-    <i class="ti ti-lock" style="font-size:40px;margin-bottom:1rem;color:#bbb"></i>
-    <h3 style="margin-bottom:0.5rem" id="lbl-manageraccess">Manager access</h3>
-    <p style="font-size:13px;color:#aaa;margin-bottom:1.25rem" id="lbl-enterpin">Enter PIN</p>
-    <input class="pin-input" type="password" inputmode="numeric" maxlength="6" id="pin-input" placeholder="······" oninput="checkPin(this.value)">
-    <p id="pin-error" style="color:#E24B4A;font-size:13px;margin-top:8px;min-height:20px"></p>
-  </div>
-</div>
-
-<!-- Manager Dashboard -->
-<div class="modal-bg hidden" id="managerDashModal">
-  <div class="modal" style="max-width:540px">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <h3><i class="ti ti-shield"></i> <span id="lbl-dashboard">Manager dashboard</span></h3>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-danger" style="font-size:12px;padding:7px 10px" onclick="resetAllData()"><i class="ti ti-trash"></i> <span id="lbl-resetall">Reset all</span></button>
-        <button class="close-btn" onclick="closeModal('managerDashModal')"><i class="ti ti-x"></i></button>
-      </div>
-    </div>
-    <div id="manager-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem"></div>
-    <h3 style="margin-bottom:0.75rem" id="lbl-opencalls">Open maintenance calls</h3>
-    <div id="manager-tickets"></div>
-  </div>
-</div>
-
-<!-- Name Modal -->
-<div class="modal-bg hidden" id="nameModal">
-  <div class="modal" style="text-align:center;max-width:360px">
-    <div class="modal-handle"></div>
-    <i class="ti ti-user" style="font-size:40px;margin-bottom:1rem;color:#185FA5"></i>
-    <h3 style="margin-bottom:0.5rem" id="lbl-welcome">Welcome!</h3>
-    <p style="font-size:13px;color:#aaa;margin-bottom:1.25rem" id="lbl-entername">Enter your name once</p>
-    <input type="text" id="name-input" style="text-align:center;font-size:16px;margin-bottom:12px">
-    <button class="btn btn-primary" style="width:100%" onclick="saveName()"><i class="ti ti-check"></i> <span id="lbl-start">Start</span></button>
-  </div>
-</div>
-
 <script>
-const SUPA_URL='https://tpfqcfnaynccdoxstvhz.supabase.co';
-const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwZnFjZm5heW5jY2RveHN0dmh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MDU4NTQsImV4cCI6MjA5NzE4MTg1NH0.elqUF3tVLfCyFa3F2tvhX7oi-nnlr-AZ_RtgMboL68g';
-const PIN='199108';
-const WA_GROUP='https://chat.whatsapp.com/Bb2HYhOcUw0E4XRmkXDUkA';
+// Essential config - replace with your actual values
+const SUPA_URL = 'https://your-supabase-url.supabase.co';
+const SUPA_KEY = 'your-anon-key';
+let currentUser = 'User-' + Math.random().toString(36).substr(2, 9);
 
-const LANGS={
-  en:{
-    manager:'Manager',rooms:'Rooms',maintenance:'Maintenance',dirty:'Dirty',clean:'Vi',hasnotes:'Has notes',
-    markclean:'Mark as Vi ✅',markdirty:'Mark as Dirty',roomnotes:'Room notes',addnote:'Add a note...',
-    nonotes:'No notes yet',newcall:'New call',selectroom:'Select room',problem:'Problem description',
-    submit:'Submit',cancel:'Cancel',delete:'Delete',manageraccess:'Manager access',enterpin:'Enter PIN',
-    dashboard:'Manager dashboard',resetall:'Reset all',opencalls:'Open maintenance calls',
-    welcome:'Welcome!',entername:'Enter your name once',start:'Start',synced:'Synced',syncing:'Syncing…',offline:'Offline',
-    roomclean:'Room is Vi ✅',roomdirty:'Room needs cleaning',incorrectpin:'Incorrect PIN',
-    open:'Open',resolved:'Resolved',all:'All',history:'History',cleanrooms:'Clean rooms',opencallsstat:'Open calls',resolvedstat:'Resolved',
-    nameplaceholder:'Your name',confirmdelete:'Delete?',confirmreset:'Reset ALL data?',noteerror:'Please write a note.',
-    ticketerror:'Please describe the problem.',markedvi:'marked as Vi',markeddirty:'marked as dirty',
-    noteadded:'Note added',notedeleted:'Note deleted',deleted:'Deleted',markedresolved:'Marked as resolved',reopened:'Reopened',reset:'All data reset',
-    category:'Issue category',
-    etatitle:'When will this be fixed?',today:'Will be done today',parts:'Waiting for parts / technician',pickdate:'Pick a date',
-    etaset:'ETA updated',urgentcalls:'Urgent calls',
-    locationtype:'Location type',roomtype:'Room',othertype:'Other location',otherloc:'Location',
-    otherlocplaceholder:'e.g. Lobby, Floor -1, Dining room...',locerror:'Please enter a location.',
-    translate:'Translate',translating:'Translating...',transerror:'Translation failed',
-    markresolved:'Mark resolved',reopen:'Reopen',
-    print:'Print open calls',printitle:'Open Maintenance Calls',printroom:'Room',printtype:'Type',printdesc:'Description',printpriority:'Priority',printeta:'ETA',printby:'Reported by',printnoeta:'—',printnone:'No open maintenance calls',
-    ticketcomments:'Updates / Comments',nocomments:'No updates yet',addcomment:'Write an update...',commentadded:'Update added',commentdeleted:'Update deleted'
-  },
-  ru:{
-    manager:'Менеджер',rooms:'Номера',maintenance:'Обслуживание',dirty:'Грязный',clean:'Ви',hasnotes:'Есть заметки',
-    markclean:'Отметить как Ви ✅',markdirty:'Отметить как грязный',roomnotes:'Заметки номера',addnote:'Добавить заметку...',
-    nonotes:'Заметок пока нет',newcall:'Новый вызов',selectroom:'Выбрать номер',problem:'Описание проблемы',
-    submit:'Отправить',cancel:'Отмена',delete:'Удалить',manageraccess:'Доступ менеджера',enterpin:'Введите PIN',
-    dashboard:'Панель менеджера',resetall:'Сбросить всё',opencalls:'Открытые вызовы',
-    welcome:'Добро пожаловать!',entername:'Введите своё имя один раз',start:'Начать',synced:'Синхронизировано',syncing:'Синхронизация…',offline:'Офлайн',
-    roomclean:'Номер чист ✅',roomdirty:'Номер требует уборки',incorrectpin:'Неверный PIN',
-    open:'Открыт',resolved:'Решено',all:'Все',history:'История',cleanrooms:'Чистые номера',opencallsstat:'Открытые вызовы',resolvedstat:'Решено',
-    nameplaceholder:'Ваше имя',confirmdelete:'Удалить?',confirmreset:'Сбросить ВСЕ данные?',noteerror:'Пожалуйста, напишите заметку.',
-    ticketerror:'Пожалуйста, опишите проблему.',markedvi:'отмечен как Ви',markeddirty:'отмечен как грязный',
-    noteadded:'Заметка добавлена',notedeleted:'Заметка удалена',deleted:'Удалено',markedresolved:'Отмечено как решённое',reopened:'Переоткрыто',reset:'Все данные сброшены',
-    category:'Категория проблемы',
-    etatitle:'Когда будет исправлено?',today:'Будет сделано сегодня',parts:'Ожидание запчастей / техника',pickdate:'Выбрать дату',
-    etaset:'Срок обновлён',urgentcalls:'Срочные вызовы',
-    locationtype:'Тип места',roomtype:'Номер',othertype:'Другое место',otherloc:'Местоположение',
-    otherlocplaceholder:'напр. Лобби, Этаж -1, Столовая...',locerror:'Пожалуйста, укажите местоположение.',
-    translate:'Перевести',translating:'Перевожу...',transerror:'Ошибка перевода',
-    markresolved:'Отметить решённым',reopen:'Переоткрыть',
-    print:'Печать открытых вызовов',printitle:'Открытые вызовы обслуживания',printroom:'Номер',printtype:'Тип',printdesc:'Описание',printpriority:'Приоритет',printeta:'Срок',printby:'Кто сообщил',printnoeta:'—',printnone:'Нет открытых вызовов',
-    ticketcomments:'Обновления / Комментарии',nocomments:'Обновлений пока нет',addcomment:'Написать обновление...',commentadded:'Обновление добавлено',commentdeleted:'Обновление удалено'
-  },
-  he:{
-    manager:'מנהל',rooms:'חדרים',maintenance:'תחזוקה',dirty:'מלוכלך',clean:'וי',hasnotes:'יש הערות',
-    markclean:'סמן כוי ✅',markdirty:'סמן כמלוכלך',roomnotes:'הערות חדר',addnote:'הוסף הערה...',
-    nonotes:'אין הערות עדיין',newcall:'קריאה חדשה',selectroom:'בחר חדר',problem:'תיאור הבעיה',
-    submit:'שלח',cancel:'ביטול',delete:'מחק',manageraccess:'כניסת מנהל',enterpin:'הכנס קוד',
-    dashboard:'לוח מנהל',resetall:'אפס הכל',opencalls:'קריאות פתוחות',
-    welcome:'ברוך הבא!',entername:'הכנס שמך פעם אחת',start:'התחל',synced:'מסונכרן',syncing:'מסנכרן…',offline:'לא מחובר',
-    roomclean:'החדר נקי ✅',roomdirty:'החדר טעון ניקיון',incorrectpin:'קוד שגוי',
-    open:'פתוח',resolved:'טופל',all:'הכל',history:'היסטוריה',cleanrooms:'חדרים נקיים',opencallsstat:'קריאות פתוחות',resolvedstat:'טופל',
-    nameplaceholder:'שמך',confirmdelete:'למחוק?',confirmreset:'לאפס את כל הנתונים?',noteerror:'נא לכתוב הערה.',
-    ticketerror:'נא לתאר את הבעיה.',markedvi:'סומן כוי',markeddirty:'סומן כמלוכלך',
-    noteadded:'הערה נוספה',notedeleted:'הערה נמחקה',deleted:'נמחק',markedresolved:'סומן כטופל',reopened:'נפתח מחדש',reset:'כל הנתונים אופסו',
-    category:'קטגוריה של הבעיה',
-    etatitle:'מתי זה יתוקן?',today:'יסתיים היום',parts:'ממתין לחלקים / טכנאי',pickdate:'בחר תאריך',
-    etaset:'זמן עדכון עודכן',urgentcalls:'קריאות דחופות',
-    locationtype:'סוג מיקום',roomtype:'חדר',othertype:'מיקום אחר',otherloc:'מיקום',
-    otherlocplaceholder:'לדוגמה: לובי, קומה -1, חדר אוכל...',locerror:'נא להזין מיקום.',
-    translate:'תרגם',translating:'מתרגם...',transerror:'שגיאת תרגום',
-    markresolved:'סמן כטופל',reopen:'פתח מחדש',
-    print:'הדפס קריאות פתוחות',printitle:'קריאות תחזוקה פתוחות',printroom:'חדר',printtype:'סוג',printdesc:'תיאור',printpriority:'עדיפות',printeta:'זמן טיפול',printby:'דווח ע"י',printnoeta:'—',printnone:'אין קריאות תחזוקה פתוחות',
-    ticketcomments:'עדכונים / הערות',nocomments:'אין עדכונים עדיין',addcomment:'כתוב עדכון...',commentadded:'עדכון נוסף',commentdeleted:'עדכון נמחק'
-  }
+// CHAT STATE
+const chatState = {
+  isOpen: false,
+  messages: [],
+  unreadCount: 0,
+  bubblePos: { x: 0, y: 0 },
+  isDragging: false,
+  dragOffset: { x: 0, y: 0 }
 };
 
-const ROOMS=[101,102,103,104,105,106,107,108,109,110,111,112,113,114,201,202,203,204,205,206,207,208,209,210,211,212,213,214,301,302,303,304,305,306,307,308,309,310,311,312,313,314,401,402,403,404,405,406,407,408,409,410,411,412,413,501,502,503,504,505,506,507,508,509,510,511];
-const TYPES={101:'Superior',112:'Deluxe',113:'Superior',114:'Classic',201:'Superior',202:'Spa',211:'Superior',212:'Deluxe',213:'Superior',214:'Superior',301:'Superior',311:'Superior',312:'Deluxe',313:'Superior',314:'Superior',401:'Suite',409:'Superior',411:'Superior',412:'Deluxe',413:'Superior',501:'Superior',502:'Superior',503:'Loft',504:'Loft',505:'Loft',506:'Superior',507:'Loft',508:'PremDlx',509:'Loft',510:'PremDlx',511:'Superior'};
-const BADGE_CLASS={Superior:'badge-sup',Deluxe:'badge-dlx',Suite:'badge-suite',Loft:'badge-loft',PremDlx:'badge-premdlx',Classic:'badge-classic',Spa:'badge-spa',Other:'badge-other',Paint:'badge-other',Electricity:'badge-other',Plumbing:'badge-other','General repairs':'badge-other'};
-
-function getType(r){return TYPES[r]||'Classic';}
-function getBadgeClass(tp){return BADGE_CLASS[tp]||'badge-classic';}
-function isHebrew(tx){return /[\u0590-\u05FF]/.test(tx);}
-function autoDir(el){const h=isHebrew(el.value);el.style.direction=h?'rtl':'ltr';el.style.textAlign=h?'right':'left';}
-function getDir(tx){return isHebrew(tx)?'rtl':'ltr';}
-function getAlign(tx){return isHebrew(tx)?'right':'left';}
-function toast(msg,dur=2200){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
-function setSyncStatus(s){
-  const dot=document.getElementById('sync-dot');const lbl=document.getElementById('sync-label');if(!dot)return;
-  dot.className='sync-dot'+(s==='syncing'?' syncing':s==='error'?' error':'');
-  lbl.textContent=s==='syncing'?t('syncing'):s==='error'?t('offline'):t('synced');
-}
-
-let lang='en';
-function t(key){return LANGS[lang][key]||LANGS['en'][key]||key;}
-
-function setLang(l){
-  lang=l;localStorage.setItem('hk-lang',l);
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('.lang-btn[onclick="setLang(\''+l+'\')"]').classList.add('active');
-  applyLang();renderAll();updateHeaderUser();
-}
-
-function applyLang(){
-  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-history':'history','lbl-category':'category','lbl-print':'print','lbl-ticketcomments':'ticketcomments'};
-  Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
-  const np=document.getElementById('name-input');if(np)np.placeholder=t('nameplaceholder');
-  const nt=document.getElementById('new-note-text');if(nt)nt.placeholder=t('addnote');
-  const td=document.getElementById('ticket-desc');if(td)td.placeholder=t('problem')+'...';
-}
-
-let rooms={},tickets=[],notes={},ticketComments={};
-let currentRoom=null,currentTicketId=null,isManager=false,ticketFilter='all';
-let pollInterval=null,currentUser='',selectedCategory='General repairs';
-let historyFilters={dateFrom:'',dateTo:'',room:''};
-let lastCreatedTicket=null;
-let selectedLocType='room';
-
-function initUser(){
-  const savedLang=localStorage.getItem('hk-lang');
-  if(savedLang){lang=savedLang;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));const lb=document.querySelector('.lang-btn[onclick="setLang(\''+lang+'\')"]');if(lb)lb.classList.add('active');}
-  applyLang();
-  const saved=localStorage.getItem('hk-username');
-  if(saved&&saved.trim()){currentUser=saved;updateHeaderUser();return;}
-  document.getElementById('nameModal').classList.remove('hidden');
-}
-
-function saveName(){
-  const val=document.getElementById('name-input').value.trim();
-  if(!val){alert(t('noteerror'));return;}
-  currentUser=val;localStorage.setItem('hk-username',currentUser);
-  document.getElementById('nameModal').classList.add('hidden');updateHeaderUser();
-}
-
-function updateHeaderUser(){
-  document.getElementById('header-sub').innerHTML='66 rooms · 5 floors &nbsp;·&nbsp; <span class="user-chip"><i class="ti ti-user"></i> '+currentUser+'</span>';
-}
-
-async function api(path,method='GET',body=null){
-  const opts={method,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'resolution=merge-duplicates':''}};
-  if(body)opts.body=JSON.stringify(body);
-  const r=await fetch(SUPA_URL+'/rest/v1/'+path,opts);
-  if(!r.ok)throw new Error(await r.text());
-  return r.status===204?null:r.json();
-}
-
-async function loadAll(){
-  setSyncStatus('syncing');
-  try{
-    const[rm,tk,nt,tc]=await Promise.all([api('rooms?select=room,clean'),api('tickets?select=*&order=id.desc'),api('notes?select=*&order=id.asc'),api('ticket_comments?select=*&order=id.asc')]);
-    rooms={};(rm||[]).forEach(r=>rooms[r.room]=r.clean);
-    tickets=tk||[];
-    notes={};(nt||[]).forEach(n=>{if(!notes[n.room])notes[n.room]=[];notes[n.room].push(n);});
-    ticketComments={};(tc||[]).forEach(c=>{const key=String(c.ticket_id);if(!ticketComments[key])ticketComments[key]=[];ticketComments[key].push(c);});
-    setSyncStatus('ok');renderAll();
-  }catch(e){setSyncStatus('error');console.error(e);}
-}
-
-async function saveRoomStatus(room,clean){setSyncStatus('syncing');try{await api('rooms','POST',[{room,clean}]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function saveTicket(tk){setSyncStatus('syncing');try{await api('tickets','POST',[tk]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function updateTicketField(id,fields){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'PATCH',fields);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function deleteTicketDB(id){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function saveTicketComment(c){setSyncStatus('syncing');try{await api('ticket_comments','POST',[c]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function deleteTicketCommentDB(id){setSyncStatus('syncing');try{await api('ticket_comments?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function saveNote(note){setSyncStatus('syncing');try{await api('notes','POST',[note]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function deleteNoteDB(id){setSyncStatus('syncing');try{await api('notes?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-async function resetAll(){setSyncStatus('syncing');try{await api('rooms?room=gt.0','DELETE');await api('tickets?id=gt.0','DELETE');await api('notes?id=gt.0','DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
-
-function startPolling(){if(pollInterval)clearInterval(pollInterval);pollInterval=setInterval(loadAll,15000);}
-function renderAll(){updateStats();renderRooms();renderTickets();}
-
-function showTab(tab,e){
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  e.target.closest('.tab').classList.add('active');
-  document.getElementById('tab-rooms').classList.toggle('hidden',tab!=='rooms');
-  document.getElementById('tab-maintenance').classList.toggle('hidden',tab!=='maintenance');
-}
-
-function floorLabel(r){const f=Math.floor(r/100);return['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][f]||'';}
-function isClean(r){return rooms[r]===true;}
-function hasNotes(r){return notes[r]&&notes[r].length>0;}
-
-function renderRooms(){
-  const c=document.getElementById('room-list');if(!c)return;
-  let html='';let lastFloor=null;let gridOpen=false;
-  ROOMS.forEach(r=>{
-    const f=Math.floor(r/100);
-    if(f!==lastFloor){if(gridOpen)html+='</div>';html+='<div class="floor-label">'+floorLabel(r)+'</div><div class="room-grid">';gridOpen=true;lastFloor=f;}
-    const tp=getType(r);const clean=isClean(r);const hn=hasNotes(r);
-    const dotColor=clean?'#639922':hn?'#EF9F27':'#D3D1C7';
-    const cardClass='room-card'+(clean?' clean':hn?' has-notes':'');
-    const icon=tp==='Spa'?'<i class="ti ti-ripple" style="font-size:11px;color:#085041"></i> ':'';
-    const notesBadge=hn?'<span style="font-size:10px;color:#EF9F27"><i class="ti ti-notes"></i> '+notes[r].length+'</span>':'';
-    html+='<div class="'+cardClass+'" onclick="openRoom('+r+')">'+'<div class="num">'+icon+r+'</div>'+'<span class="badge '+getBadgeClass(tp)+'">'+tp+'</span>'+'<div style="margin-top:5px;display:flex;align-items:center;justify-content:center;gap:4px">'+'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+dotColor+'"></span>'+notesBadge+'</div></div>';
-  });
-  if(gridOpen)html+='</div>';
-  c.innerHTML=html;
-}
-
-function updateStats(){
-  const clean=ROOMS.filter(r=>isClean(r)).length;
-  const dirty=ROOMS.length-clean;
-  const hn=ROOMS.filter(r=>hasNotes(r)).length;
-  const ed=document.getElementById('s-dirty');const ec=document.getElementById('s-clean');const en=document.getElementById('s-notes');
-  if(ed)ed.textContent=dirty;if(ec)ec.textContent=clean;if(en)en.textContent=hn;
-}
-
-function openRoom(r){
-  currentRoom=r;const tp=getType(r);
-  document.getElementById('modal-room-title').textContent='Room '+r;
-  const b=document.getElementById('modal-room-badge');b.className='badge '+getBadgeClass(tp);b.textContent=tp;
-  renderRoomModal();document.getElementById('roomModal').classList.remove('hidden');
-}
-
-function renderRoomModal(){
-  const clean=isClean(currentRoom);
-  const statusDiv=document.getElementById('room-status-display');
-  const btnClean=document.getElementById('btn-mark-clean');
-  const btnDirty=document.getElementById('btn-mark-dirty');
-  if(clean){statusDiv.innerHTML='<div class="clean-icon">🟢</div><div class="clean-label">'+t('roomclean')+'</div>';btnClean.classList.add('hidden');btnDirty.classList.remove('hidden');}
-  else{statusDiv.innerHTML='<div class="clean-icon">⚪</div><div class="dirty-label">'+t('roomdirty')+'</div>';btnClean.classList.remove('hidden');btnDirty.classList.add('hidden');}
-  document.getElementById('lbl-markclean').textContent=t('markclean');
-  document.getElementById('lbl-markdirty').textContent=t('markdirty');
-  document.getElementById('lbl-roomnotes').textContent=t('roomnotes');
-  const roomNotes=notes[currentRoom]||[];
-  const notesList=document.getElementById('room-notes-list');
-  if(roomNotes.length===0){notesList.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nonotes')+'</p>';}
-  else{
-    notesList.innerHTML=roomNotes.map(n=>{
-      const delBtn='<button class="note-delete" onclick="deleteNote('+n.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>';
-      return'<div class="note-item"><div class="note-text" style="direction:'+getDir(n.text)+';text-align:'+getAlign(n.text)+'">'+n.text+'</div><div class="note-translation" id="ntr-'+n.id+'"></div><div class="note-meta"><i class="ti ti-user"></i> '+(n.username||'Unknown')+' · <i class="ti ti-clock"></i> '+n.ts+'<button class="note-translate" id="ntb-'+n.id+'" data-noteid="'+n.id+'" onclick="doNoteTranslate(this)"><i class="ti ti-language"></i> '+t('translate')+'</button>'+delBtn+'</div></div>';
-    }).join('');
-  }
-  const ta=document.getElementById('new-note-text');ta.value='';ta.placeholder=t('addnote');ta.style.direction='ltr';ta.style.textAlign='left';
-}
-
-async function markRoomClean(){
-  rooms[currentRoom]=true;renderRooms();updateStats();closeModal('roomModal');
-  await saveRoomStatus(currentRoom,true);
-  toast('Room '+currentRoom+' '+t('markedvi'));
-  window.open(WA_GROUP,'_blank');
-}
-async function markRoomDirty(){
-  rooms[currentRoom]=false;renderRooms();updateStats();closeModal('roomModal');
-  toast('Room '+currentRoom+' '+t('markeddirty'));
-  await saveRoomStatus(currentRoom,false);
-}
-
-async function addNote(){
-  const ta=document.getElementById('new-note-text');const text=ta.value.trim();
-  if(!text){alert(t('noteerror'));return;}
-  const note={id:Date.now(),room:currentRoom,text,ts:new Date().toLocaleString(),username:currentUser};
-  if(!notes[currentRoom])notes[currentRoom]=[];
-  notes[currentRoom].push(note);renderRoomModal();renderRooms();updateStats();
-  await saveNote(note);toast(t('noteadded'));
-}
-async function deleteNote(id){
-  // Ask for PIN before deleting
-  const enteredPin=prompt('Enter PIN to delete note:');
-  if(!enteredPin)return;
-  
-  // Verify PIN
-  if(enteredPin!==PIN){
-    alert('Incorrect PIN!');
-    return;
-  }
-  
-  if(!confirm(t('confirmdelete')))return;
-  notes[currentRoom]=notes[currentRoom].filter(n=>n.id!==id);
-  renderRoomModal();renderRooms();updateStats();
-  await deleteNoteDB(id);toast(t('notedeleted'));
-}
-
-function selectCategory(cat){
-  console.log('selectCategory called with:', cat);
-  selectedCategory=cat;
-  // Clear all selections
-  document.getElementById('cat-paint').classList.remove('selected');
-  document.getElementById('cat-electric').classList.remove('selected');
-  document.getElementById('cat-plumb').classList.remove('selected');
-  document.getElementById('cat-ac').classList.remove('selected');
-  document.getElementById('cat-general').classList.remove('selected');
-  // Add selected to clicked button
-  if(cat==='Paint')document.getElementById('cat-paint').classList.add('selected');
-  else if(cat==='Electricity')document.getElementById('cat-electric').classList.add('selected');
-  else if(cat==='Plumbing')document.getElementById('cat-plumb').classList.add('selected');
-  else if(cat==='AC Issues')document.getElementById('cat-ac').classList.add('selected');
-  else if(cat==='General repairs')document.getElementById('cat-general').classList.add('selected');
-  checkDuplicateTicket();
-}
-
-function checkDuplicateTicket(){
-  if(selectedLocType!=='room')return;
-  const room=parseInt(document.getElementById('ticket-room').value);
-  const existing=tickets.find(tk=>tk.room===room&&tk.status==='open'&&tk.type===selectedCategory);
-  const warning=document.getElementById('duplicate-warning');
-  if(existing){
-    warning.classList.remove('hidden');
-    document.getElementById('dup-warning-text').textContent='Room '+room+' already has an open '+selectedCategory+' ticket';
-  }else{
-    warning.classList.add('hidden');
-  }
-}
-
-function sendToManagerWhatsApp(){
-  const tk=tickets.find(x=>x.id===currentTicketId);
-  if(!tk)return;
-  const MANAGER_PHONE='+972542232133';
-  const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
-  const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
-  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\nDescription: '+tk.description+'\n👉 View: '+appLink;
-  const encodedMsg=encodeURIComponent(message);
-  const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
-  window.open(whatsappUrl,'_blank');
-  toast('Opening WhatsApp...');
-}
-
-function clearHistoryFilters(){
-  historyFilters={dateFrom:'',dateTo:'',room:''};
-  document.getElementById('history-date-from').value='';
-  document.getElementById('history-date-to').value='';
-  document.getElementById('history-room-search').value='';
-  renderTickets();
-}
-
-let currentStatView='rooms';
-function showStatistics(view){
-  currentStatView=view;
-  document.getElementById('stat-rooms-btn').style.background=view==='rooms'?'#185FA5':'#fff';
-  document.getElementById('stat-rooms-btn').style.color=view==='rooms'?'#fff':'#1a1a1a';
-  document.getElementById('stat-category-btn').style.background=view==='category'?'#185FA5':'#fff';
-  document.getElementById('stat-category-btn').style.color=view==='category'?'#fff':'#1a1a1a';
-  document.getElementById('stat-search-btn').style.background=view==='search'?'#185FA5':'#fff';
-  document.getElementById('stat-search-btn').style.color=view==='search'?'#fff':'#1a1a1a';
-  const searchInput=document.getElementById('search-room-input');
-  if(view==='search'){searchInput.classList.remove('hidden');}else{searchInput.classList.add('hidden');}
-  renderTickets();
-}
-
-function searchRoomStats(){
-  const roomNum=parseInt(document.getElementById('stat-room-num').value);
-  if(!roomNum){alert('Please enter a room number');return;}
-  currentStatView='searchresult';
-  currentSearchRoom=roomNum;
-  renderTickets();
-}
-
-let currentSearchRoom=null;
-function selectLocType(type){
-  selectedLocType=type;
-  document.getElementById('loc-room').style.background=type==='room'?'#185FA5':'#fff';
-  document.getElementById('loc-room').style.color=type==='room'?'#fff':'#185FA5';
-  document.getElementById('loc-other').style.background=type==='other'?'#888':'#fff';
-  document.getElementById('loc-other').style.color=type==='other'?'#fff':'#888';
-  document.getElementById('room-select-group').classList.toggle('hidden',type!=='room');
-  document.getElementById('other-loc-group').classList.toggle('hidden',type!=='other');
-}
-
-function openNewTicket(){
-  const sel=document.getElementById('ticket-room');
-  sel.innerHTML=ROOMS.map(r=>'<option value="'+r+'">Room '+r+' - '+getType(r)+'</option>').join('');
-  const ta=document.getElementById('ticket-desc');ta.value='';ta.placeholder=t('problem')+'...';ta.style.direction='ltr';ta.style.textAlign='left';
-  const ol=document.getElementById('ticket-other-loc');ol.value='';ol.style.direction='ltr';ol.style.textAlign='left';
-  selectedCategory='General repairs';selectCategory('General repairs');
-  selectedLocType='room';selectLocType('room');
-  document.getElementById('lbl-newcall-title').textContent=t('newcall');
-  document.getElementById('lbl-selectroom').textContent=t('selectroom');
-  document.getElementById('lbl-problem').textContent=t('problem');
-  document.getElementById('lbl-submit').textContent=t('submit');
-  document.getElementById('lbl-cancel').textContent=t('cancel');
-  document.getElementById('lbl-category').textContent=t('category');
-  document.getElementById('lbl-location-type').textContent=t('locationtype');
-  document.getElementById('lbl-room-type').textContent=t('roomtype');
-  document.getElementById('lbl-other-type').textContent=t('othertype');
-  document.getElementById('lbl-otherloc').textContent=t('otherloc');
-  ol.placeholder=t('otherlocplaceholder');
-  document.getElementById('duplicate-warning').classList.add('hidden');
-  document.getElementById('ticketModal').classList.remove('hidden');
-}
-
-async function submitTicket(){
-  const description=document.getElementById('ticket-desc').value.trim();
-  if(!description){alert(t('ticketerror'));return;}
-  let room,type,locationLabel;
-  if(selectedLocType==='room'){
-    room=parseInt(document.getElementById('ticket-room').value);
-    type=selectedCategory;
-    locationLabel=null;
-  }else{
-    const otherLoc=document.getElementById('ticket-other-loc').value.trim();
-    if(!otherLoc){alert(t('locerror'));return;}
-    room=0;type=selectedCategory;locationLabel=otherLoc;
-  }
-  const ticket={id:Date.now(),room,type,description,ts:new Date().toLocaleString(),status:'open',username:currentUser,priority:'normal',eta:null,location_label:locationLabel};
-  lastCreatedTicket=ticket;
-  tickets.unshift(ticket);renderTickets();closeModal('ticketModal');
-  await saveTicket(ticket);
-  
-  // Show success modal
-  showTicketSuccessModal(ticket);
-}
-
-function showTicketSuccessModal(ticket){
-  const roomText=ticket.room?'Room: '+ticket.room:'Location: '+(ticket.location_label||'Other');
-  document.getElementById('success-room').textContent=roomText;
-  document.getElementById('success-category').textContent='Category: '+ticket.type;
-  document.getElementById('ticketSuccessModal').classList.remove('hidden');
-}
-
-function sendToManagerWhatsAppFromSuccess(){
-  if(!lastCreatedTicket)return;
-  const tk=lastCreatedTicket;
-  const MANAGER_PHONE='+972542232133';
-  const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
-  const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
-  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\nDescription: '+tk.description+'\n👉 View: '+appLink;
-  const encodedMsg=encodeURIComponent(message);
-  const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
-  window.open(whatsappUrl,'_blank');
-  toast('Opening WhatsApp...');
-}
-
-function createAnotherTicket(){
-  closeModal('ticketSuccessModal');
-  openNewTicket();
-}
-
-function filterTickets(f,btn){
-  ticketFilter=f;
-  document.querySelectorAll('#ticket-filter .filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const searchBox=document.getElementById('history-search');
-  const statsBox=document.getElementById('statistics-controls');
-  if(f==='history'){
-    searchBox.classList.remove('hidden');
-    statsBox.classList.add('hidden');
-  }else if(f==='statistics'){
-    searchBox.classList.add('hidden');
-    statsBox.classList.remove('hidden');
-    showStatistics('rooms');
-  }else{
-    searchBox.classList.add('hidden');
-    statsBox.classList.add('hidden');
-  }
-  renderTickets();
-}
-
-function getLocLabel(tk){
-  if(tk.room===0&&tk.location_label)return'📍 '+tk.location_label;
-  if(tk.type==='Other'&&tk.location_label)return'📍 '+tk.location_label;
-  return'Room '+tk.room;
-}
-
-function getETALabel(eta){
-  if(!eta)return'';
-  if(eta==='today')return'✅ '+t('today');
-  if(eta==='parts')return'⏳ '+t('parts');
-  return'📅 '+eta;
-}
-
-function renderTickets(){
-  const list=document.getElementById('ticket-list');if(!list)return;
-  
-  // Handle statistics view
-  if(ticketFilter==='statistics'){
-    if(currentStatView==='rooms'){renderStatsByRooms();}
-    else if(currentStatView==='category'){renderStatsByCategory();}
-    else if(currentStatView==='search'){list.innerHTML='<p style="color:#bbb;text-align:center;padding:2rem">Enter a room number to search</p>';}
-    else if(currentStatView==='searchresult'){renderStatsBySearchRoom();}
-    return;
-  }
-  
-  let filtered=[];
-  
-  // Filter based on current filter
-  if(ticketFilter==='all'){
-    // All: open + resolved from last 2 days
-    const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000).toDateString();
-    filtered=tickets.filter(tk=>tk.status==='open'||tk.status==='resolved');
-  }else if(ticketFilter==='open'){
-    filtered=tickets.filter(tk=>tk.status==='open');
-  }else if(ticketFilter==='resolved'){
-    const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000);
-    filtered=tickets.filter(tk=>{
-      if(tk.status!=='resolved')return false;
-      const tDate=new Date(tk.resolved_ts||tk.ts);
-      return tDate>=twoDaysAgo;
-    });
-  }else if(ticketFilter==='history'){
-    filtered=tickets.filter(tk=>tk.status==='resolved');
-    if(historyFilters.dateFrom){
-      const df=new Date(historyFilters.dateFrom);
-      filtered=filtered.filter(tk=>{
-        const tDate=new Date(tk.resolved_ts||tk.ts);
-        return tDate>=df;
-      });
-    }
-    if(historyFilters.dateTo){
-      const dt=new Date(historyFilters.dateTo);
-      dt.setDate(dt.getDate()+1);
-      filtered=filtered.filter(tk=>{
-        const tDate=new Date(tk.resolved_ts||tk.ts);
-        return tDate<dt;
-      });
-    }
-    if(historyFilters.room){
-      const room=parseInt(historyFilters.room);
-      filtered=filtered.filter(tk=>tk.room===room);
-    }
-  }
-  
-  if(!filtered.length){list.innerHTML='<p style="color:#bbb;font-size:14px;text-align:center;padding:2rem 0">'+t('opencalls')+' — 0</p>';return;}
-  
-  // Special handling for "all" view: separate open and resolved
-  if(ticketFilter==='all'){
-    const openTickets=filtered.filter(tk=>tk.status==='open');
-    const resolvedTickets=filtered.filter(tk=>tk.status==='resolved');
-    let html='';
-    if(openTickets.length>0){html+=renderTicketSection(openTickets,'open');}
-    if(resolvedTickets.length>0){html+=renderTicketSection(resolvedTickets,'resolved');}
-    list.innerHTML=html;
-  }else{
-    const publicAreas=filtered.filter(tk=>!tk.room||tk.type==='Other');
-    const roomTickets=filtered.filter(tk=>tk.room&&tk.type!=='Other');
-    const sortTickets=(a,b)=>{if(a.status!==b.status){return a.status==='open'?-1:1;}return 0;};
-    publicAreas.sort(sortTickets);
-    roomTickets.sort((a,b)=>{
-      const floorA=a.room?Math.floor(a.room/100):999;
-      const floorB=b.room?Math.floor(b.room/100):999;
-      if(floorA!==floorB)return floorA-floorB;
-      if(a.room!==b.room)return a.room-b.room;
-      return sortTickets(a,b);
-    });
-    let html='';
-    if(publicAreas.length>0){
-      html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:#185FA5;margin-bottom:8px">📍 Common Areas</div>';
-      html+=publicAreas.map(tk=>buildTicketCard(tk)).join('');
-      html+='</div>';
-    }
-    let currentFloor=null;
-    roomTickets.forEach(tk=>{
-      const floor=Math.floor(tk.room/100);
-      if(floor!==currentFloor){
-        if(currentFloor!==null)html+='</div>';
-        const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
-        html+='<div style="margin-bottom:12px"><div class="floor-label">'+floorName+'</div>';
-        currentFloor=floor;
-      }
-      html+=buildTicketCard(tk);
-    });
-    if(currentFloor!==null)html+='</div>';
-    list.innerHTML=html;
-  }
-}
-
-function renderTicketSection(tickets,status){
-  const publicAreas=tickets.filter(tk=>!tk.room||tk.type==='Other');
-  const roomTickets=tickets.filter(tk=>tk.room&&tk.type!=='Other');
-  roomTickets.sort((a,b)=>{
-    const floorA=a.room?Math.floor(a.room/100):999;
-    const floorB=b.room?Math.floor(b.room/100):999;
-    if(floorA!==floorB)return floorA-floorB;
-    return a.room-b.room;
-  });
-  let html='';
-  if(publicAreas.length>0){
-    const statusLabel=status==='open'?'OPEN':'RESOLVED';
-    const statusColor=status==='open'?'#185FA5':'#639922';
-    html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:'+statusColor+';margin-bottom:8px">📍 Common Areas — '+statusLabel+'</div>';
-    html+=publicAreas.map(tk=>buildTicketCard(tk)).join('');
-    html+='</div>';
-  }
-  if(roomTickets.length>0){
-    let currentFloor=null;
-    roomTickets.forEach(tk=>{
-      const floor=Math.floor(tk.room/100);
-      if(floor!==currentFloor){
-        if(currentFloor!==null)html+='</div>';
-        const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
-        const statusLabel=status==='open'?'OPEN':'RESOLVED';
-        const statusColor=status==='open'?'#185FA5':'#639922';
-        html+='<div style="margin-bottom:12px"><div class="floor-label" style="color:'+statusColor+'">'+floorName+' — '+statusLabel+'</div>';
-        currentFloor=floor;
-      }
-      html+=buildTicketCard(tk);
-    });
-    if(currentFloor!==null)html+='</div>';
-  }
-  return html;
-}
-
-function buildTicketCard(tk){
-  const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5;margin-top:4px;display:block"><i class="ti ti-clock"></i> '+getETALabel(tk.eta)+'</span>':'';
-  const resolverInfo=tk.status==='resolved'&&tk.resolved_by?'<br><i class="ti ti-check"></i> Resolved by: '+(tk.resolved_by)+' · '+tk.resolved_ts:'';
-  return'<div class="ticket-card '+tk.status+'" onclick="openTicket('+tk.id+')">'
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
-    +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-weight:600">'+getLocLabel(tk)+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
-    +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+';white-space:nowrap">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
-    +'</div>'
-    +'<p style="font-size:13px;color:#888;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
-    +etaLabel
-    +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> Created by: '+(tk.username||'Unknown')+' · '+tk.ts+resolverInfo+'</p>'
-    +'</div>';
-}
-
-function renderStatsByRooms(){
-  const list=document.getElementById('ticket-list');
-  
-  // Maintenance categories only (filter out room types)
-  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
-  const roomTypes=['Superior','Deluxe','Suite','Loft','PremDlx','Classic','Spa','Other'];
-  
-  // Group tickets by year
-  const statsByYear={};
-  const currentYear=new Date().getFullYear();
-  tickets.forEach(tk=>{
-    if(tk.room && maintenanceCategories.includes(tk.type)){
-      const ticketDate=new Date(tk.ts);
-      let year=ticketDate.getFullYear();
-      // Handle invalid dates - use current year
-      if(isNaN(year)){
-        year=currentYear;
-      }
-      if(!statsByYear[year])statsByYear[year]={};
-      
-      if(!statsByYear[year][tk.room]){
-        statsByYear[year][tk.room]={count:0,categories:{}};
-      }
-      statsByYear[year][tk.room].count++;
-      if(!statsByYear[year][tk.room].categories[tk.type]){
-        statsByYear[year][tk.room].categories[tk.type]=0;
-      }
-      statsByYear[year][tk.room].categories[tk.type]++;
-    }
-  });
-  
-  // Sort years descending (newest first)
-  const sortedYears=Object.keys(statsByYear).sort((a,b)=>b-a);
-  
-  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Top Problem Rooms</h3>';
-  
-  sortedYears.forEach(year=>{
-    const yearRoomStats=statsByYear[year];
-    const yearId='year-'+year;
-    const sorted=Object.entries(yearRoomStats).sort((a,b)=>b[1].count-a[1].count).slice(0,20);
-    const totalIssues=sorted.reduce((sum,item)=>sum+item[1].count,0);
-    
-    // Year header (collapsible)
-    html+='<div class="section-card" style="margin-bottom:12px;overflow:hidden;border-radius:10px;background:#f0f7ff">';
-    html+='<div onclick="toggleYear(\''+yearId+'\')" style="padding:1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#E3F2FD;border:0.5px solid #BBDEFB">';
-    html+='<div style="display:flex;align-items:center;gap:12px"><span id="'+yearId+'-arrow" style="font-size:16px;font-weight:bold">▼</span><span style="font-weight:600;font-size:15px">'+year+' ('+totalIssues+' total issues)</span></div>';
-    html+='</div>';
-    
-    // Year content
-    html+='<div id="'+yearId+'" style="padding:0">';
-    sorted.forEach(([room,data],idx)=>{
-      const roomCardId='room-'+year+'-'+room;
-      html+='<div style="padding:1rem;border-bottom:0.5px solid #BBDEFB;background:#fff">';
-      html+='<div onclick="toggleRoomStats(\''+roomCardId+'\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">';
-      html+='<div style="display:flex;align-items:center;gap:12px;flex:1"><span id="'+roomCardId+'-arrow" style="font-size:14px">▶</span><span style="font-weight:600">'+(idx+1)+'. Room '+room+' - '+data.count+' issues</span></div>';
-      html+='<span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+data.count+'</span>';
-      html+='</div>';
-      
-      // Category breakdown (maintenance categories only)
-      html+='<div id="'+roomCardId+'" class="hidden" style="margin-top:12px;padding-left:30px">';
-      Object.entries(data.categories).sort((a,b)=>b[1]-a[1]).forEach(([cat,count])=>{
-        const pct=Math.round((count/data.count)*100);
-        html+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px">'+cat+'</span><span style="font-weight:600;color:#185FA5">'+count+' ('+pct+'%)</span></div><div style="background:#E8E8E8;height:6px;border-radius:3px"><div style="background:#185FA5;height:100%;width:'+pct+'%;border-radius:3px"></div></div></div>';
-      });
-      html+='</div></div>';
-    });
-    html+='</div></div>';
-  });
-  
-  html+='</div>';
-  list.innerHTML=html;
-}
-
-function toggleYear(yearId){
-  const yearContent=document.getElementById(yearId);
-  const arrow=document.getElementById(yearId+'-arrow');
-  if(yearContent.style.display==='none'){
-    yearContent.style.display='block';
-    arrow.textContent='▼';
-  }else{
-    yearContent.style.display='none';
-    arrow.textContent='▶';
-  }
-}
-
-function toggleRoomStats(roomCardId){
-  const roomCard=document.getElementById(roomCardId);
-  const arrow=document.getElementById(roomCardId+'-arrow');
-  if(roomCard.classList.contains('hidden')){
-    roomCard.classList.remove('hidden');
-    arrow.textContent='▼';
-  }else{
-    roomCard.classList.add('hidden');
-    arrow.textContent='▶';
-  }
-}
-
-function renderStatsByCategory(){
-  const list=document.getElementById('ticket-list');
-  const year=new Date().getFullYear();
-  
-  // Maintenance categories only
-  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
-  
-  const catStats={};
-  tickets.forEach(tk=>{
-    // Only count maintenance issue categories, skip room types
-    if(maintenanceCategories.includes(tk.type)){
-      if(!catStats[tk.type])catStats[tk.type]=0;
-      catStats[tk.type]++;
-    }
-  });
-  
-  const sorted=Object.entries(catStats).sort((a,b)=>b[1]-a[1]);
-  const totalIssues=sorted.reduce((sum,item)=>sum+item[1],0);
-  
-  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Issues by Category ('+year+')</h3>';
-  sorted.forEach(([cat,count])=>{
-    const pct=Math.round((count/totalIssues)*100);
-    html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:600">'+cat+'</span><span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+count+' ('+pct+'%)</span></div><div style="background:#E8E8E8;height:8px;border-radius:4px;overflow:hidden"><div style="background:#185FA5;height:100%;width:'+pct+'%"></div></div></div>';
-  });
-  html+='</div>';
-  list.innerHTML=html;
-}
-
-function renderStatsBySearchRoom(){
-  const list=document.getElementById('ticket-list');
-  const year=new Date().getFullYear();
-  
-  // Maintenance categories only
-  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
-  
-  const roomTickets=tickets.filter(tk=>tk.room===currentSearchRoom && maintenanceCategories.includes(tk.type));
-  if(!roomTickets.length){list.innerHTML='<p style="color:#bbb;text-align:center;padding:2rem">No issues found for Room '+currentSearchRoom+'</p>';return;}
-  const catStats={};
-  roomTickets.forEach(tk=>{
-    if(!catStats[tk.type])catStats[tk.type]=0;
-    catStats[tk.type]++;
-  });
-  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Room '+currentSearchRoom+' - '+year+' Breakdown</h3>';
-  let totalIssues=0;
-  Object.entries(catStats).sort((a,b)=>b[1]-a[1]).forEach(([cat,count])=>{totalIssues+=count;html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+cat+'</span><span style="font-weight:600">'+count+' times</span></div></div>';});
-  html+='<div class="section-card" style="padding:1rem;margin-bottom:8px;background:#f0f0f0"><div style="display:flex;justify-content:space-between;font-weight:600"><span>TOTAL</span><span>'+totalIssues+' issues</span></div></div>';
-  html+='</div>';
-  list.innerHTML=html;
-}
-
-function openTicket(id){
-  const tk=tickets.find(x=>x.id===id);if(!tk)return;
-  currentTicketId=id;
-  document.getElementById('td-title').textContent=getLocLabel(tk)+' - '+tk.type;
-  const resolverInfo=tk.status==='resolved'&&tk.resolved_by?'<br><i class="ti ti-check"></i> Resolved by: '+(tk.resolved_by)+' · '+tk.resolved_ts:'';
-  document.getElementById('td-body').innerHTML=
-    '<p style="font-size:13px;color:#aaa;margin-bottom:8px"><i class="ti ti-user"></i> Created by: '+(tk.username||'Unknown')+' · '+tk.ts+resolverInfo+'</p>'
-    +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+'">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
-    +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-top:0.75rem;padding:12px;background:#f5f5f0;border-radius:10px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</div>'
-    +'<div class="note-translation" id="td-translation" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
-    +'<button class="note-translate" id="td-translate-btn" onclick="doTicketTranslate()" style="margin-top:6px"><i class="ti ti-language"></i> '+t('translate')+'</button>';
-  document.getElementById('td-translate-btn').setAttribute('data-text',tk.description);
-
-  // ETA section
-  document.getElementById('lbl-eta-title').textContent=t('etatitle');
-  document.getElementById('lbl-today').textContent=t('today');
-  document.getElementById('lbl-parts').textContent=t('parts');
-  document.getElementById('lbl-pickdate').textContent=t('pickdate');
-  const etaBtns=['eta-today','eta-parts','eta-date'];
-  etaBtns.forEach(id=>document.getElementById(id).classList.remove('selected'));
-  document.getElementById('eta-date-input').classList.add('hidden');
-  if(tk.eta==='today')document.getElementById('eta-today').classList.add('selected');
-  else if(tk.eta==='parts')document.getElementById('eta-parts').classList.add('selected');
-  else if(tk.eta&&tk.eta!=='today'&&tk.eta!=='parts'){document.getElementById('eta-date').classList.add('selected');document.getElementById('eta-date-input').classList.remove('hidden');document.getElementById('eta-date-input').value=tk.eta;}
-
-  const ma=document.getElementById('td-manager-actions');const rb=document.getElementById('td-resolve-btn');
-  if(isManager){ma.classList.remove('hidden');rb.textContent=tk.status==='open'?t('markresolved'):t('reopen');}
-  else{ma.classList.add('hidden');}
-  renderTicketComments(currentTicketId);
-  document.getElementById('ticketDetailModal').classList.remove('hidden');
-}
-
-async function setETA(type){
-  const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
-  if(type==='date'){
-    document.getElementById('eta-date-input').classList.remove('hidden');
-    document.getElementById('eta-date').classList.add('selected');
-    document.getElementById('eta-today').classList.remove('selected');
-    document.getElementById('eta-parts').classList.remove('selected');
-    return;
-  }
-  tk.eta=type;
-  document.getElementById('eta-today').classList.toggle('selected',type==='today');
-  document.getElementById('eta-parts').classList.toggle('selected',type==='parts');
-  document.getElementById('eta-date').classList.remove('selected');
-  document.getElementById('eta-date-input').classList.add('hidden');
-  renderTickets();
-  await updateTicketField(currentTicketId,{eta:type});
-  toast(t('etaset'));
-}
-
-async function setETADate(val){
-  if(!val)return;
-  const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
-  tk.eta=val;renderTickets();
-  await updateTicketField(currentTicketId,{eta:val});
-  toast(t('etaset'));
-}
-
-async function resolveTicket(){
-  const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
-  const ns=tk.status==='open'?'resolved':'open';
-  tk.status=ns;
-  
-  // Capture resolver info when marking as resolved
-  if(ns==='resolved'){
-    tk.resolved_by=currentUser;
-    tk.resolved_ts=new Date().toLocaleString();
-  }else{
-    // If reopening, clear resolver info
-    tk.resolved_by=null;
-    tk.resolved_ts=null;
-  }
-  
-  renderTickets();closeModal('ticketDetailModal');
-  const updateData={status:ns};
-  if(ns==='resolved'){
-    updateData.resolved_by=tk.resolved_by;
-    updateData.resolved_ts=tk.resolved_ts;
-  }else{
-    updateData.resolved_by=null;
-    updateData.resolved_ts=null;
-  }
-  await updateTicketField(currentTicketId,updateData);
-  toast(ns==='resolved'?t('markedresolved'):t('reopened'));
-}
-async function deleteTicket(){
-  if(!confirm(t('confirmdelete')))return;
-  tickets=tickets.filter(x=>x.id!==currentTicketId);
-  renderTickets();closeModal('ticketDetailModal');
-  await deleteTicketDB(currentTicketId);toast(t('deleted'));
-}
-function closeModal(id){document.getElementById(id).classList.add('hidden');}
-
-document.getElementById('managerBtn').onclick=()=>{
-  if(isManager){openManagerDash();return;}
-  document.getElementById('pin-input').value='';document.getElementById('pin-error').textContent='';
-  document.getElementById('lbl-manageraccess').textContent=t('manageraccess');
-  document.getElementById('lbl-enterpin').textContent=t('enterpin');
-  document.getElementById('pinModal').classList.remove('hidden');
-};
-
-function checkPin(v){
-  if(v.length===6){
-    if(v===PIN){isManager=true;document.getElementById('managerBtn').innerHTML='<i class="ti ti-shield"></i> '+t('manager');closeModal('pinModal');openManagerDash();}
-    else{document.getElementById('pin-error').textContent=t('incorrectpin');document.getElementById('pin-input').value='';}
-  }
-}
-
-function openManagerDash(){
-  const clean=ROOMS.filter(r=>isClean(r)).length;
-  const open=tickets.filter(tk=>tk.status==='open').length;
-  const urgent=tickets.filter(tk=>tk.status==='open'&&tk.priority==='urgent').length;
-  const res=tickets.filter(tk=>tk.status==='resolved').length;
-  document.getElementById('lbl-dashboard').textContent=t('dashboard');
-  document.getElementById('lbl-resetall').textContent=t('resetall');
-  document.getElementById('lbl-opencalls').textContent=t('opencalls');
-  document.getElementById('manager-stats').innerHTML=
-    '<div class="stat-card"><div class="stat-num" style="color:#639922">'+clean+'</div><div class="stat-lbl">'+t('cleanrooms')+'</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#E24B4A">'+urgent+'</div><div class="stat-lbl">🔴 '+t('urgentcalls')+'</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:#639922">'+res+'</div><div class="stat-lbl">'+t('resolvedstat')+'</div></div>';
-  const ot=tickets.filter(tk=>tk.status==='open').sort((a,b)=>(b.priority==='urgent')-(a.priority==='urgent'));
-  document.getElementById('manager-tickets').innerHTML=ot.length?ot.map(tk=>{
-    const urgentBadge=tk.priority==='urgent'?'<span class="badge-urgent">🔴 '+t('urgent')+'</span> ':'';
-    const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5"> · '+getETALabel(tk.eta)+'</span>':'';
-    return'<div class="ticket-card open'+(tk.priority==='urgent'?' urgent':'')+'" onclick="closeModal(\'managerDashModal\');openTicket('+tk.id+')">'
-      +'<div style="font-weight:600">'+urgentBadge+getLocLabel(tk)+' <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
-      +'<p style="font-size:13px;color:#888;margin-top:4px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
-      +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · '+tk.ts+etaLabel+'</p>'
-      +'</div>';
-  }).join(''):'<p style="color:#bbb;font-size:14px">'+t('opencalls')+' — 0</p>';
-  document.getElementById('managerDashModal').classList.remove('hidden');
-}
-
-async function resetAllData(){
-  if(!confirm(t('confirmreset')))return;
-  rooms={};tickets=[];notes={};ticketComments={};renderAll();closeModal('managerDashModal');
-  await resetAll();toast(t('reset'));
-}
-
-async function printOpenCalls(){
-  const open=tickets.filter(tk=>tk.status==='open').sort((a,b)=>{
-    const ra=a.room||99999,rb=b.room||99999;
-    return ra-rb;
-  });
-  const now=new Date().toLocaleString();
-  const getEtaText=(eta)=>{
-    if(!eta)return t('printnoeta');
-    if(eta==='today')return t('today');
-    if(eta==='parts')return t('parts');
-    return eta;
-  };
-
-  // Auto-translate descriptions if language is Russian
-  const langMap={en:'en',ru:'ru',he:'iw'};
-  const targetLang=langMap[lang]||'en';
-  let descriptions=open.map(tk=>tk.description);
-
-  if(lang==='ru'){
-    toast(t('translating'));
-    try{
-      descriptions=await Promise.all(open.map(async tk=>{
-        if(!tk.description)return'';
-        try{
-          const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(tk.description)+'&langpair=autodetect|ru');
-          const data=await res.json();
-          const translated=data.responseData?.translatedText;
-          return(translated&&translated!==tk.description)?translated:tk.description;
-        }catch(e){return tk.description;}
-      }));
-    }catch(e){}
-  }
-
-  const rows=open.length===0
-    ?'<tr><td colspan="6" style="text-align:center;padding:20px;color:#888">'+t('printnone')+'</td></tr>'
-    :open.map((tk,i)=>{
-      const loc=tk.type==='Other'&&tk.location_label?'📍 '+tk.location_label:'Room '+tk.room;
-      const pri=tk.priority==='urgent'?'🔴 '+t('urgent'):'🟡 '+t('normal');
-      const desc=descriptions[i]||tk.description;
-      const comments=(ticketComments[String(tk.id)]||[]).map(c=>'<div style="font-size:11px;color:#666;margin-top:3px;padding-left:8px;border-left:2px solid #185FA5">💬 '+(c.username||'?')+': '+c.text+'</div>').join('');
-      return'<tr>'
-        +'<td>'+loc+'</td>'
-        +'<td>'+tk.type+'</td>'
-        +'<td>'+desc+comments+'</td>'
-        +'<td>'+pri+'</td>'
-        +'<td>'+getEtaText(tk.eta)+'</td>'
-        +'<td>'+(tk.username||'—')+'</td>'
-        +'</tr>';
-    }).join('');
-
-  const html=`<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>${t('printitle')}</title>
-<style>
-  body{font-family:Arial,sans-serif;font-size:13px;margin:20px;color:#1a1a1a}
-  h1{font-size:18px;margin-bottom:4px}
-  .subtitle{font-size:12px;color:#888;margin-bottom:16px}
-  table{width:100%;border-collapse:collapse;margin-top:8px}
-  th{background:#185FA5;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
-  td{padding:8px 10px;border-bottom:0.5px solid #e0dfd8;vertical-align:top;font-size:12px}
-  tr:nth-child(even){background:#f9f8f4}
-  @media print{body{margin:10px}}
-</style>
-</head>
-<body>
-<h1>HK&amp;Maintenance-Mendeli</h1>
-<div class="subtitle">${t('printitle')} &nbsp;·&nbsp; ${now}</div>
-<table>
-<thead><tr>
-  <th>${t('printroom')}</th>
-  <th>${t('printtype')}</th>
-  <th>${t('printdesc')}</th>
-  <th>${t('printpriority')}</th>
-  <th>${t('printeta')}</th>
-  <th>${t('printby')}</th>
-</tr></thead>
-<tbody>${rows}</tbody>
-</table>
-<div style="margin-top:20px;font-size:11px;color:#aaa">HK&Maintenance-Mendeli © 2026 · All rights reserved</div>
-</body>
-</html>`;
-
-  const w=window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(()=>w.print(),500);
-}
-
-function renderTicketComments(ticketId){
-  const comments=ticketComments[String(ticketId)]||[];
-  const list=document.getElementById('ticket-comments-list');
-  const ta=document.getElementById('new-ticket-comment');
-  if(ta){ta.value='';ta.placeholder=t('addcomment');ta.style.direction='ltr';ta.style.textAlign='left';}
-  const header=document.getElementById('lbl-ticketcomments');
-  if(header)header.textContent=t('ticketcomments');
-  if(!list)return;
-  if(comments.length===0){
-    list.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nocomments')+'</p>';
-  }else{
-    list.innerHTML=comments.map(c=>{
-      const delBtn='<button class="note-delete" onclick="deleteTicketComment('+c.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>';
-      return'<div class="note-item">'
-        +'<div class="note-text" style="direction:'+getDir(c.text)+';text-align:'+getAlign(c.text)+'">'+c.text+'</div>'
-        +'<div class="note-translation" id="tctr-'+c.id+'" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
-        +'<div class="note-meta"><i class="ti ti-user"></i> '+(c.username||'Unknown')+' · <i class="ti ti-clock"></i> '+c.ts
-        +'<button class="note-translate" id="tctb-'+c.id+'" data-commentid="'+c.id+'" onclick="doCommentTranslate(this)"><i class="ti ti-language"></i> '+t('translate')+'</button>'
-        +delBtn+'</div></div>';
-    }).join('');
-  }
-}
-
-function doCommentTranslate(btn){
-  const cid=btn.getAttribute('data-commentid');
-  const allComments=Object.values(ticketComments).flat();
-  const comment=allComments.find(c=>c.id==cid);
-  if(!comment)return;
-  const res=document.getElementById('tctr-'+cid);
-  translateText(comment.text,btn,res);
-}
-
-async function addTicketComment(){
-  const ta=document.getElementById('new-ticket-comment');
-  const text=ta.value.trim();
-  if(!text){alert(t('noteerror'));return;}
-  const comment={id:Date.now(),ticket_id:currentTicketId,text,ts:new Date().toLocaleString(),username:currentUser};
-  if(!ticketComments[String(currentTicketId)])ticketComments[String(currentTicketId)]=[];
-  ticketComments[String(currentTicketId)].push(comment);
-  renderTicketComments(currentTicketId);
-  await saveTicketComment(comment);toast(t('commentadded'));
-}
-
-async function deleteTicketComment(id){
-  // Ask for PIN before deleting
-  const enteredPin=prompt('Enter PIN to delete comment:');
-  if(!enteredPin)return;
-  
-  // Verify PIN
-  if(enteredPin!==PIN){
-    alert('Incorrect PIN!');
-    return;
-  }
-  
-  if(!confirm(t('confirmdelete')))return;
-  ticketComments[String(currentTicketId)]=(ticketComments[String(currentTicketId)]||[]).filter(c=>c.id!==id);
-  renderTicketComments(currentTicketId);
-  await deleteTicketCommentDB(id);toast(t('commentdeleted'));
-}
-
-function doNoteTranslate(btn){
-  const nid=btn.getAttribute('data-noteid');
-  const noteObj=(notes[currentRoom]||[]).find(n=>n.id==nid);
-  if(!noteObj)return;
-  const res=document.getElementById('ntr-'+nid);
-  translateText(noteObj.text,btn,res);
-}
-
-function doTicketTranslate(){
-  const btn=document.getElementById('td-translate-btn');
-  const res=document.getElementById('td-translation');
-  const text=btn.getAttribute('data-text');
-  translateText(text,btn,res);
-}
-
-async function translateText(text,btnEl,resultEl){
-  const langMap={en:'en',ru:'ru',he:'iw'};
-  const targetLang=langMap[lang]||'en';
-  btnEl.textContent=t('translating');
-  btnEl.disabled=true;
-  try{
-    const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=autodetect|'+targetLang);
-    const data=await res.json();
-    const translated=data.responseData?.translatedText;
-    if(translated&&translated!==text){
-      resultEl.textContent=translated;
-      resultEl.style.display='block';
-      btnEl.style.display='none';
-    }else{
-      btnEl.textContent=t('transerror');
-      btnEl.disabled=false;
-    }
-  }catch(e){
-    btnEl.textContent=t('transerror');
-    btnEl.disabled=false;
-  }
-}
-
-// Setup history search event listeners
-document.addEventListener('DOMContentLoaded',function(){
-  const df=document.getElementById('history-date-from');
-  const dt=document.getElementById('history-date-to');
-  const rm=document.getElementById('history-room-search');
-  if(df)df.addEventListener('change',function(){historyFilters.dateFrom=this.value;renderTickets();});
-  if(dt)dt.addEventListener('change',function(){historyFilters.dateTo=this.value;renderTickets();});
-  if(rm)rm.addEventListener('input',function(){historyFilters.room=this.value;renderTickets();});
-});
-
-// Also check room selection changes for duplicate detection
-document.addEventListener('DOMContentLoaded',function(){
-  const roomSel=document.getElementById('ticket-room');
-  if(roomSel)roomSel.addEventListener('change',checkDuplicateTicket);
-});
-
-initUser();loadAll();startPolling();
-
-// CHAT SYSTEM - Added after app initialization so apiUrl is available
-let currentChatTicketId = null;
-let chatMessages = [];
-let onlineUsers = {};
-
-function toggleChat() {
-  const sidebar = document.getElementById('chatSidebar');
-  if(!sidebar) return;
-  sidebar.classList.toggle('visible');
-  if(sidebar.classList.contains('visible')) {
-    loadChatMessages();
-  }
-}
-
-function openChatForTicket(ticketId) {
-  currentChatTicketId = ticketId;
-  const sidebar = document.getElementById('chatSidebar');
-  if(sidebar) sidebar.classList.add('visible');
-  loadChatMessages();
-}
-
-async function loadChatMessages() {
-  if(!currentChatTicketId) {
-    console.log('❌ No ticket ID');
-    return;
-  }
-  console.log('📥 Loading messages for ticket:', currentChatTicketId);
+// LOAD SAVED STATE
+function loadChatState() {
   try {
-    const url = SUPA_URL + '/rest/v1/chat_messages?ticket_id=eq.' + currentChatTicketId + '&order=created_at.asc';
-    console.log('🔗 URL:', url);
+    const saved = localStorage.getItem('hotelChatState');
+    if(saved) {
+      const state = JSON.parse(saved);
+      chatState.bubblePos = state.bubblePos || { x: 0, y: 0 };
+      chatState.unreadCount = state.unreadCount || 0;
+    }
+  } catch(e) {
+    console.log('Could not load chat state');
+  }
+  applyBubblePosition();
+}
+
+// SAVE STATE
+function saveChatState() {
+  try {
+    localStorage.setItem('hotelChatState', JSON.stringify({
+      bubblePos: chatState.bubblePos,
+      unreadCount: chatState.unreadCount
+    }));
+  } catch(e) {
+    console.log('Could not save chat state');
+  }
+}
+
+// BUBBLE POSITIONING
+function applyBubblePosition() {
+  const bubble = document.getElementById('chatBubble');
+  if(!bubble) return;
+  const { x, y } = chatState.bubblePos;
+  if(x !== 0 || y !== 0) {
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+    bubble.style.left = x + 'px';
+    bubble.style.top = y + 'px';
+  }
+}
+
+// DRAGGABLE BUBBLE
+function initDraggable() {
+  const bubble = document.getElementById('chatBubble');
+  if(!bubble) return;
+
+  let startX, startY, initialX, initialY;
+
+  function handleStart(e) {
+    chatState.isDragging = true;
+    bubble.classList.add('dragging');
+    
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    
+    const rect = bubble.getBoundingClientRect();
+    initialX = rect.left;
+    initialY = rect.top;
+  }
+
+  function handleMove(e) {
+    if(!chatState.isDragging) return;
+    e.preventDefault();
+    
+    const touch = e.touches ? e.touches[0] : e;
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    
+    const newX = initialX + deltaX;
+    const newY = initialY + deltaY;
+    
+    // Constrain to viewport
+    const maxX = window.innerWidth - 56;
+    const maxY = window.innerHeight - 56;
+    
+    const constrainedX = Math.max(0, Math.min(newX, maxX));
+    const constrainedY = Math.max(0, Math.min(newY, maxY));
+    
+    bubble.style.left = constrainedX + 'px';
+    bubble.style.top = constrainedY + 'px';
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+  }
+
+  function handleEnd() {
+    chatState.isDragging = false;
+    bubble.classList.remove('dragging');
+    
+    const rect = bubble.getBoundingClientRect();
+    chatState.bubblePos = {
+      x: Math.round(rect.left),
+      y: Math.round(rect.top)
+    };
+    saveChatState();
+  }
+
+  bubble.addEventListener('mousedown', handleStart);
+  bubble.addEventListener('touchstart', handleStart);
+  document.addEventListener('mousemove', handleMove);
+  document.addEventListener('touchmove', handleMove);
+  document.addEventListener('mouseup', handleEnd);
+  document.addEventListener('touchend', handleEnd);
+}
+
+// TOGGLE CHAT WINDOW
+function toggleChatWindow() {
+  const window = document.getElementById('chatWindow');
+  if(!window) return;
+  
+  chatState.isOpen = !chatState.isOpen;
+  if(chatState.isOpen) {
+    window.classList.add('visible');
+    loadMessages();
+    // Clear unread badge
+    chatState.unreadCount = 0;
+    updateBadge();
+    saveChatState();
+  } else {
+    window.classList.remove('visible');
+  }
+}
+
+// UPDATE UNREAD BADGE
+function updateBadge() {
+  const badge = document.querySelector('.chat-bubble .unread-badge');
+  if(!badge) return;
+  
+  if(chatState.unreadCount > 0) {
+    badge.textContent = chatState.unreadCount > 9 ? '9+' : chatState.unreadCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+// LOAD MESSAGES (General Team Chat)
+async function loadMessages() {
+  try {
+    const url = SUPA_URL + '/rest/v1/chat_messages?order=created_at.asc';
     const res = await fetch(url, {
       headers: {
         'Authorization': 'Bearer ' + SUPA_KEY,
         'apikey': SUPA_KEY
       }
     });
-    console.log('📊 Status:', res.status);
-    if(!res.ok) {
-      console.log('❌ Response not ok:', res.statusText);
-      return;
-    }
+    
+    if(!res.ok) return;
+    
     const msgs = await res.json();
-    console.log('✅ Messages loaded:', msgs.length);
-    chatMessages = msgs;
-    renderChatMessages();
+    chatState.messages = msgs;
+    renderMessages();
   } catch(e) {
-    console.log('❌ Load error:', e);
+    console.log('Load error:', e);
   }
 }
 
-function renderChatMessages() {
-  const container = document.getElementById('chatMessages');
+// RENDER MESSAGES
+function renderMessages() {
+  const container = document.getElementById('chatMessagesContainer');
   if(!container) return;
-  container.innerHTML = chatMessages.map(m => {
-    const isOwn = m.sender === currentUser;
-    return '<div class="chat-msg ' + (isOwn ? 'sent' : 'received') + '">' +
-      '<div class="msg-sender">' + m.sender + '</div>' +
-      '<div class="msg-text">' + m.message + '</div>' +
-      '<div class="msg-time">' + new Date(m.created_at).toLocaleTimeString() + '</div>' +
-      '</div>';
+  
+  if(chatState.messages.length === 0) {
+    container.innerHTML = '<div class="chat-empty">👋 No messages yet. Start the conversation!</div>';
+    return;
+  }
+  
+  container.innerHTML = chatState.messages.map(msg => {
+    const isOwn = msg.sender === currentUser;
+    const time = new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    return `
+      <div class="chat-message ${isOwn ? 'sent' : 'received'}">
+        ${!isOwn ? `<div class="chat-message-sender">${msg.sender}</div>` : ''}
+        <div class="chat-message-bubble">${msg.message}</div>
+        <div class="chat-message-time">${time}</div>
+      </div>
+    `;
   }).join('');
+  
   container.scrollTop = container.scrollHeight;
 }
 
-function sendChatMessage() {
+// SEND MESSAGE
+function sendMessage() {
   const input = document.getElementById('chatInput');
-  if(!input) {
-    console.log('❌ Input not found');
-    return;
-  }
+  if(!input) return;
+  
   const msg = input.value.trim();
-  if(!msg || !currentChatTicketId) {
-    console.log('❌ No message or ticket:', msg, currentChatTicketId);
-    return;
-  }
+  if(!msg) return;
   
-  console.log('📤 Sending message:', msg, 'to ticket:', currentChatTicketId);
+  const payload = {
+    sender: currentUser,
+    message: msg,
+    created_at: new Date().toISOString()
+  };
   
-  try {
-    const url = SUPA_URL + '/rest/v1/chat_messages';
-    const payload = {
-      ticket_id: currentChatTicketId,
-      sender: currentUser,
-      message: msg,
-      is_urgent: false,
-      created_at: new Date().toISOString()
-    };
-    console.log('🔗 URL:', url);
-    console.log('📦 Payload:', payload);
-    
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + SUPA_KEY,
-        'apikey': SUPA_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    }).then(res => {
-      console.log('✅ Send response:', res.status);
-      if(res.ok) {
-        input.value = '';
-        console.log('✅ Message sent!');
-        loadChatMessages();
-        playNotificationSound();
-      }
-    }).catch(e => console.log('❌ Send error:', e));
-  } catch(e) {
-    console.log('❌ Send error:', e);
-  }
+  fetch(SUPA_URL + '/rest/v1/chat_messages', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'apikey': SUPA_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  }).then(res => {
+    if(res.ok) {
+      input.value = '';
+      loadMessages();
+    }
+  }).catch(e => console.log('Send error:', e));
 }
 
+// SMART NOTIFICATIONS - Only for messages from OTHERS
 function playNotificationSound() {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
     
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
     
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.15);
-    oscillator.type = 'sine';
+    osc.frequency.setValueAtTime(800, audioContext.currentTime);
+    osc.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+    osc.type = 'sine';
     
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
     
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
-  } catch(e) {
-    // Silent fail for audio
-  }
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.4);
+  } catch(e) {}
 }
-</script>
 
-<!-- LIVE CHAT SIDEBAR -->
-<div id="chatSidebar" class="chat-sidebar">
-  <div class="chat-header">
-    <span>💬 Live Chat</span>
-    <button onclick="toggleChat()" class="chat-close">✕</button>
-  </div>
-  <div id="chatMessages" class="chat-messages"></div>
-  <div class="chat-input-area">
-    <input id="chatInput" type="text" placeholder="Type message..." class="chat-input">
-    <button onclick="sendChatMessage()" class="chat-send">Send</button>
+// POLL FOR NEW MESSAGES
+function startPolling() {
+  setInterval(() => {
+    loadMessages();
+  }, 2000);
+}
+
+// INIT CHAT ON LOAD
+document.addEventListener('DOMContentLoaded', function() {
+  loadChatState();
+  initDraggable();
+  startPolling();
+  
+  // Enter key to send
+  const input = document.getElementById('chatInput');
+  if(input) {
+    input.addEventListener('keypress', function(e) {
+      if(e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  }
+});
+
+</script>
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <div class="brand-logo">HK</div>
+    <div>
+      <div class="header-title">HK & Maintenance</div>
+      <div class="header-sub">Mendeli | Room Management</div>
+    </div>
   </div>
 </div>
 
-<!-- CHAT BUBBLE FOR MOBILE -->
-<button id="chatBubble" class="chat-bubble" onclick="toggleChat()">💬</button>
+<!-- FLOATING CHAT BUBBLE -->
+<button id="chatBubble" class="chat-bubble" onclick="toggleChatWindow()">
+  💬
+  <div class="unread-badge hidden">0</div>
+</button>
+
+<!-- CHAT WINDOW -->
+<div id="chatWindow" class="chat-window">
+  <div class="chat-window-header">
+    <div class="chat-window-title">💬 Team Chat</div>
+    <button class="chat-window-close" onclick="toggleChatWindow()">✕</button>
+  </div>
+  <div id="chatMessagesContainer" class="chat-messages-container"></div>
+  <div class="chat-input-area">
+    <input 
+      id="chatInput" 
+      class="chat-input" 
+      type="text" 
+      placeholder="Type message..."
+      autocomplete="off"
+    >
+    <button class="chat-send-btn" onclick="sendMessage()">→</button>
+  </div>
+</div>
 
 </body>
 </html>
