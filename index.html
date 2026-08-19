@@ -239,19 +239,20 @@ textarea:focus,select:focus,input:focus{border-color:#185FA5}
   flex-direction: column;
   gap: 8px;
   background: #fafafa;
+  scrollbar-gutter: stable;
 }
 
 .chat-msg {
   display: flex;
   flex-direction: column;
   margin-bottom: 4px;
-  animation: slideIn 0.3s ease;
+  animation: slideIn 0.2s ease-out;
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -1724,7 +1725,8 @@ const chatState = {
   unreadCount: 0,
   bubblePos: { x: 0, y: 0 },
   isDragging: false,
-  lastMessageCount: 0
+  lastMessageCount: 0,
+  lastMessageIds: [] // Track seen messages by ID
 };
 
 // LOAD SAVED STATE
@@ -1871,21 +1873,33 @@ async function loadMessages() {
     
     const msgs = await res.json();
     
-    // SMART NOTIFICATIONS - Only for messages from OTHERS when window is closed
-    if(!chatState.isOpen && msgs.length > chatState.lastMessageCount) {
-      const newMsg = msgs[msgs.length - 1];
-      if(newMsg.sender !== currentUser) {
-        chatState.unreadCount++;
-        updateBadge();
-        playNotificationSound();
-        saveChatState();
-      }
+    // CHECK FOR NEW MESSAGES FROM OTHERS (only when window is closed)
+    if(!chatState.isOpen && msgs.length > 0) {
+      msgs.forEach(msg => {
+        // Check if we've already seen this message
+        const messageKey = msg.id || (msg.sender + '-' + msg.created_at);
+        
+        if(!chatState.lastMessageIds.includes(messageKey)) {
+          // New message we haven't seen before
+          chatState.lastMessageIds.push(messageKey);
+          
+          // Only notify if it's from someone else
+          if(msg.sender !== currentUser) {
+            chatState.unreadCount++;
+            updateBadge();
+            playNotificationSound();
+            console.log('📢 New message from:', msg.sender);
+            saveChatState();
+          }
+        }
+      });
     }
     
     chatState.messages = msgs;
-    chatState.lastMessageCount = msgs.length;
     renderMessages();
-  } catch(e) {}
+  } catch(e) {
+    console.log('Load error:', e);
+  }
 }
 
 // RENDER MESSAGES
@@ -1941,20 +1955,20 @@ function sendChatMessage() {
       input.value = '';
       loadMessages();
     }
-  }).catch(e => {});
+  }).catch(e => console.log('Send error:', e));
 }
 
-// SMART NOTIFICATIONS - Only for others' messages - WITH UNIQUE CHIME SOUND
+// UNIQUE NOTIFICATION SOUND - Musical Chime
 function playNotificationSound() {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     
-    // Create a musical chime with multiple notes
+    // Create a pleasant musical chime
     const now = audioContext.currentTime;
     const notes = [
       { freq: 523.25, start: 0, duration: 0.2 },      // C5
       { freq: 659.25, start: 0.15, duration: 0.2 },   // E5
-      { freq: 783.99, start: 0.30, duration: 0.4 }    // G5
+      { freq: 783.99, start: 0.30, duration: 0.5 }    // G5
     ];
     
     notes.forEach(note => {
@@ -1967,15 +1981,19 @@ function playNotificationSound() {
       osc.frequency.setValueAtTime(note.freq, now + note.start);
       osc.type = 'sine';
       
-      // Smooth envelope
+      // Smooth volume envelope
       gain.gain.setValueAtTime(0, now + note.start);
-      gain.gain.linearRampToValueAtTime(0.3, now + note.start + 0.05);
+      gain.gain.linearRampToValueAtTime(0.25, now + note.start + 0.05);
       gain.gain.exponentialRampToValueAtTime(0.01, now + note.start + note.duration);
       
       osc.start(now + note.start);
       osc.stop(now + note.start + note.duration);
     });
-  } catch(e) {}
+    
+    console.log('🔔 Notification sound played');
+  } catch(e) {
+    console.log('Sound error:', e);
+  }
 }
 
 // POLL FOR NEW MESSAGES
@@ -1990,6 +2008,9 @@ document.addEventListener('DOMContentLoaded', function() {
   loadChatState();
   initDraggable();
   startChatPolling();
+  
+  // Load initial messages to populate lastMessageIds
+  loadMessages();
   
   const input = document.getElementById('chatInput');
   if(input) {
