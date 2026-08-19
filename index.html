@@ -1490,6 +1490,9 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 initUser();loadAll();startPolling();
+
+// Initialize chat AFTER app is ready
+setTimeout(() => { initChat(); }, 1000);
 </script>
 
 <div id="chatSidebar" class="chat-sidebar">
@@ -1519,18 +1522,14 @@ let onlineUsers = {};
 let chatPolling = null;
 
 function initChat(){
-  // Wait a moment for app to initialize before starting chat polling
-  setTimeout(() => {
-    if(apiUrl) {
-      loadOnlineUsers();
-      if(chatPolling) clearInterval(chatPolling);
-      chatPolling = setInterval(() => {
-        if(currentChatTicketId && apiUrl) loadChatMessages();
-        if(apiUrl) updateOnlineStatus();
-        if(apiUrl) loadOnlineUsers();
-      }, 3000);
-    }
-  }, 500);
+  if(!apiUrl || !currentUser) return;
+  loadOnlineUsers();
+  if(chatPolling) clearInterval(chatPolling);
+  chatPolling = setInterval(() => {
+    if(currentChatTicketId && apiUrl) loadChatMessages();
+    if(apiUrl) updateOnlineStatus();
+    if(apiUrl) loadOnlineUsers();
+  }, 3000);
 }
 
 function toggleChat(){
@@ -1666,7 +1665,7 @@ function updateOnlineCount(){
   document.getElementById('onlineCount').textContent = 'Online: ' + count;
 }
 
-initChat();
+
 </script>
 
 </body>
