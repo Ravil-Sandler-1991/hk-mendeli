@@ -1717,80 +1717,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 initUser();loadAll();startPolling();
 
-// REGISTER SERVICE WORKER FOR BACKGROUND NOTIFICATIONS
-function registerServiceWorker() {
-  console.log('🔧 Attempting to register Service Worker...');
-  console.log('📍 Service Worker path: service-worker.js');
-  
-  if('serviceWorker' in navigator) {
-    console.log('✅ Browser supports Service Workers');
-    
-    navigator.serviceWorker.register('service-worker.js')
-      .then(reg => {
-        console.log('✅✅✅ Service Worker REGISTERED successfully!');
-        console.log('  Scope:', reg.scope);
-        console.log('  Active:', reg.active);
-        console.log('  Installing:', reg.installing);
-        console.log('  Waiting:', reg.waiting);
-        
-        // Save config to IndexedDB for service worker
-        saveConfigToIndexedDB();
-        
-        // Check if service worker is already activated
-        if(reg.active) {
-          console.log('✅ Service Worker already ACTIVE');
-        } else if(reg.waiting) {
-          console.log('⏳ Service Worker WAITING');
-        } else if(reg.installing) {
-          console.log('⏳ Service Worker INSTALLING');
-        }
-      })
-      .catch(err => {
-        console.log('❌❌❌ Service Worker registration FAILED:');
-        console.log('  Error:', err.message);
-        console.log('  Stack:', err.stack);
-      });
-  } else {
-    console.log('❌ Browser does NOT support Service Workers');
-  }
-}
-
-// SAVE CONFIG TO INDEXED DB FOR SERVICE WORKER
-function saveConfigToIndexedDB() {
-  console.log('💾 Saving config to IndexedDB...');
-  
-  const request = indexedDB.open('HKChatDB', 1);
-  
-  request.onerror = () => {
-    console.log('❌ IndexedDB error:', request.error);
-  };
-  
-  request.onupgradeneeded = (e) => {
-    console.log('📝 IndexedDB schema upgrade needed');
-    const db = e.target.result;
-    if(!db.objectStoreNames.contains('config')) {
-      db.createObjectStore('config');
-      console.log('  ✅ Created config object store');
-    }
-  };
-  
-  request.onsuccess = (e) => {
-    const db = e.target.result;
-    const txn = db.transaction(['config'], 'readwrite');
-    const store = txn.objectStore('config');
-    
-    const config = {
-      supaUrl: SUPA_URL,
-      supaKey: SUPA_KEY,
-      currentUser: currentUser
-    };
-    
-    store.put(config, 'app-config');
-    console.log('✅ Config saved to IndexedDB');
-    console.log('  - URL:', SUPA_URL.substring(0, 30) + '...');
-    console.log('  - User:', currentUser);
-  };
-}
+// NO SERVICE WORKER NEEDED - Just use Notifications API with polling
 function requestNotificationPermission() {
   console.log('🔔 Checking notification permissions...');
   
@@ -1851,56 +1778,30 @@ function showTestNotification() {
 
 // MANUAL TEST FUNCTION - Call from console: testNotifications()
 function testNotifications() {
-  console.log('🧪 STARTING NOTIFICATION TEST...');
+  console.log('🧪 NOTIFICATION SYSTEM TEST');
   console.log('='.repeat(50));
   
-  // 1. Check browser support
   console.log('1️⃣ Browser Support:');
-  console.log('  Service Worker:', 'serviceWorker' in navigator ? '✅' : '❌');
   console.log('  Notifications:', 'Notification' in window ? '✅' : '❌');
-  console.log('  Vibration:', 'vibrate' in navigator ? '✅' : '❌');
+  console.log('  Audio Context:', typeof(window.AudioContext) !== 'undefined' ? '✅' : '❌');
   
-  // 2. Check permissions
   console.log('2️⃣ Permissions:');
   console.log('  Notification permission:', Notification.permission);
   
-  // 3. Check Service Worker
-  console.log('3️⃣ Service Worker Status:');
-  if('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations()
-      .then(registrations => {
-        console.log('  Registrations found:', registrations.length);
-        registrations.forEach((reg, i) => {
-          console.log('  [' + i + '] Scope:', reg.scope);
-          console.log('      Active:', reg.active ? '✅' : '❌');
-          console.log('      Waiting:', reg.waiting ? '✅' : '❌');
-          console.log('      Installing:', reg.installing ? '✅' : '❌');
-        });
-      })
-      .catch(err => console.log('  Error:', err));
-  }
+  console.log('3️⃣ Chat Polling:');
+  console.log('  Chat state open?', chatState.isOpen ? 'YES (no notifications)' : 'NO (ready for notifications)');
+  console.log('  Messages loaded:', chatState.messages.length);
+  console.log('  Seen message IDs:', chatState.seenMessageIds.length);
   
-  // 4. Check config in IndexedDB
-  console.log('4️⃣ Config in IndexedDB:');
-  const dbRequest = indexedDB.open('HKChatDB', 1);
-  dbRequest.onsuccess = (e) => {
-    const db = e.target.result;
-    const txn = db.transaction(['config'], 'readonly');
-    const store = txn.objectStore('config');
-    const getRequest = store.get('app-config');
-    getRequest.onsuccess = () => {
-      if(getRequest.result) {
-        console.log('  ✅ Config found');
-        console.log('    URL:', getRequest.result.supaUrl.substring(0, 30) + '...');
-        console.log('    User:', getRequest.result.currentUser);
-      } else {
-        console.log('  ❌ Config NOT found');
-      }
-    };
-  };
+  console.log('4️⃣ How It Works:');
+  console.log('  ✅ Polls for messages every 2 seconds');
+  console.log('  ✅ When new message arrives (chat closed)');
+  console.log('  ✅ Shows notification popup');
+  console.log('  ✅ Plays unique PING-PING-DONG sound');
+  console.log('  ✅ Shows red badge with count');
   
   console.log('='.repeat(50));
-  console.log('✅ Test complete - check results above');
+  console.log('✅ System ready! Keep browser tab open/minimized');
 }
 const chatState = {
   isOpen: false,
@@ -2279,7 +2180,6 @@ function startChatPolling() {
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('💬 Chat system initializing...');
-  registerServiceWorker();
   requestNotificationPermission();
   loadChatState();
   initDraggable();
@@ -2294,7 +2194,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  console.log('✅ Chat system ready');
+  console.log('✅ Chat system ready - notifications via Polling');
 });
 </script>
 
