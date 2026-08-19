@@ -1706,7 +1706,44 @@ document.addEventListener('DOMContentLoaded',function(){
 
 initUser();loadAll();startPolling();
 
-// REQUEST NOTIFICATION PERMISSION ON LOAD
+// REGISTER SERVICE WORKER FOR BACKGROUND NOTIFICATIONS
+function registerServiceWorker() {
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => {
+        console.log('✅ Service Worker registered');
+        // Save config to IndexedDB for service worker
+        saveConfigToIndexedDB();
+      })
+      .catch(err => console.log('❌ Service Worker error:', err));
+  }
+}
+
+// SAVE CONFIG TO INDEXED DB FOR SERVICE WORKER
+function saveConfigToIndexedDB() {
+  const request = indexedDB.open('HKChatDB', 1);
+  
+  request.onerror = () => console.log('❌ IndexedDB error');
+  
+  request.onupgradeneeded = (e) => {
+    const db = e.target.result;
+    if(!db.objectStoreNames.contains('config')) {
+      db.createObjectStore('config');
+    }
+  };
+  
+  request.onsuccess = (e) => {
+    const db = e.target.result;
+    const txn = db.transaction(['config'], 'readwrite');
+    const store = txn.objectStore('config');
+    store.put({
+      supaUrl: SUPA_URL,
+      supaKey: SUPA_KEY,
+      currentUser: currentUser
+    }, 'app-config');
+    console.log('💾 Config saved to IndexedDB');
+  };
+}
 function requestNotificationPermission() {
   if(!('Notification' in window)) {
     console.log('⚠️ Notifications not supported in this browser');
@@ -2083,6 +2120,7 @@ function startChatPolling() {
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('💬 Chat system initializing...');
+  registerServiceWorker();
   requestNotificationPermission();
   loadChatState();
   initDraggable();
