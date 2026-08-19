@@ -1491,8 +1491,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 initUser();loadAll();startPolling();
 
-// Initialize chat AFTER app is ready
-setTimeout(() => { initChat(); }, 1000);
+// Initialize chat AFTER app is fully ready (2 seconds)
+setTimeout(() => { initChat(); }, 2000);
 </script>
 
 <div id="chatSidebar" class="chat-sidebar">
@@ -1522,13 +1522,21 @@ let onlineUsers = {};
 let chatPolling = null;
 
 function initChat(){
-  if(!apiUrl || !currentUser) return;
+  if(!apiUrl || !currentUser || !SUPABASE_KEY) {
+    console.log('App still initializing, will try again...');
+    setTimeout(() => { initChat(); }, 1000);
+    return;
+  }
   loadOnlineUsers();
   if(chatPolling) clearInterval(chatPolling);
   chatPolling = setInterval(() => {
-    if(currentChatTicketId && apiUrl) loadChatMessages();
-    if(apiUrl) updateOnlineStatus();
-    if(apiUrl) loadOnlineUsers();
+    if(currentChatTicketId && apiUrl && SUPABASE_KEY) {
+      loadChatMessages();
+    }
+    if(apiUrl && SUPABASE_KEY && currentUser) {
+      updateOnlineStatus();
+      loadOnlineUsers();
+    }
   }, 3000);
 }
 
@@ -1542,13 +1550,24 @@ function toggleChat(){
 }
 
 function openChatForTicket(ticketId){
+  if(!apiUrl || !SUPABASE_KEY) {
+    console.log('Chat not ready yet, please wait...');
+    return;
+  }
   currentChatTicketId = ticketId;
   document.getElementById('chatSidebar').classList.add('visible');
   loadChatMessages();
 }
 
 async function loadChatMessages(){
-  if(!currentChatTicketId || !apiUrl) return;
+  if(!currentChatTicketId) {
+    console.log('No ticket selected');
+    return;
+  }
+  if(!apiUrl || !SUPABASE_KEY) {
+    console.log('API not initialized yet');
+    return;
+  }
   try{
     const res = await fetch(apiUrl + '/chat_messages?ticket_id=eq.' + currentChatTicketId + '&order=created_at.asc', {
       headers: {'Authorization': 'Bearer ' + SUPABASE_KEY}
