@@ -1492,7 +1492,7 @@ document.addEventListener('DOMContentLoaded',function(){
 initUser();loadAll();startPolling();
 
 // Initialize chat AFTER app is fully ready (2 seconds)
-setTimeout(() => { initChat(); }, 2000);
+setTimeout(() => { if(window.initChat) window.initChat(); }, 2000);
 </script>
 
 <div id="chatSidebar" class="chat-sidebar">
@@ -1570,24 +1570,24 @@ window.sendChatMessage = function() {
   }
 };
 
-function initChat(){
+window.initChat = function() {
   if(!apiUrl || !currentUser || !SUPABASE_KEY) {
     console.log('App still initializing, will try again...');
-    setTimeout(() => { initChat(); }, 1000);
+    setTimeout(() => { if(window.initChat) window.initChat(); }, 1000);
     return;
   }
-  loadOnlineUsers();
+  if(window.loadOnlineUsers) window.loadOnlineUsers();
   if(chatPolling) clearInterval(chatPolling);
   chatPolling = setInterval(() => {
     if(currentChatTicketId && apiUrl && SUPABASE_KEY) {
-      loadChatMessages();
+      if(window.loadChatMessages) window.loadChatMessages();
     }
     if(apiUrl && SUPABASE_KEY && currentUser) {
-      updateOnlineStatus();
-      loadOnlineUsers();
+      if(window.updateOnlineStatus) window.updateOnlineStatus();
+      if(window.loadOnlineUsers) window.loadOnlineUsers();
     }
   }, 3000);
-}
+};
 
 function toggleChat(){
   const sidebar = document.getElementById('chatSidebar');
@@ -1608,7 +1608,7 @@ function openChatForTicket(ticketId){
   loadChatMessages();
 }
 
-async function loadChatMessages(){
+window.loadChatMessages = async function() {
   if(!currentChatTicketId) {
     console.log('No ticket selected');
     return;
@@ -1624,11 +1624,11 @@ async function loadChatMessages(){
     if(!res.ok) return;
     const msgs = await res.json();
     chatMessages = msgs;
-    renderChatMessages();
+    if(window.renderChatMessages) window.renderChatMessages();
   }catch(e){
     console.log('Chat load error:', e);
   }
-}
+};
 
 function renderChatMessages(){
   const msgContainer = document.getElementById('chatMessages');
@@ -1694,7 +1694,7 @@ function playMaintenanceSound(){
   }
 }
 
-async function loadOnlineUsers(){
+window.loadOnlineUsers = async function() {
   if(!apiUrl) return;
   try{
     const res = await fetch(apiUrl + '/chat_users_online', {
@@ -1704,13 +1704,13 @@ async function loadOnlineUsers(){
     onlineUsers = {};
     const users = await res.json();
     users.forEach(u => onlineUsers[u.username] = u.is_online);
-    updateOnlineCount();
+    if(window.updateOnlineCount) window.updateOnlineCount();
   }catch(e){
     console.log('Online load error:', e);
   }
-}
+};
 
-async function updateOnlineStatus(){
+window.updateOnlineStatus = async function() {
   if(!apiUrl || !currentUser) return;
   try{
     await fetch(apiUrl + '/chat_users_online', {
@@ -1726,12 +1726,12 @@ async function updateOnlineStatus(){
       })
     });
   }catch(e){}
-}
+};
 
-function updateOnlineCount(){
+window.updateOnlineCount = function() {
   const count = Object.values(onlineUsers).filter(x => x).length;
   document.getElementById('onlineCount').textContent = 'Online: ' + count;
-}
+};
 
 
 </script>
