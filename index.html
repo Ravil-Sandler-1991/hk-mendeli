@@ -527,8 +527,9 @@ function toggleChat() {
 }
 
 function openChatForTicket(ticketId) {
-  if(!apiUrl || !SUPABASE_KEY) {
-    console.log('Chat not ready yet');
+  if(typeof apiUrl === 'undefined' || !SUPABASE_KEY) {
+    console.log('Chat not ready yet, please wait...');
+    setTimeout(() => { if(typeof openChatForTicket === 'function') openChatForTicket(ticketId); }, 500);
     return;
   }
   currentChatTicketId = ticketId;
@@ -538,10 +539,14 @@ function openChatForTicket(ticketId) {
 }
 
 function sendChatMessage() {
+  if(typeof apiUrl === 'undefined') {
+    console.log('API not ready yet');
+    return;
+  }
   const input = document.getElementById('chatInput');
   if(!input) return;
   const msg = input.value.trim();
-  if(!msg || !currentChatTicketId || !apiUrl) return;
+  if(!msg || !currentChatTicketId) return;
   
   try{
     fetch(apiUrl + '/chat_messages', {
