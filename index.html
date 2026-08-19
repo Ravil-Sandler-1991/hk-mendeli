@@ -1644,17 +1644,31 @@ function openChatForTicket(ticketId) {
 }
 
 async function loadChatMessages() {
-  if(!currentChatTicketId) return;
+  if(!currentChatTicketId) {
+    console.log('❌ No ticket ID');
+    return;
+  }
+  console.log('📥 Loading messages for ticket:', currentChatTicketId);
   try {
-    const res = await fetch(SUPA_URL + '/rest/v1/chat_messages?ticket_id=eq.' + currentChatTicketId + '&order=created_at.asc', {
-      headers: {'Authorization': 'Bearer ' + SUPA_KEY}
+    const url = SUPA_URL + '/rest/v1/chat_messages?ticket_id=eq.' + currentChatTicketId + '&order=created_at.asc';
+    console.log('🔗 URL:', url);
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'apikey': SUPA_KEY
+      }
     });
-    if(!res.ok) return;
+    console.log('📊 Status:', res.status);
+    if(!res.ok) {
+      console.log('❌ Response not ok:', res.statusText);
+      return;
+    }
     const msgs = await res.json();
+    console.log('✅ Messages loaded:', msgs.length);
     chatMessages = msgs;
     renderChatMessages();
   } catch(e) {
-    console.log('Load error:', e);
+    console.log('❌ Load error:', e);
   }
 }
 
@@ -1674,30 +1688,49 @@ function renderChatMessages() {
 
 function sendChatMessage() {
   const input = document.getElementById('chatInput');
-  if(!input) return;
+  if(!input) {
+    console.log('❌ Input not found');
+    return;
+  }
   const msg = input.value.trim();
-  if(!msg || !currentChatTicketId) return;
+  if(!msg || !currentChatTicketId) {
+    console.log('❌ No message or ticket:', msg, currentChatTicketId);
+    return;
+  }
+  
+  console.log('📤 Sending message:', msg, 'to ticket:', currentChatTicketId);
   
   try {
-    fetch(SUPA_URL + '/rest/v1/chat_messages', {
+    const url = SUPA_URL + '/rest/v1/chat_messages';
+    const payload = {
+      ticket_id: currentChatTicketId,
+      sender: currentUser,
+      message: msg,
+      is_urgent: false,
+      created_at: new Date().toISOString()
+    };
+    console.log('🔗 URL:', url);
+    console.log('📦 Payload:', payload);
+    
+    fetch(url, {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + SUPA_KEY,
+        'apikey': SUPA_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        ticket_id: currentChatTicketId,
-        sender: currentUser,
-        message: msg,
-        is_urgent: false,
-        created_at: new Date().toISOString()
-      })
-    });
-    input.value = '';
-    loadChatMessages();
-    playNotificationSound();
+      body: JSON.stringify(payload)
+    }).then(res => {
+      console.log('✅ Send response:', res.status);
+      if(res.ok) {
+        input.value = '';
+        console.log('✅ Message sent!');
+        loadChatMessages();
+        playNotificationSound();
+      }
+    }).catch(e => console.log('❌ Send error:', e));
   } catch(e) {
-    console.log('Send error:', e);
+    console.log('❌ Send error:', e);
   }
 }
 
