@@ -1733,12 +1733,17 @@ function registerServiceWorker() {
 
 // SAVE CONFIG TO INDEXED DB FOR SERVICE WORKER
 function saveConfigToIndexedDB() {
+  console.log('💾 Saving config to IndexedDB for Service Worker...');
+  console.log('  User:', currentUser);
+  console.log('  URL:', SUPA_URL.substring(0, 40) + '...');
+  
   const request = indexedDB.open('HKChatDB', 1);
   
   request.onupgradeneeded = (e) => {
     const db = e.target.result;
     if(!db.objectStoreNames.contains('config')) {
       db.createObjectStore('config');
+      console.log('✅ Created config store');
     }
   };
   
@@ -1747,12 +1752,24 @@ function saveConfigToIndexedDB() {
     const txn = db.transaction(['config'], 'readwrite');
     const store = txn.objectStore('config');
     
-    store.put({
+    const config = {
       supaUrl: SUPA_URL,
       supaKey: SUPA_KEY,
       currentUser: currentUser
-    }, 'app-config');
-    console.log('✅ Config saved for Service Worker');
+    };
+    
+    const putRequest = store.put(config, 'app-config');
+    putRequest.onsuccess = () => {
+      console.log('✅✅ Config SAVED! Service Worker can now detect YOUR messages vs OTHERS');
+      console.log('   Current user is:', currentUser);
+    };
+    putRequest.onerror = () => {
+      console.log('❌ Failed to save config');
+    };
+  };
+  
+  request.onerror = () => {
+    console.log('❌ IndexedDB error');
   };
 }
 

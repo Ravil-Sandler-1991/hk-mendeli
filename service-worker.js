@@ -3,20 +3,12 @@ console.log('🔧 Service Worker starting...');
 
 let lastSeenMessages = [];
 
-// Listen for config from app
-self.addEventListener('message', (event) => {
-  if(event.data && event.data.type === 'INIT_SW') {
-    console.log('📱 Service Worker initialized');
-    lastSeenMessages = event.data.seenMessages || [];
-  }
-});
-
-// Background sync
-self.addEventListener('sync', (event) => {
-  if(event.tag === 'check-messages') {
-    event.waitUntil(checkForNewMessages());
-  }
-});
+// Start checking immediately
+console.log('⏰ Service Worker: Setting up 15-second polling...');
+setInterval(() => {
+  console.log('🔄 Service Worker: Checking for messages...');
+  checkForNewMessages().catch(e => console.log('Poll error:', e));
+}, 15000);
 
 // Check for new messages
 async function checkForNewMessages() {
@@ -39,14 +31,19 @@ async function checkForNewMessages() {
     if(!res.ok) return;
 
     const msgs = await res.json();
+    console.log('📨 SW: Loaded', msgs.length, 'messages. Current user:', config.currentUser);
     
     // Check for NEW messages
     msgs.forEach(msg => {
       const msgId = String(msg.id || (msg.sender + msg.created_at));
+      const isFromOther = msg.sender !== config.currentUser; // KEY: Only from OTHERS
       
-      if(!lastSeenMessages.includes(msgId) && msg.sender !== config.currentUser) {
+      console.log('📧 SW: Message from', msg.sender, '- Seen?', lastSeenMessages.includes(msgId), '- FromOther?', isFromOther);
+      
+      if(!lastSeenMessages.includes(msgId) && isFromOther) {
         // New message from someone else!
         lastSeenMessages.push(msgId);
+        console.log('✅ SW: NEW MESSAGE from', msg.sender);
         showNotification(msg);
       }
     });
@@ -57,6 +54,8 @@ async function checkForNewMessages() {
 
 // Show notification
 function showNotification(msg) {
+  console.log('🔔 SW: Showing notification for message from', msg.sender);
+  
   const options = {
     body: msg.sender + ': ' + msg.message.substring(0, 50),
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">💬</text></svg>',
@@ -67,7 +66,7 @@ function showNotification(msg) {
   };
 
   self.registration.showNotification('💬 New Message', options);
-  console.log('🔔 Notification shown');
+  console.log('✅ SW: Notification displayed');
 }
 
 // Handle notification clicks
@@ -102,8 +101,3 @@ function getConfig() {
     request.onerror = () => resolve(null);
   });
 }
-
-// Periodically check for messages
-setInterval(() => {
-  checkForNewMessages().catch(e => console.log('Poll error:', e));
-}, 15000); // Check every 15 seconds
