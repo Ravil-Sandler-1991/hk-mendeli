@@ -1527,10 +1527,20 @@ window.toggleChat = function() {
   const sidebar = document.getElementById('chatSidebar');
   sidebar.classList.toggle('visible');
   if(sidebar.classList.contains('visible')){
-    loadChatMessages();
+    if(window.loadChatMessages) window.loadChatMessages();
     document.getElementById('unreadBadge').classList.add('hidden');
   }
 };
+
+// Also define as regular function for onclick handlers
+function toggleChat() {
+  const sidebar = document.getElementById('chatSidebar');
+  sidebar.classList.toggle('visible');
+  if(sidebar.classList.contains('visible')){
+    if(window.loadChatMessages) window.loadChatMessages();
+    document.getElementById('unreadBadge').classList.add('hidden');
+  }
+}
 
 window.openChatForTicket = function(ticketId) {
   if(!apiUrl || !SUPABASE_KEY) {
@@ -1539,8 +1549,19 @@ window.openChatForTicket = function(ticketId) {
   }
   currentChatTicketId = ticketId;
   document.getElementById('chatSidebar').classList.add('visible');
-  loadChatMessages();
+  if(window.loadChatMessages) window.loadChatMessages();
 };
+
+// Also define as regular function
+function openChatForTicket(ticketId) {
+  if(!apiUrl || !SUPABASE_KEY) {
+    console.log('Chat not ready yet, please wait...');
+    return;
+  }
+  currentChatTicketId = ticketId;
+  document.getElementById('chatSidebar').classList.add('visible');
+  if(window.loadChatMessages) window.loadChatMessages();
+}
 
 window.sendChatMessage = function() {
   const input = document.getElementById('chatInput');
@@ -1563,12 +1584,41 @@ window.sendChatMessage = function() {
       })
     });
     input.value = '';
-    playMaintenanceSound();
-    loadChatMessages();
+    if(window.playMaintenanceSound) window.playMaintenanceSound();
+    if(window.loadChatMessages) window.loadChatMessages();
   }catch(e){
     console.log('Send error:', e);
   }
 };
+
+// Also define as regular function for onclick handlers
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg || !currentChatTicketId || !apiUrl) return;
+  
+  try{
+    fetch(apiUrl + '/chat_messages', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        ticket_id: currentChatTicketId,
+        sender: currentUser,
+        message: msg,
+        is_urgent: false,
+        created_at: new Date().toISOString()
+      })
+    });
+    input.value = '';
+    if(window.playMaintenanceSound) window.playMaintenanceSound();
+    if(window.loadChatMessages) window.loadChatMessages();
+  }catch(e){
+    console.log('Send error:', e);
+  }
+}
 
 window.initChat = function() {
   if(!apiUrl || !currentUser || !SUPABASE_KEY) {
@@ -1693,6 +1743,7 @@ function playMaintenanceSound(){
     console.log('Sound error:', e);
   }
 }
+window.playMaintenanceSound = playMaintenanceSound;
 
 window.loadOnlineUsers = async function() {
   if(!apiUrl) return;
