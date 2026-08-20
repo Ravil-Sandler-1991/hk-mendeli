@@ -2209,12 +2209,18 @@ document.addEventListener('DOMContentLoaded', function() {
   if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
       const file = e.target.files[0];
-      if(!file) return;
+      if(!file) {
+        console.log('❌ No file selected');
+        return;
+      }
+      
+      console.log('📎 File selected:', file.name, 'Type:', file.type, 'Size:', (file.size / 1024).toFixed(2) + 'KB');
       
       // Check file size (5MB limit)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if(file.size > maxSize) {
         alert('File too large! Max 5MB. Compressing...');
+        console.log('📦 File over 5MB, attempting compression...');
         // For images, compress
         if(file.type.startsWith('image/')) {
           compressImage(file);
@@ -2227,6 +2233,10 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Read file as base64
       const reader = new FileReader();
+      reader.onerror = function(e) {
+        console.error('❌ FileReader error:', e);
+        alert('❌ Error reading file: ' + e.message);
+      };
       reader.onload = function(event) {
         selectedFile = {
           name: file.name,
@@ -2234,10 +2244,13 @@ document.addEventListener('DOMContentLoaded', function() {
           size: file.size,
           data: event.target.result // Base64
         };
-        alert('✅ File ready: ' + file.name + ' (' + (file.size / 1024).toFixed(2) + 'KB)');
+        console.log('✅ File ready to send:', selectedFile.name, 'Base64 size:', selectedFile.data.length + ' bytes');
+        alert('✅ File ready: ' + file.name + ' (' + (file.size / 1024).toFixed(2) + 'KB)\n\nClick send button to upload!');
       };
       reader.readAsDataURL(file);
     });
+  } else {
+    console.error('❌ fileInput element not found!');
   }
 });
 
@@ -2321,6 +2334,15 @@ function sendChatMessage() {
   
   input.value = '';
   
+  // Log file info for debugging
+  if(selectedFile) {
+    console.log('📎 File selected:', selectedFile.name, 'Size:', selectedFile.data.length, 'bytes');
+    if(selectedFile.data.length > 5 * 1024 * 1024) {
+      alert('⚠️ File still too large after compression! Max 5MB');
+      return;
+    }
+  }
+  
   // Calculate expiration (48 hours from now)
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + 48);
@@ -2328,19 +2350,20 @@ function sendChatMessage() {
   const payload = {
     sender: currentUser,
     channel: currentChannel,
-    message: msg,
+    message: msg || 'Shared a file',
     created_at: new Date().toISOString(),
     expires_at: expiresAt.toISOString()
   };
   
   // Add file data if selected
   if(selectedFile) {
+    console.log('📤 Adding file to payload:', selectedFile.name);
     payload.file_url = selectedFile.data; // Base64
     payload.file_type = selectedFile.type;
     payload.file_name = selectedFile.name;
-    selectedFile = null; // Clear after sending
-    document.getElementById('fileInput').value = '';
   }
+  
+  console.log('🚀 Sending message...');
   
   fetch(SUPA_URL + '/rest/v1/chat_messages', {
     method: 'POST',
@@ -2351,11 +2374,22 @@ function sendChatMessage() {
     },
     body: JSON.stringify(payload)
   }).then(res => {
+    console.log('📡 Response status:', res.status, res.statusText);
     if(res.ok) {
-      console.log('✅ Message sent with file:', selectedFile);
+      console.log('✅ Message sent successfully!');
+      selectedFile = null; // Clear after sending
+      document.getElementById('fileInput').value = '';
       setTimeout(loadMessages, 500);
+    } else {
+      return res.text().then(text => {
+        console.error('❌ Upload failed:', res.status, text);
+        alert('❌ Upload failed: ' + res.status + '\n' + text);
+      });
     }
-  }).catch(e => console.log('Send error:', e));
+  }).catch(e => {
+    console.error('❌ Send error:', e);
+    alert('❌ Error sending message: ' + e.message);
+  });
 }
 
 function playNotificationSound() {
