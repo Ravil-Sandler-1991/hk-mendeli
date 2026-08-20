@@ -2093,6 +2093,15 @@ function renderMessages() {
   let lastDate = null;
   
   chatState.messages.forEach(msg => {
+    // Check if file expired (48 hours)
+    if(msg.expires_at) {
+      const expiresDate = new Date(msg.expires_at);
+      const now = new Date();
+      if(now > expiresDate) {
+        return; // Skip expired messages
+      }
+    }
+    
     const msgDate = new Date(msg.created_at);
     const todayDate = new Date();
     
@@ -2131,8 +2140,34 @@ function renderMessages() {
     if(!isOwn) {
       html += '<div class="msg-sender">' + msg.sender + '</div>';
     }
-    html += '<div class="msg-text">' + msg.message + '</div>';
-    html += '<div class="msg-time">' + time + '</div>';
+    
+    // Show message text
+    if(msg.message) {
+      html += '<div class="msg-text">' + msg.message + '</div>';
+    }
+    
+    // Show file attachment
+    if(msg.file_url) {
+      const isImage = msg.file_type && msg.file_type.startsWith('image/');
+      if(isImage) {
+        html += '<img src="' + msg.file_url + '" style="max-width:100%;max-height:300px;border-radius:8px;margin:8px 0" />';
+      } else {
+        html += '<a href="' + msg.file_url + '" download="' + msg.file_name + '" style="display:inline-block;background:#E0E0E0;padding:10px 12px;border-radius:8px;text-decoration:none;color:#333;font-size:13px;margin:8px 0">📄 ' + msg.file_name + '</a>';
+      }
+    }
+    
+    html += '<div class="msg-time">' + time;
+    // Show expiration time for files
+    if(msg.expires_at) {
+      const expiresDate = new Date(msg.expires_at);
+      const remaining = Math.round((expiresDate - new Date()) / 3600000);
+      html += ' <span style="font-size:11px;color:#999;margin-left:6px">Expires in ' + remaining + 'h</span>';
+    }
+    // Show delete button for own messages
+    if(isOwn) {
+      html += ' <button onclick="deleteMessage(' + msg.id + ')" style="background:none;border:none;color:#E24B4A;cursor:pointer;font-size:13px;padding:0 4px;margin-left:8px" title="Delete message">✕</button>';
+    }
+    html += '</div>';
     html += '</div>';
   });
   
@@ -2140,21 +2175,172 @@ function renderMessages() {
   container.scrollTop = container.scrollHeight;
 }
 
+// ===== DELETE MESSAGE =====
+function deleteMessage(messageId) {
+  if(!confirm('Delete this message? This cannot be undone.')) {
+    return;
+  }
+  
+  fetch(SUPA_URL + '/rest/v1/chat_messages?id=eq.' + messageId, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json'
+    }
+  }).then(res => {
+    if(res.ok) {
+      console.log('✅ Message deleted:', messageId);
+      setTimeout(loadMessages, 300);
+    } else {
+      alert('Failed to delete message');
+    }
+  }).catch(e => {
+    console.error('Delete error:', e);
+    alert('Error deleting message');
+  });
+}
+
+// ===== FILE UPLOAD HANDLING =====
+let selectedFile = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const fileInput = document.getElementById('fileInput');
+  if(fileInput) {
+    fileInput.addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      
+      // Check file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if(file.size > maxSize) {
+        alert('File too large! Max 5MB. Compressing...');
+        // For images, compress
+        if(file.type.startsWith('image/')) {
+          compressImage(file);
+        } else {
+          alert('Documents must be under 5MB');
+          fileInput.value = '';
+        }
+        return;
+      }
+      
+      // Read file as base64
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        selectedFile = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: event.target.result // Base64
+        };
+        alert('✅ File ready: ' + file.name + ' (' + (file.size / 1024).toFixed(2) + 'KB)');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+});
+
+// Compress image if over 5MB
+function compressImage(file) {
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      // Reduce dimensions if too large
+      const maxDim = 1200;
+      if(width > height) {
+        if(width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
+        }
+      } else {
+        if(height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Compress to base64
+      canvas.toBlob(function(blob) {
+        if(blob.size > 5 * 1024 * 1024) {
+          // Still too large, reduce quality
+          canvas.toBlob(function(blob2) {
+            const reader2 = new FileReader();
+            reader2.onload = function(e) {
+              selectedFile = {
+                name: file.name,
+                type: 'image/jpeg',
+                size: blob2.size,
+                data: e.target.result
+              };
+              alert('✅ Compressed: ' + (blob2.size / 1024).toFixed(2) + 'KB');
+            };
+            reader2.readAsDataURL(blob2);
+          }, 'image/jpeg', 0.6);
+        } else {
+          const reader2 = new FileReader();
+          reader2.onload = function(e) {
+            selectedFile = {
+              name: file.name,
+              type: 'image/jpeg',
+              size: blob.size,
+              data: e.target.result
+            };
+            alert('✅ Compressed: ' + (blob.size / 1024).toFixed(2) + 'KB');
+          };
+          reader2.readAsDataURL(blob);
+        }
+      }, 'image/jpeg', 0.75);
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function sendChatMessage() {
   const input = document.getElementById('chatInput');
   if(!input) return;
   
   const msg = input.value.trim();
-  if(!msg) return;
+  
+  // Either message or file is required
+  if(!msg && !selectedFile) {
+    alert('Please type a message or select a file');
+    return;
+  }
   
   input.value = '';
+  
+  // Calculate expiration (48 hours from now)
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 48);
   
   const payload = {
     sender: currentUser,
     channel: currentChannel,
     message: msg,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    expires_at: expiresAt.toISOString()
   };
+  
+  // Add file data if selected
+  if(selectedFile) {
+    payload.file_url = selectedFile.data; // Base64
+    payload.file_type = selectedFile.type;
+    payload.file_name = selectedFile.name;
+    selectedFile = null; // Clear after sending
+    document.getElementById('fileInput').value = '';
+  }
   
   fetch(SUPA_URL + '/rest/v1/chat_messages', {
     method: 'POST',
@@ -2166,6 +2352,7 @@ function sendChatMessage() {
     body: JSON.stringify(payload)
   }).then(res => {
     if(res.ok) {
+      console.log('✅ Message sent with file:', selectedFile);
       setTimeout(loadMessages, 500);
     }
   }).catch(e => console.log('Send error:', e));
@@ -2334,6 +2521,8 @@ document.addEventListener('DOMContentLoaded', function() {
       placeholder="Type message..."
       autocomplete="off"
     >
+    <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
+    <button style="background:#185FA5;border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('fileInput').click()" title="Upload file">📎</button>
     <button class="chat-send" onclick="sendChatMessage()">→</button>
   </div>
 </div>
