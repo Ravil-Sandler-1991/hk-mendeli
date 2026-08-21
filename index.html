@@ -1,0 +1,2990 @@
+<!DOCTYPE html>
+<html lang="he-IL">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mendeli HK">
+<meta name="theme-color" content="#185FA5">
+<meta name="description" content="Hotel staff communication app for Housekeeping, Maintenance, and Reception">
+<link rel="manifest" href="/hk-mendeli/manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23185FA5' width='192' height='192'/><text x='96' y='140' font-size='120' fill='white' text-anchor='middle' font-weight='bold'>HK</text></svg>">
+<title>HK&amp;Maintenance-Mendeli</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;color:#1a1a1a;background:#f5f5f0;min-height:100vh}
+#app{max-width:700px;margin:0 auto;padding:12px}
+h3{font-size:16px;font-weight:600}
+.header{background:#fff;border-radius:12px;border:0.5px solid #e0dfd8;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.header-title{font-size:16px;font-weight:700;color:#1a1a1a}
+.header-sub{font-size:11px;color:#aaa;margin-top:2px}
+.brand-logo{width:36px;height:36px;border-radius:10px;background:#185FA5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800;flex-shrink:0}
+.lang-switcher{display:flex;gap:4px;margin-left:auto}
+.lang-btn{padding:5px 10px;border-radius:8px;border:0.5px solid #ddd;cursor:pointer;font-size:12px;font-weight:600;background:#fff;color:#888}
+.lang-btn.active{background:#185FA5;border-color:#185FA5;color:#fff}
+.tabs{display:flex;border-bottom:0.5px solid #e0dfd8;background:#fff;border-radius:12px 12px 0 0;padding:0 4px}
+.tab{padding:11px 16px;cursor:pointer;font-size:14px;font-weight:500;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-0.5px;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.tab.active{color:#1a1a1a;border-bottom:2px solid #185FA5}
+.badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:500}
+.badge-sup{background:#E6F1FB;color:#0C447C}
+.badge-dlx{background:#EEEDFE;color:#3C3489}
+.badge-suite{background:#FAEEDA;color:#633806}
+.badge-loft{background:#EAF3DE;color:#27500A}
+.badge-premdlx{background:#FBEAF0;color:#72243E}
+.badge-classic{background:#F1EFE8;color:#444441}
+.badge-other{background:#EDEAF7;color:#4B3F8C}
+.badge-urgent{background:#FCEBEB;color:#A32D2D;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
+.badge-normal{background:#FFF8E6;color:#8A5A00;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
+.room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:7px;margin-bottom:1.25rem}
+.room-card{border:0.5px solid #e0dfd8;border-radius:10px;padding:9px 6px;cursor:pointer;background:#fff;text-align:center;-webkit-tap-highlight-color:transparent}
+.room-card:active{transform:scale(0.96)}
+.room-card.clean{border-color:#639922;background:#f4fae8}
+.room-card.has-notes{border-color:#EF9F27}
+.room-card .num{font-size:14px;font-weight:600;margin-bottom:3px}
+.floor-label{font-size:11px;font-weight:700;color:#aaa;margin:1rem 0 0.4rem;text-transform:uppercase;letter-spacing:0.07em}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+@media(min-width:600px){.modal-bg{align-items:center;padding:16px}}
+.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:93vh;overflow-y:auto;padding:20px 20px 32px}
+@media(min-width:600px){.modal{border-radius:16px;padding:24px}}
+.modal-handle{width:36px;height:4px;background:#e0dfd8;border-radius:2px;margin:0 auto 18px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem}
+.close-btn{background:none;border:none;cursor:pointer;font-size:22px;color:#aaa;padding:4px;line-height:1}
+.btn{padding:10px 18px;border-radius:10px;border:0.5px solid #ddd;cursor:pointer;font-size:14px;font-weight:500;background:#fff;color:#1a1a1a;-webkit-tap-highlight-color:transparent}
+.btn:active{opacity:0.75}
+.btn-primary{background:#185FA5;border-color:#185FA5;color:#fff}
+.btn-danger{background:#A32D2D;border-color:#A32D2D;color:#fff}
+.btn-success{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.btn-clean{background:#3B6D11;border-color:#3B6D11;color:#fff;width:100%;padding:14px;font-size:16px;border-radius:12px;margin-bottom:12px}
+.btn-dirty{background:#fff;border-color:#E24B4A;color:#E24B4A;width:100%;padding:12px;font-size:14px;border-radius:12px;margin-bottom:20px}
+.ticket-card{border:0.5px solid #e0dfd8;border-radius:10px;padding:12px;margin-bottom:10px;background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ticket-card:active{opacity:0.8}
+.ticket-card.open{border-left:3px solid #E24B4A}
+.ticket-card.open.urgent{border-left:4px solid #A32D2D;background:#fffafa}
+.ticket-card.resolved{border-left:3px solid #639922;opacity:0.65}
+textarea,select,input[type=text],input[type=password],input[type=date]{width:100%;border:0.5px solid #ccc;border-radius:10px;padding:11px;font-size:15px;font-family:inherit;background:#fff;color:#1a1a1a;outline:none;-webkit-appearance:none}
+textarea{resize:vertical;line-height:1.6}
+textarea:focus,select:focus,input:focus{border-color:#185FA5}
+.pin-input{width:160px;text-align:center;font-size:26px;letter-spacing:8px;font-family:monospace}
+.stat-card{background:#f5f5f0;border-radius:10px;padding:12px;text-align:center}
+.stat-num{font-size:28px;font-weight:700}
+.stat-lbl{font-size:11px;color:#888;margin-top:3px}
+.filter-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{padding:6px 14px;border-radius:20px;border:0.5px solid #ddd;cursor:pointer;font-size:13px;background:#fff;color:#888}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:0.9rem}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#888}
+.section-card{background:#fff;border-radius:12px;border:0.5px solid #e0dfd8;margin-bottom:14px}
+.hidden{display:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.sync-indicator{font-size:11px;color:#aaa;display:flex;align-items:center;gap:4px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#639922;flex-shrink:0}
+.sync-dot.syncing{background:#EF9F27;animation:pulse 1s infinite}
+.sync-dot.error{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.field-group{margin-bottom:1rem}
+.field-label{font-size:13px;color:#888;display:block;margin-bottom:6px}
+.note-item{padding:10px 12px;background:#f9f8f4;border-radius:8px;margin-bottom:8px;border:0.5px solid #e8e7e0}
+.note-text{font-size:14px;line-height:1.5;margin-bottom:4px}
+.note-meta{font-size:11px;color:#aaa}
+.note-translate{background:none;border:none;cursor:pointer;color:#185FA5;font-size:12px;padding:0;margin-left:8px}
+.note-translation{font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;line-height:1.5;display:none}
+.clean-status{text-align:center;padding:16px 0 8px;margin-bottom:4px}
+.clean-icon{font-size:48px;margin-bottom:8px}
+.clean-label{font-size:15px;font-weight:600;color:#3B6D11}
+.dirty-label{font-size:15px;font-weight:600;color:#888}
+.notes-section{margin-top:4px}
+.notes-header{font-size:13px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px}
+.add-note-row{display:flex;gap:8px;margin-top:10px}
+.add-note-row textarea{flex:1;min-height:44px;padding:10px}
+.user-chip{background:#E6F1FB;color:#0C447C;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.priority-row{display:flex;gap:8px;margin-bottom:1rem}
+.priority-btn{flex:1;padding:10px;border-radius:10px;border:0.5px solid #ddd;cursor:pointer;font-size:14px;font-weight:600;text-align:center;background:#fff;-webkit-tap-highlight-color:transparent}
+.priority-btn.selected{background:#E8E8E8;color:#1a1a1a;border-color:#D0D0D0}
+.priority-btn.urgent{border-color:#A32D2D;color:#A32D2D}
+.priority-btn.urgent.selected{background:#A32D2D;color:#fff}
+.priority-btn.normal{border-color:#8A5A00;color:#8A5A00}
+.priority-btn.normal.selected{background:#EF9F27;color:#fff;border-color:#EF9F27}
+.eta-section{background:#f9f8f4;border-radius:12px;padding:14px;margin-top:1rem;border:0.5px solid #e8e7e0}
+.eta-title{font-size:13px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px}
+.eta-btn{width:100%;padding:12px;border-radius:10px;border:0.5px solid #ddd;cursor:pointer;font-size:14px;font-weight:500;text-align:left;background:#fff;margin-bottom:8px;display:flex;align-items:center;gap:10px;-webkit-tap-highlight-color:transparent}
+.eta-btn.selected{background:#185FA5;border-color:#185FA5;color:#fff}
+.eta-btn:active{opacity:0.75}
+.urgent-banner{background:#FCEBEB;border:0.5px solid #E24B4A;border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:#A32D2D}
+
+/* ENHANCED CHAT STYLES - FLOATING DRAGGABLE BUBBLE */
+.chat-bubble {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #185FA5 0%, #0d3f7a 100%);
+  color: #fff;
+  border: none;
+  cursor: grab;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(24, 95, 165, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: box-shadow 0.2s ease;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  bottom: 20px;
+  right: 20px;
+}
+
+.chat-bubble:hover {
+  box-shadow: 0 6px 16px rgba(24, 95, 165, 0.4);
+}
+
+.chat-bubble:active {
+  cursor: grabbing;
+}
+
+.chat-bubble.dragging {
+  box-shadow: 0 8px 20px rgba(24, 95, 165, 0.5);
+}
+
+/* Unread badge */
+.chat-bubble .unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #E24B4A;
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(226, 75, 74, 0.3);
+}
+
+.chat-bubble .unread-badge.hidden {
+  display: none;
+}
+
+.chat-window {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 340px;
+  height: 480px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-window.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: all;
+}
+
+@media (max-width: 600px) {
+  .chat-window {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 100px);
+    bottom: 70px;
+    right: 12px;
+    left: 12px;
+    border-radius: 12px;
+  }
+}
+
+.chat-header {
+  background: linear-gradient(135deg, #185FA5 0%, #0d3f7a 100%);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.chat-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.chat-close:active {
+  opacity: 1;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fafafa;
+  scrollbar-gutter: stable;
+}
+
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+}
+
+.chat-msg.sent {
+  align-items: flex-end;
+}
+
+.chat-msg.received {
+  align-items: flex-start;
+}
+
+.msg-sender {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 3px;
+  padding: 0 6px;
+}
+
+.msg-text {
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  word-wrap: break-word;
+  max-width: 85%;
+  border: 1px solid #e0dfd8;
+  line-height: 1.4;
+}
+
+.chat-msg.sent .msg-text {
+  background: #185FA5;
+  color: #fff;
+  border-color: #185FA5;
+}
+
+.msg-time {
+  font-size: 10px;
+  color: #aaa;
+  margin-top: 2px;
+  padding: 0 6px;
+}
+
+.chat-input-area {
+  padding: 10px;
+  background: #fff;
+  border-top: 1px solid #e0dfd8;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chat-input {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #f5f5f0;
+}
+
+.chat-input:focus {
+  border-color: #185FA5;
+  background: #fff;
+}
+
+.chat-send {
+  background: #185FA5;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.chat-send:active {
+  background: #0d3f7a;
+}
+
+.chat-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #aaa;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+
+.chat-date-header {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 12px;
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="brand-logo">HK</div>
+    <div>
+      <div class="header-title">HK&amp;Maintenance-Mendeli</div>
+      <div class="header-sub" id="header-sub">66 rooms · 5 floors</div>
+    </div>
+    <div class="sync-indicator" style="margin-left:auto">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Synced</span>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('he')">HE</button>
+    </div>
+    <div>
+      <button class="btn" id="managerBtn" style="font-size:13px;padding:8px 12px"><i class="ti ti-lock"></i> <span id="lbl-manager">Manager</span></button>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('rooms',event)"><i class="ti ti-door"></i> <span id="lbl-rooms">Rooms</span></button>
+      <button class="tab" onclick="showTab('maintenance',event)"><i class="ti ti-tool"></i> <span id="lbl-maintenance">Maintenance</span></button>
+    </div>
+    <div style="padding:14px">
+      <div id="tab-rooms">
+        <div class="legend">
+          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#D3D1C7"></span><span id="lbl-dirty">Dirty</span></div>
+          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#639922"></span><span id="lbl-clean">Vi</span></div>
+          <div class="legend-item"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#EF9F27"></span><span id="lbl-hasnotes">Has notes</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:1.25rem">
+          <div class="stat-card"><div class="stat-num" id="s-dirty">-</div><div class="stat-lbl" id="lbl-stat-dirty">Dirty</div></div>
+          <div class="stat-card"><div class="stat-num" id="s-clean">-</div><div class="stat-lbl" id="lbl-stat-clean">Vi</div></div>
+          <div class="stat-card"><div class="stat-num" id="s-notes">-</div><div class="stat-lbl" id="lbl-stat-notes">Has notes</div></div>
+        </div>
+        <div id="room-list"></div>
+      </div>
+      <div id="tab-maintenance" class="hidden">
+        <div style="margin-bottom:1rem;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openNewTicket()"><i class="ti ti-plus"></i> <span id="lbl-newcall">New call</span></button>
+          <button class="btn" onclick="printOpenCalls()" style="border-color:#185FA5;color:#185FA5"><i class="ti ti-printer"></i> <span id="lbl-print">Print open calls</span></button>
+        </div>
+        <div id="ticket-filter" class="filter-row">
+          <button class="filter-btn active" onclick="filterTickets('all',this)" id="lbl-all">All</button>
+          <button class="filter-btn" onclick="filterTickets('open',this)" id="lbl-open">Open</button>
+          <button class="filter-btn" onclick="filterTickets('resolved',this)" id="lbl-resolved">Resolved</button>
+          <button class="filter-btn" onclick="filterTickets('history',this)" id="lbl-history">History</button>
+          <button class="filter-btn" onclick="filterTickets('statistics',this)" id="lbl-statistics">📊 Statistics</button>
+        </div>
+        <div id="history-search" class="hidden" style="margin-bottom:1rem;padding:12px;background:#f9f8f4;border-radius:10px;border:0.5px solid #e8e7e0">
+          <div class="field-group">
+            <label class="field-label">Date from</label>
+            <input type="date" id="history-date-from">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Date to</label>
+            <input type="date" id="history-date-to">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Room number</label>
+            <input type="number" id="history-room-search" placeholder="e.g. 101" min="1">
+          </div>
+          <button class="btn" onclick="clearHistoryFilters()" style="width:100%">Clear filters</button>
+        </div>
+        <div id="statistics-controls" class="hidden" style="margin-bottom:1rem;padding:12px;background:#f9f8f4;border-radius:10px;border:0.5px solid #e8e7e0">
+          <div style="display:flex;gap:8px;margin-bottom:1rem">
+            <button class="btn" id="stat-rooms-btn" onclick="showStatistics('rooms')" style="flex:1;background:#185FA5;color:#fff">Top Rooms</button>
+            <button class="btn" id="stat-category-btn" onclick="showStatistics('category')" style="flex:1">By Category</button>
+            <button class="btn" id="stat-search-btn" onclick="showStatistics('search')" style="flex:1">Search Room</button>
+          </div>
+          <div id="search-room-input" class="hidden">
+            <input type="number" id="stat-room-num" placeholder="Enter room number" min="1" style="width:100%;padding:10px;border-radius:8px;border:0.5px solid #ddd;margin-bottom:8px">
+            <button class="btn" onclick="searchRoomStats()" style="width:100%">Search</button>
+          </div>
+        </div>
+        <div id="ticket-list"></div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;font-size:11px;color:#ccc;padding-bottom:1rem">HK&Maintenance-Mendeli © 2026 · All rights reserved</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Room Modal -->
+<div class="modal-bg hidden" id="roomModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div><h3 id="modal-room-title">Room 101</h3><span id="modal-room-badge" class="badge" style="margin-top:4px;display:inline-block"></span></div>
+      <button class="close-btn" onclick="closeModal('roomModal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="clean-status" id="room-status-display"></div>
+    <button class="btn-clean" id="btn-mark-clean" onclick="markRoomClean()"><i class="ti ti-checks"></i> <span id="lbl-markclean">Mark as Vi ✅</span></button>
+    <button class="btn-dirty hidden" id="btn-mark-dirty" onclick="markRoomDirty()"><i class="ti ti-refresh"></i> <span id="lbl-markdirty">Mark as Dirty</span></button>
+    <div class="notes-section">
+      <div class="notes-header"><i class="ti ti-notes"></i> <span id="lbl-roomnotes">Room notes</span></div>
+      <div id="room-notes-list"></div>
+      <div class="add-note-row">
+        <textarea id="new-note-text" rows="2" oninput="autoDir(this)"></textarea>
+        <button class="btn btn-primary" style="align-self:flex-end;white-space:nowrap" onclick="addNote()"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Ticket Modal -->
+<div class="modal-bg hidden" id="ticketModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 id="lbl-newcall-title">New call</h3>
+      <button class="close-btn" onclick="closeModal('ticketModal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="lbl-location-type">Location type</label>
+      <div class="priority-row">
+        <button class="priority-btn" id="loc-room" onclick="selectLocType('room')" style="border-color:#185FA5;color:#185FA5"><i class="ti ti-door"></i> <span id="lbl-room-type">Room</span></button>
+        <button class="priority-btn" id="loc-other" onclick="selectLocType('other')" style="border-color:#888;color:#888"><i class="ti ti-map-pin"></i> <span id="lbl-other-type">Other location</span></button>
+      </div>
+    </div>
+    <div class="field-group" id="room-select-group">
+      <label class="field-label" id="lbl-selectroom">Select room</label>
+      <select id="ticket-room"></select>
+    </div>
+    <div class="field-group hidden" id="other-loc-group">
+      <label class="field-label" id="lbl-otherloc">Location</label>
+      <input type="text" id="ticket-other-loc" oninput="autoDir(this)">
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="lbl-category">Issue category</label>
+      <div class="priority-row">
+        <button class="priority-btn" id="cat-paint" onclick="selectCategory('Paint')" style="border-color:#9B59B6;color:#9B59B6">🎨 Paint</button>
+        <button class="priority-btn" id="cat-electric" onclick="selectCategory('Electricity')" style="border-color:#F39C12;color:#F39C12">⚡ Electric</button>
+      </div>
+      <div class="priority-row">
+        <button class="priority-btn" id="cat-plumb" onclick="selectCategory('Plumbing')" style="border-color:#3498DB;color:#3498DB">🚰 Plumbing</button>
+        <button class="priority-btn" id="cat-ac" onclick="selectCategory('AC Issues')" style="border-color:#00BCD4;color:#00BCD4">❄️ AC</button>
+      </div>
+      <div class="priority-row">
+        <button class="priority-btn selected" id="cat-general" onclick="selectCategory('General repairs')" style="border-color:#185FA5;color:#185FA5">🔧 General</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" id="lbl-problem">Problem description</label>
+      <textarea id="ticket-desc" rows="3" oninput="autoDir(this)"></textarea>
+    </div>
+    <div id="duplicate-warning" class="hidden" style="background:#FCEBEB;border:1px solid #E24B4A;border-radius:10px;padding:12px;margin-bottom:1rem;color:#A32D2D;font-size:13px">
+      <div style="margin-bottom:8px">⚠️ <strong id="dup-warning-text">Room 101 already has an open PAINT ticket</strong></div>
+      <button class="btn" onclick="viewExistingTicket()" style="width:100%;font-size:12px">View existing call</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="submitTicket()"><i class="ti ti-send"></i> <span id="lbl-submit">Submit</span></button>
+      <button class="btn" onclick="closeModal('ticketModal')" id="lbl-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ticket Detail Modal -->
+<div class="modal-bg hidden" id="ticketDetailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 id="td-title">Maintenance call</h3>
+      <button class="close-btn" onclick="closeModal('ticketDetailModal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="td-body"></div>
+
+    <!-- Ticket Comments Section -->
+    <div class="notes-section" style="margin-top:1rem">
+      <div class="notes-header"><i class="ti ti-message-circle"></i> <span id="lbl-ticketcomments">Updates / Comments</span></div>
+      <div id="ticket-comments-list"></div>
+      <div class="add-note-row">
+        <textarea id="new-ticket-comment" rows="2" oninput="autoDir(this)"></textarea>
+        <button class="btn btn-primary" style="align-self:flex-end;white-space:nowrap" onclick="addTicketComment()"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+
+    <div class="eta-section" id="eta-section">
+      <div class="eta-title" id="lbl-eta-title">⏱ When will this be fixed?</div>
+      <button class="eta-btn" id="eta-today" onclick="setETA('today')"><span style="font-size:20px">✅</span> <span id="lbl-today">Will be done today</span></button>
+      <button class="eta-btn" id="eta-parts" onclick="setETA('parts')"><span style="font-size:20px">⏳</span> <span id="lbl-parts">Waiting for parts / technician</span></button>
+      <button class="eta-btn" id="eta-date" onclick="setETA('date')"><span style="font-size:20px">📅</span> <span id="lbl-pickdate">Pick a date</span></button>
+      <input type="date" id="eta-date-input" class="hidden" style="margin-top:8px" onchange="setETADate(this.value)">
+    </div>
+
+    <div id="td-manager-actions" class="hidden" style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-success" id="td-resolve-btn" onclick="resolveTicket()">Mark resolved</button>
+      <button class="btn btn-danger" onclick="deleteTicket()"><i class="ti ti-trash"></i> <span id="lbl-delete">Delete</span></button>
+    </div>
+
+    <div style="margin-top:1rem;display:flex;gap:8px">
+      <button class="btn" onclick="sendToManagerWhatsApp()" style="flex:1;border-color:#25D366;color:#25D366"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
+      <button class="btn" onclick="openChatForTicket(currentTicketId)" style="flex:1;border-color:#185FA5;color:#185FA5"><i class="ti ti-message-circle"></i> Chat</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ticket Success Modal -->
+<div class="modal-bg hidden" id="ticketSuccessModal">
+  <div class="modal" style="text-align:center;max-width:380px">
+    <div class="modal-handle"></div>
+    <i class="ti ti-circle-check" style="font-size:48px;margin-bottom:1rem;color:#639922"></i>
+    <h3 style="margin-bottom:0.5rem">✓ Call Created!</h3>
+    <div id="success-details" style="text-align:left;background:#f9f8f4;border-radius:10px;padding:12px;margin-bottom:1.25rem;font-size:13px">
+      <div style="margin-bottom:8px"><strong id="success-room">Room: 101</strong></div>
+      <div id="success-category" style="color:#888">Category: Paint</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-direction:column">
+      <button class="btn" onclick="sendToManagerWhatsAppFromSuccess()" style="border-color:#25D366;color:#25D366;font-weight:600"><i class="ti ti-brand-whatsapp"></i> Send to Manager</button>
+      <button class="btn" onclick="openChatForTicket(lastCreatedTicket)" style="border-color:#185FA5;color:#185FA5;font-weight:600"><i class="ti ti-message-circle"></i> Chat</button>
+      <button class="btn btn-primary" onclick="createAnotherTicket()">Create Another Call</button>
+      <button class="btn" onclick="closeModal('ticketSuccessModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN Modal -->
+<div class="modal-bg hidden" id="pinModal">
+  <div class="modal" style="text-align:center">
+    <div class="modal-handle"></div>
+    <div class="modal-header" style="justify-content:flex-end"><button class="close-btn" onclick="closeModal('pinModal')"><i class="ti ti-x"></i></button></div>
+    <i class="ti ti-lock" style="font-size:40px;margin-bottom:1rem;color:#bbb"></i>
+    <h3 style="margin-bottom:0.5rem" id="lbl-manageraccess">Manager access</h3>
+    <p style="font-size:13px;color:#aaa;margin-bottom:1.25rem" id="lbl-enterpin">Enter PIN</p>
+    <input class="pin-input" type="password" inputmode="numeric" maxlength="6" id="pin-input" placeholder="······" oninput="checkPin(this.value)">
+    <p id="pin-error" style="color:#E24B4A;font-size:13px;margin-top:8px;min-height:20px"></p>
+  </div>
+</div>
+
+<!-- Manager Dashboard -->
+<div class="modal-bg hidden" id="managerDashModal">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3><i class="ti ti-shield"></i> <span id="lbl-dashboard">Manager dashboard</span></h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-danger" style="font-size:12px;padding:7px 10px" onclick="resetAllData()"><i class="ti ti-trash"></i> <span id="lbl-resetall">Reset all</span></button>
+        <button class="close-btn" onclick="closeModal('managerDashModal')"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div id="manager-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem"></div>
+    <h3 style="margin-bottom:0.75rem" id="lbl-opencalls">Open maintenance calls</h3>
+    <div id="manager-tickets"></div>
+  </div>
+</div>
+
+<!-- Name Modal -->
+<div class="modal-bg hidden" id="nameModal">
+  <div class="modal" style="text-align:center;max-width:360px">
+    <div class="modal-handle"></div>
+    <i class="ti ti-user" style="font-size:40px;margin-bottom:1rem;color:#185FA5"></i>
+    <h3 style="margin-bottom:0.5rem" id="lbl-welcome">Welcome!</h3>
+    <p style="font-size:13px;color:#aaa;margin-bottom:1.25rem" id="lbl-entername">Enter your name once</p>
+    <input type="text" id="name-input" style="text-align:center;font-size:16px;margin-bottom:12px">
+    <button class="btn btn-primary" style="width:100%" onclick="saveName()"><i class="ti ti-check"></i> <span id="lbl-start">Start</span></button>
+  </div>
+</div>
+
+<script>
+const SUPA_URL='https://tpfqcfnaynccdoxstvhz.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwZnFjZm5heW5jY2RveHN0dmh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MDU4NTQsImV4cCI6MjA5NzE4MTg1NH0.elqUF3tVLfCyFa3F2tvhX7oi-nnlr-AZ_RtgMboL68g';
+const PIN='199108';
+const WA_GROUP='https://chat.whatsapp.com/Bb2HYhOcUw0E4XRmkXDUkA';
+
+const LANGS={
+  en:{
+    manager:'Manager',rooms:'Rooms',maintenance:'Maintenance',dirty:'Dirty',clean:'Vi',hasnotes:'Has notes',
+    markclean:'Mark as Vi ✅',markdirty:'Mark as Dirty',roomnotes:'Room notes',addnote:'Add a note...',
+    nonotes:'No notes yet',newcall:'New call',selectroom:'Select room',problem:'Problem description',
+    submit:'Submit',cancel:'Cancel',delete:'Delete',manageraccess:'Manager access',enterpin:'Enter PIN',
+    dashboard:'Manager dashboard',resetall:'Reset all',opencalls:'Open maintenance calls',
+    welcome:'Welcome!',entername:'Enter your name once',start:'Start',synced:'Synced',syncing:'Syncing…',offline:'Offline',
+    roomclean:'Room is Vi ✅',roomdirty:'Room needs cleaning',incorrectpin:'Incorrect PIN',
+    open:'Open',resolved:'Resolved',all:'All',history:'History',cleanrooms:'Clean rooms',opencallsstat:'Open calls',resolvedstat:'Resolved',
+    nameplaceholder:'Your name',confirmdelete:'Delete?',confirmreset:'Reset ALL data?',noteerror:'Please write a note.',
+    ticketerror:'Please describe the problem.',markedvi:'marked as Vi',markeddirty:'marked as dirty',
+    noteadded:'Note added',notedeleted:'Note deleted',deleted:'Deleted',markedresolved:'Marked as resolved',reopened:'Reopened',reset:'All data reset',
+    category:'Issue category',
+    etatitle:'When will this be fixed?',today:'Will be done today',parts:'Waiting for parts / technician',pickdate:'Pick a date',
+    etaset:'ETA updated',urgentcalls:'Urgent calls',
+    locationtype:'Location type',roomtype:'Room',othertype:'Other location',otherloc:'Location',
+    otherlocplaceholder:'e.g. Lobby, Floor -1, Dining room...',locerror:'Please enter a location.',
+    translate:'Translate',translating:'Translating...',transerror:'Translation failed',
+    markresolved:'Mark resolved',reopen:'Reopen',
+    print:'Print open calls',printitle:'Open Maintenance Calls',printroom:'Room',printtype:'Type',printdesc:'Description',printpriority:'Priority',printeta:'ETA',printby:'Reported by',printnoeta:'—',printnone:'No open maintenance calls',
+    ticketcomments:'Updates / Comments',nocomments:'No updates yet',addcomment:'Write an update...',commentadded:'Update added',commentdeleted:'Update deleted'
+  },
+  ru:{
+    manager:'Менеджер',rooms:'Номера',maintenance:'Обслуживание',dirty:'Грязный',clean:'Ви',hasnotes:'Есть заметки',
+    markclean:'Отметить как Ви ✅',markdirty:'Отметить как грязный',roomnotes:'Заметки номера',addnote:'Добавить заметку...',
+    nonotes:'Заметок пока нет',newcall:'Новый вызов',selectroom:'Выбрать номер',problem:'Описание проблемы',
+    submit:'Отправить',cancel:'Отмена',delete:'Удалить',manageraccess:'Доступ менеджера',enterpin:'Введите PIN',
+    dashboard:'Панель менеджера',resetall:'Сбросить всё',opencalls:'Открытые вызовы',
+    welcome:'Добро пожаловать!',entername:'Введите своё имя один раз',start:'Начать',synced:'Синхронизировано',syncing:'Синхронизация…',offline:'Офлайн',
+    roomclean:'Номер чист ✅',roomdirty:'Номер требует уборки',incorrectpin:'Неверный PIN',
+    open:'Открыт',resolved:'Решено',all:'Все',history:'История',cleanrooms:'Чистые номера',opencallsstat:'Открытые вызовы',resolvedstat:'Решено',
+    nameplaceholder:'Ваше имя',confirmdelete:'Удалить?',confirmreset:'Сбросить ВСЕ данные?',noteerror:'Пожалуйста, напишите заметку.',
+    ticketerror:'Пожалуйста, опишите проблему.',markedvi:'отмечен как Ви',markeddirty:'отмечен как грязный',
+    noteadded:'Заметка добавлена',notedeleted:'Заметка удалена',deleted:'Удалено',markedresolved:'Отмечено как решённое',reopened:'Переоткрыто',reset:'Все данные сброшены',
+    category:'Категория проблемы',
+    etatitle:'Когда будет исправлено?',today:'Будет сделано сегодня',parts:'Ожидание запчастей / техника',pickdate:'Выбрать дату',
+    etaset:'Срок обновлён',urgentcalls:'Срочные вызовы',
+    locationtype:'Тип места',roomtype:'Номер',othertype:'Другое место',otherloc:'Местоположение',
+    otherlocplaceholder:'напр. Лобби, Этаж -1, Столовая...',locerror:'Пожалуйста, укажите местоположение.',
+    translate:'Перевести',translating:'Перевожу...',transerror:'Ошибка перевода',
+    markresolved:'Отметить решённым',reopen:'Переоткрыть',
+    print:'Печать открытых вызовов',printitle:'Открытые вызовы обслуживания',printroom:'Номер',printtype:'Тип',printdesc:'Описание',printpriority:'Приоритет',printeta:'Срок',printby:'Кто сообщил',printnoeta:'—',printnone:'Нет открытых вызовов',
+    ticketcomments:'Обновления / Комментарии',nocomments:'Обновлений пока нет',addcomment:'Написать обновление...',commentadded:'Обновление добавлено',commentdeleted:'Обновление удалено'
+  },
+  he:{
+    manager:'מנהל',rooms:'חדרים',maintenance:'תחזוקה',dirty:'מלוכלך',clean:'וי',hasnotes:'יש הערות',
+    markclean:'סמן כוי ✅',markdirty:'סמן כמלוכלך',roomnotes:'הערות חדר',addnote:'הוסף הערה...',
+    nonotes:'אין הערות עדיין',newcall:'קריאה חדשה',selectroom:'בחר חדר',problem:'תיאור הבעיה',
+    submit:'שלח',cancel:'ביטול',delete:'מחק',manageraccess:'כניסת מנהל',enterpin:'הכנס קוד',
+    dashboard:'לוח מנהל',resetall:'אפס הכל',opencalls:'קריאות פתוחות',
+    welcome:'ברוך הבא!',entername:'הכנס שמך פעם אחת',start:'התחל',synced:'מסונכרן',syncing:'מסנכרן…',offline:'לא מחובר',
+    roomclean:'החדר נקי ✅',roomdirty:'החדר טעון ניקיון',incorrectpin:'קוד שגוי',
+    open:'פתוח',resolved:'טופל',all:'הכל',history:'היסטוריה',cleanrooms:'חדרים נקיים',opencallsstat:'קריאות פתוחות',resolvedstat:'טופל',
+    nameplaceholder:'שמך',confirmdelete:'למחוק?',confirmreset:'לאפס את כל הנתונים?',noteerror:'נא לכתוב הערה.',
+    ticketerror:'נא לתאר את הבעיה.',markedvi:'סומן כוי',markeddirty:'סומן כמלוכלך',
+    noteadded:'הערה נוספה',notedeleted:'הערה נמחקה',deleted:'נמחק',markedresolved:'סומן כטופל',reopened:'נפתח מחדש',reset:'כל הנתונים אופסו',
+    category:'קטגוריה של הבעיה',
+    etatitle:'מתי זה יתוקן?',today:'יסתיים היום',parts:'ממתין לחלקים / טכנאי',pickdate:'בחר תאריך',
+    etaset:'זמן עדכון עודכן',urgentcalls:'קריאות דחופות',
+    locationtype:'סוג מיקום',roomtype:'חדר',othertype:'מיקום אחר',otherloc:'מיקום',
+    otherlocplaceholder:'לדוגמה: לובי, קומה -1, חדר אוכל...',locerror:'נא להזין מיקום.',
+    translate:'תרגם',translating:'מתרגם...',transerror:'שגיאת תרגום',
+    markresolved:'סמן כטופל',reopen:'פתח מחדש',
+    print:'הדפס קריאות פתוחות',printitle:'קריאות תחזוקה פתוחות',printroom:'חדר',printtype:'סוג',printdesc:'תיאור',printpriority:'עדיפות',printeta:'זמן טיפול',printby:'דווח ע"י',printnoeta:'—',printnone:'אין קריאות תחזוקה פתוחות',
+    ticketcomments:'עדכונים / הערות',nocomments:'אין עדכונים עדיין',addcomment:'כתוב עדכון...',commentadded:'עדכון נוסף',commentdeleted:'עדכון נמחק'
+  }
+};
+
+const ROOMS=[101,102,103,104,105,106,107,108,109,110,111,112,113,114,201,202,203,204,205,206,207,208,209,210,211,212,213,214,301,302,303,304,305,306,307,308,309,310,311,312,313,314,401,402,403,404,405,406,407,408,409,410,411,412,413,501,502,503,504,505,506,507,508,509,510,511];
+const TYPES={101:'Superior',112:'Deluxe',113:'Superior',114:'Classic',201:'Superior',202:'Spa',211:'Superior',212:'Deluxe',213:'Superior',214:'Superior',301:'Superior',311:'Superior',312:'Deluxe',313:'Superior',314:'Superior',401:'Suite',409:'Superior',411:'Superior',412:'Deluxe',413:'Superior',501:'Superior',502:'Superior',503:'Loft',504:'Loft',505:'Loft',506:'Superior',507:'Loft',508:'PremDlx',509:'Loft',510:'PremDlx',511:'Superior'};
+const BADGE_CLASS={Superior:'badge-sup',Deluxe:'badge-dlx',Suite:'badge-suite',Loft:'badge-loft',PremDlx:'badge-premdlx',Classic:'badge-classic',Spa:'badge-spa',Other:'badge-other',Paint:'badge-other',Electricity:'badge-other',Plumbing:'badge-other','General repairs':'badge-other'};
+
+function getType(r){return TYPES[r]||'Classic';}
+function getBadgeClass(tp){return BADGE_CLASS[tp]||'badge-classic';}
+function isHebrew(tx){return /[\u0590-\u05FF]/.test(tx);}
+function autoDir(el){const h=isHebrew(el.value);el.style.direction=h?'rtl':'ltr';el.style.textAlign=h?'right':'left';}
+function getDir(tx){return isHebrew(tx)?'rtl':'ltr';}
+function getAlign(tx){return isHebrew(tx)?'right':'left';}
+function toast(msg,dur=2200){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot');const lbl=document.getElementById('sync-label');if(!dot)return;
+  dot.className='sync-dot'+(s==='syncing'?' syncing':s==='error'?' error':'');
+  lbl.textContent=s==='syncing'?t('syncing'):s==='error'?t('offline'):t('synced');
+}
+
+let lang='en';
+function t(key){return LANGS[lang][key]||LANGS['en'][key]||key;}
+
+function setLang(l){
+  lang=l;localStorage.setItem('hk-lang',l);
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.lang-btn[onclick="setLang(\''+l+'\')"]').classList.add('active');
+  applyLang();renderAll();updateHeaderUser();
+}
+
+function applyLang(){
+  const ids={'lbl-manager':'manager','lbl-rooms':'rooms','lbl-maintenance':'maintenance','lbl-dirty':'dirty','lbl-clean':'clean','lbl-hasnotes':'hasnotes','lbl-stat-dirty':'dirty','lbl-stat-clean':'clean','lbl-stat-notes':'hasnotes','lbl-newcall':'newcall','lbl-newcall-title':'newcall','lbl-selectroom':'selectroom','lbl-problem':'problem','lbl-submit':'submit','lbl-cancel':'cancel','lbl-delete':'delete','lbl-manageraccess':'manageraccess','lbl-enterpin':'enterpin','lbl-dashboard':'dashboard','lbl-resetall':'resetall','lbl-opencalls':'opencalls','lbl-welcome':'welcome','lbl-entername':'entername','lbl-start':'start','lbl-markclean':'markclean','lbl-markdirty':'markdirty','lbl-roomnotes':'roomnotes','lbl-all':'all','lbl-open':'open','lbl-resolved':'resolved','lbl-history':'history','lbl-category':'category','lbl-print':'print','lbl-ticketcomments':'ticketcomments'};
+  Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
+  const np=document.getElementById('name-input');if(np)np.placeholder=t('nameplaceholder');
+  const nt=document.getElementById('new-note-text');if(nt)nt.placeholder=t('addnote');
+  const td=document.getElementById('ticket-desc');if(td)td.placeholder=t('problem')+'...';
+}
+
+let rooms={},tickets=[],notes={},ticketComments={};
+let currentRoom=null,currentTicketId=null,isManager=false,ticketFilter='all';
+let pollInterval=null,currentUser='',selectedCategory='General repairs';
+let historyFilters={dateFrom:'',dateTo:'',room:''};
+let lastCreatedTicket=null;
+let selectedLocType='room';
+
+function initUser(){
+  const savedLang=localStorage.getItem('hk-lang');
+  if(savedLang){lang=savedLang;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));const lb=document.querySelector('.lang-btn[onclick="setLang(\''+lang+'\')"]');if(lb)lb.classList.add('active');}
+  applyLang();
+  const saved=localStorage.getItem('hk-username');
+  if(saved&&saved.trim()){currentUser=saved;updateHeaderUser();return;}
+  document.getElementById('nameModal').classList.remove('hidden');
+}
+
+function saveName(){
+  const val=document.getElementById('name-input').value.trim();
+  if(!val){alert(t('noteerror'));return;}
+  currentUser=val;localStorage.setItem('hk-username',currentUser);
+  document.getElementById('nameModal').classList.add('hidden');updateHeaderUser();
+}
+
+function updateHeaderUser(){
+  document.getElementById('header-sub').innerHTML='66 rooms · 5 floors &nbsp;·&nbsp; <span class="user-chip"><i class="ti ti-user"></i> '+currentUser+'</span>';
+}
+
+async function api(path,method='GET',body=null){
+  const opts={method,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'resolution=merge-duplicates':''}};
+  if(body)opts.body=JSON.stringify(body);
+  const r=await fetch(SUPA_URL+'/rest/v1/'+path,opts);
+  if(!r.ok)throw new Error(await r.text());
+  return r.status===204?null:r.json();
+}
+
+async function loadAll(){
+  setSyncStatus('syncing');
+  try{
+    const[rm,tk,nt,tc]=await Promise.all([api('rooms?select=room,clean'),api('tickets?select=*&order=id.desc'),api('notes?select=*&order=id.asc'),api('ticket_comments?select=*&order=id.asc')]);
+    rooms={};(rm||[]).forEach(r=>rooms[r.room]=r.clean);
+    tickets=tk||[];
+    notes={};(nt||[]).forEach(n=>{if(!notes[n.room])notes[n.room]=[];notes[n.room].push(n);});
+    ticketComments={};(tc||[]).forEach(c=>{const key=String(c.ticket_id);if(!ticketComments[key])ticketComments[key]=[];ticketComments[key].push(c);});
+    setSyncStatus('ok');renderAll();
+  }catch(e){setSyncStatus('error');console.error(e);}
+}
+
+async function saveRoomStatus(room,clean){setSyncStatus('syncing');try{await api('rooms','POST',[{room,clean}]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function saveTicket(tk){setSyncStatus('syncing');try{await api('tickets','POST',[tk]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function updateTicketField(id,fields){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'PATCH',fields);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function deleteTicketDB(id){setSyncStatus('syncing');try{await api('tickets?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function saveTicketComment(c){setSyncStatus('syncing');try{await api('ticket_comments','POST',[c]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function deleteTicketCommentDB(id){setSyncStatus('syncing');try{await api('ticket_comments?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function saveNote(note){setSyncStatus('syncing');try{await api('notes','POST',[note]);setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function deleteNoteDB(id){setSyncStatus('syncing');try{await api('notes?id=eq.'+id,'DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+async function resetAll(){setSyncStatus('syncing');try{await api('rooms?room=gt.0','DELETE');await api('tickets?id=gt.0','DELETE');await api('notes?id=gt.0','DELETE');setSyncStatus('ok');}catch(e){setSyncStatus('error');}}
+
+function startPolling(){if(pollInterval)clearInterval(pollInterval);pollInterval=setInterval(loadAll,15000);}
+function renderAll(){updateStats();renderRooms();renderTickets();}
+
+function showTab(tab,e){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  e.target.closest('.tab').classList.add('active');
+  document.getElementById('tab-rooms').classList.toggle('hidden',tab!=='rooms');
+  document.getElementById('tab-maintenance').classList.toggle('hidden',tab!=='maintenance');
+}
+
+function floorLabel(r){const f=Math.floor(r/100);return['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][f]||'';}
+function isClean(r){return rooms[r]===true;}
+function hasNotes(r){return notes[r]&&notes[r].length>0;}
+
+function renderRooms(){
+  const c=document.getElementById('room-list');if(!c)return;
+  let html='';let lastFloor=null;let gridOpen=false;
+  ROOMS.forEach(r=>{
+    const f=Math.floor(r/100);
+    if(f!==lastFloor){if(gridOpen)html+='</div>';html+='<div class="floor-label">'+floorLabel(r)+'</div><div class="room-grid">';gridOpen=true;lastFloor=f;}
+    const tp=getType(r);const clean=isClean(r);const hn=hasNotes(r);
+    const dotColor=clean?'#639922':hn?'#EF9F27':'#D3D1C7';
+    const cardClass='room-card'+(clean?' clean':hn?' has-notes':'');
+    const icon=tp==='Spa'?'<i class="ti ti-ripple" style="font-size:11px;color:#085041"></i> ':'';
+    const notesBadge=hn?'<span style="font-size:10px;color:#EF9F27"><i class="ti ti-notes"></i> '+notes[r].length+'</span>':'';
+    html+='<div class="'+cardClass+'" onclick="openRoom('+r+')">'+'<div class="num">'+icon+r+'</div>'+'<span class="badge '+getBadgeClass(tp)+'">'+tp+'</span>'+'<div style="margin-top:5px;display:flex;align-items:center;justify-content:center;gap:4px">'+'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+dotColor+'"></span>'+notesBadge+'</div></div>';
+  });
+  if(gridOpen)html+='</div>';
+  c.innerHTML=html;
+}
+
+function updateStats(){
+  const clean=ROOMS.filter(r=>isClean(r)).length;
+  const dirty=ROOMS.length-clean;
+  const hn=ROOMS.filter(r=>hasNotes(r)).length;
+  const ed=document.getElementById('s-dirty');const ec=document.getElementById('s-clean');const en=document.getElementById('s-notes');
+  if(ed)ed.textContent=dirty;if(ec)ec.textContent=clean;if(en)en.textContent=hn;
+}
+
+function openRoom(r){
+  currentRoom=r;const tp=getType(r);
+  document.getElementById('modal-room-title').textContent='Room '+r;
+  const b=document.getElementById('modal-room-badge');b.className='badge '+getBadgeClass(tp);b.textContent=tp;
+  renderRoomModal();document.getElementById('roomModal').classList.remove('hidden');
+}
+
+function renderRoomModal(){
+  const clean=isClean(currentRoom);
+  const statusDiv=document.getElementById('room-status-display');
+  const btnClean=document.getElementById('btn-mark-clean');
+  const btnDirty=document.getElementById('btn-mark-dirty');
+  if(clean){statusDiv.innerHTML='<div class="clean-icon">🟢</div><div class="clean-label">'+t('roomclean')+'</div>';btnClean.classList.add('hidden');btnDirty.classList.remove('hidden');}
+  else{statusDiv.innerHTML='<div class="clean-icon">⚪</div><div class="dirty-label">'+t('roomdirty')+'</div>';btnClean.classList.remove('hidden');btnDirty.classList.add('hidden');}
+  document.getElementById('lbl-markclean').textContent=t('markclean');
+  document.getElementById('lbl-markdirty').textContent=t('markdirty');
+  document.getElementById('lbl-roomnotes').textContent=t('roomnotes');
+  const roomNotes=notes[currentRoom]||[];
+  const notesList=document.getElementById('room-notes-list');
+  if(roomNotes.length===0){notesList.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nonotes')+'</p>';}
+  else{
+    notesList.innerHTML=roomNotes.map(n=>{
+      const delBtn='<button class="note-delete" onclick="deleteNote('+n.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>';
+      return'<div class="note-item"><div class="note-text" style="direction:'+getDir(n.text)+';text-align:'+getAlign(n.text)+'">'+n.text+'</div><div class="note-translation" id="ntr-'+n.id+'"></div><div class="note-meta"><i class="ti ti-user"></i> '+(n.username||'Unknown')+' · <i class="ti ti-clock"></i> '+n.ts+'<button class="note-translate" id="ntb-'+n.id+'" data-noteid="'+n.id+'" onclick="doNoteTranslate(this)"><i class="ti ti-language"></i> '+t('translate')+'</button>'+delBtn+'</div></div>';
+    }).join('');
+  }
+  const ta=document.getElementById('new-note-text');ta.value='';ta.placeholder=t('addnote');ta.style.direction='ltr';ta.style.textAlign='left';
+}
+
+async function markRoomClean(){
+  rooms[currentRoom]=true;renderRooms();updateStats();closeModal('roomModal');
+  await saveRoomStatus(currentRoom,true);
+  toast('Room '+currentRoom+' '+t('markedvi'));
+  window.open(WA_GROUP,'_blank');
+}
+async function markRoomDirty(){
+  rooms[currentRoom]=false;renderRooms();updateStats();closeModal('roomModal');
+  toast('Room '+currentRoom+' '+t('markeddirty'));
+  await saveRoomStatus(currentRoom,false);
+}
+
+async function addNote(){
+  const ta=document.getElementById('new-note-text');const text=ta.value.trim();
+  if(!text){alert(t('noteerror'));return;}
+  const note={id:Date.now(),room:currentRoom,text,ts:new Date().toLocaleString(),username:currentUser};
+  if(!notes[currentRoom])notes[currentRoom]=[];
+  notes[currentRoom].push(note);renderRoomModal();renderRooms();updateStats();
+  await saveNote(note);toast(t('noteadded'));
+}
+async function deleteNote(id){
+  // Ask for PIN before deleting
+  const enteredPin=prompt('Enter PIN to delete note:');
+  if(!enteredPin)return;
+  
+  // Verify PIN
+  if(enteredPin!==PIN){
+    alert('Incorrect PIN!');
+    return;
+  }
+  
+  if(!confirm(t('confirmdelete')))return;
+  notes[currentRoom]=notes[currentRoom].filter(n=>n.id!==id);
+  renderRoomModal();renderRooms();updateStats();
+  await deleteNoteDB(id);toast(t('notedeleted'));
+}
+
+function selectCategory(cat){
+  console.log('selectCategory called with:', cat);
+  selectedCategory=cat;
+  // Clear all selections
+  document.getElementById('cat-paint').classList.remove('selected');
+  document.getElementById('cat-electric').classList.remove('selected');
+  document.getElementById('cat-plumb').classList.remove('selected');
+  document.getElementById('cat-ac').classList.remove('selected');
+  document.getElementById('cat-general').classList.remove('selected');
+  // Add selected to clicked button
+  if(cat==='Paint')document.getElementById('cat-paint').classList.add('selected');
+  else if(cat==='Electricity')document.getElementById('cat-electric').classList.add('selected');
+  else if(cat==='Plumbing')document.getElementById('cat-plumb').classList.add('selected');
+  else if(cat==='AC Issues')document.getElementById('cat-ac').classList.add('selected');
+  else if(cat==='General repairs')document.getElementById('cat-general').classList.add('selected');
+  checkDuplicateTicket();
+}
+
+function checkDuplicateTicket(){
+  if(selectedLocType!=='room')return;
+  const room=parseInt(document.getElementById('ticket-room').value);
+  const existing=tickets.find(tk=>tk.room===room&&tk.status==='open'&&tk.type===selectedCategory);
+  const warning=document.getElementById('duplicate-warning');
+  if(existing){
+    warning.classList.remove('hidden');
+    document.getElementById('dup-warning-text').textContent='Room '+room+' already has an open '+selectedCategory+' ticket';
+  }else{
+    warning.classList.add('hidden');
+  }
+}
+
+function sendToManagerWhatsApp(){
+  const tk=tickets.find(x=>x.id===currentTicketId);
+  if(!tk)return;
+  const MANAGER_PHONE='+972542232133';
+  const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
+  const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\nDescription: '+tk.description+'\n👉 View: '+appLink;
+  const encodedMsg=encodeURIComponent(message);
+  const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
+  window.open(whatsappUrl,'_blank');
+  toast('Opening WhatsApp...');
+}
+
+function clearHistoryFilters(){
+  historyFilters={dateFrom:'',dateTo:'',room:''};
+  document.getElementById('history-date-from').value='';
+  document.getElementById('history-date-to').value='';
+  document.getElementById('history-room-search').value='';
+  renderTickets();
+}
+
+let currentStatView='rooms';
+function showStatistics(view){
+  currentStatView=view;
+  document.getElementById('stat-rooms-btn').style.background=view==='rooms'?'#185FA5':'#fff';
+  document.getElementById('stat-rooms-btn').style.color=view==='rooms'?'#fff':'#1a1a1a';
+  document.getElementById('stat-category-btn').style.background=view==='category'?'#185FA5':'#fff';
+  document.getElementById('stat-category-btn').style.color=view==='category'?'#fff':'#1a1a1a';
+  document.getElementById('stat-search-btn').style.background=view==='search'?'#185FA5':'#fff';
+  document.getElementById('stat-search-btn').style.color=view==='search'?'#fff':'#1a1a1a';
+  const searchInput=document.getElementById('search-room-input');
+  if(view==='search'){searchInput.classList.remove('hidden');}else{searchInput.classList.add('hidden');}
+  renderTickets();
+}
+
+function searchRoomStats(){
+  const roomNum=parseInt(document.getElementById('stat-room-num').value);
+  if(!roomNum){alert('Please enter a room number');return;}
+  currentStatView='searchresult';
+  currentSearchRoom=roomNum;
+  renderTickets();
+}
+
+let currentSearchRoom=null;
+function selectLocType(type){
+  selectedLocType=type;
+  document.getElementById('loc-room').style.background=type==='room'?'#185FA5':'#fff';
+  document.getElementById('loc-room').style.color=type==='room'?'#fff':'#185FA5';
+  document.getElementById('loc-other').style.background=type==='other'?'#888':'#fff';
+  document.getElementById('loc-other').style.color=type==='other'?'#fff':'#888';
+  document.getElementById('room-select-group').classList.toggle('hidden',type!=='room');
+  document.getElementById('other-loc-group').classList.toggle('hidden',type!=='other');
+}
+
+function openNewTicket(){
+  const sel=document.getElementById('ticket-room');
+  sel.innerHTML=ROOMS.map(r=>'<option value="'+r+'">Room '+r+' - '+getType(r)+'</option>').join('');
+  const ta=document.getElementById('ticket-desc');ta.value='';ta.placeholder=t('problem')+'...';ta.style.direction='ltr';ta.style.textAlign='left';
+  const ol=document.getElementById('ticket-other-loc');ol.value='';ol.style.direction='ltr';ol.style.textAlign='left';
+  selectedCategory='General repairs';selectCategory('General repairs');
+  selectedLocType='room';selectLocType('room');
+  document.getElementById('lbl-newcall-title').textContent=t('newcall');
+  document.getElementById('lbl-selectroom').textContent=t('selectroom');
+  document.getElementById('lbl-problem').textContent=t('problem');
+  document.getElementById('lbl-submit').textContent=t('submit');
+  document.getElementById('lbl-cancel').textContent=t('cancel');
+  document.getElementById('lbl-category').textContent=t('category');
+  document.getElementById('lbl-location-type').textContent=t('locationtype');
+  document.getElementById('lbl-room-type').textContent=t('roomtype');
+  document.getElementById('lbl-other-type').textContent=t('othertype');
+  document.getElementById('lbl-otherloc').textContent=t('otherloc');
+  ol.placeholder=t('otherlocplaceholder');
+  document.getElementById('duplicate-warning').classList.add('hidden');
+  document.getElementById('ticketModal').classList.remove('hidden');
+}
+
+async function submitTicket(){
+  const description=document.getElementById('ticket-desc').value.trim();
+  if(!description){alert(t('ticketerror'));return;}
+  let room,type,locationLabel;
+  if(selectedLocType==='room'){
+    room=parseInt(document.getElementById('ticket-room').value);
+    type=selectedCategory;
+    locationLabel=null;
+  }else{
+    const otherLoc=document.getElementById('ticket-other-loc').value.trim();
+    if(!otherLoc){alert(t('locerror'));return;}
+    room=0;type=selectedCategory;locationLabel=otherLoc;
+  }
+  const ticket={id:Date.now(),room,type,description,ts:new Date().toLocaleString(),status:'open',username:currentUser,priority:'normal',eta:null,location_label:locationLabel};
+  lastCreatedTicket=ticket;
+  tickets.unshift(ticket);renderTickets();closeModal('ticketModal');
+  await saveTicket(ticket);
+  
+  // Show success modal
+  showTicketSuccessModal(ticket);
+}
+
+function showTicketSuccessModal(ticket){
+  const roomText=ticket.room?'Room: '+ticket.room:'Location: '+(ticket.location_label||'Other');
+  document.getElementById('success-room').textContent=roomText;
+  document.getElementById('success-category').textContent='Category: '+ticket.type;
+  document.getElementById('ticketSuccessModal').classList.remove('hidden');
+}
+
+function sendToManagerWhatsAppFromSuccess(){
+  if(!lastCreatedTicket)return;
+  const tk=lastCreatedTicket;
+  const MANAGER_PHONE='+972542232133';
+  const roomText=tk.room?'Room: '+tk.room:'Location: '+(tk.location_label||'Other');
+  const appLink='https://ravil-sandler-1991.github.io/hk-mendeli';
+  const message='🔧 NEW MAINTENANCE CALL\n'+roomText+'\nCategory: '+tk.type+'\nDescription: '+tk.description+'\n👉 View: '+appLink;
+  const encodedMsg=encodeURIComponent(message);
+  const whatsappUrl='https://wa.me/'+MANAGER_PHONE+'?text='+encodedMsg;
+  window.open(whatsappUrl,'_blank');
+  toast('Opening WhatsApp...');
+}
+
+function createAnotherTicket(){
+  closeModal('ticketSuccessModal');
+  openNewTicket();
+}
+
+function filterTickets(f,btn){
+  ticketFilter=f;
+  document.querySelectorAll('#ticket-filter .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const searchBox=document.getElementById('history-search');
+  const statsBox=document.getElementById('statistics-controls');
+  if(f==='history'){
+    searchBox.classList.remove('hidden');
+    statsBox.classList.add('hidden');
+  }else if(f==='statistics'){
+    searchBox.classList.add('hidden');
+    statsBox.classList.remove('hidden');
+    showStatistics('rooms');
+  }else{
+    searchBox.classList.add('hidden');
+    statsBox.classList.add('hidden');
+  }
+  renderTickets();
+}
+
+function getLocLabel(tk){
+  if(tk.room===0&&tk.location_label)return'📍 '+tk.location_label;
+  if(tk.type==='Other'&&tk.location_label)return'📍 '+tk.location_label;
+  return'Room '+tk.room;
+}
+
+function getETALabel(eta){
+  if(!eta)return'';
+  if(eta==='today')return'✅ '+t('today');
+  if(eta==='parts')return'⏳ '+t('parts');
+  return'📅 '+eta;
+}
+
+function renderTickets(){
+  const list=document.getElementById('ticket-list');if(!list)return;
+  
+  // Handle statistics view
+  if(ticketFilter==='statistics'){
+    if(currentStatView==='rooms'){renderStatsByRooms();}
+    else if(currentStatView==='category'){renderStatsByCategory();}
+    else if(currentStatView==='search'){list.innerHTML='<p style="color:#bbb;text-align:center;padding:2rem">Enter a room number to search</p>';}
+    else if(currentStatView==='searchresult'){renderStatsBySearchRoom();}
+    return;
+  }
+  
+  let filtered=[];
+  
+  // Filter based on current filter
+  if(ticketFilter==='all'){
+    // All: open + resolved from last 2 days
+    const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000).toDateString();
+    filtered=tickets.filter(tk=>tk.status==='open'||tk.status==='resolved');
+  }else if(ticketFilter==='open'){
+    filtered=tickets.filter(tk=>tk.status==='open');
+  }else if(ticketFilter==='resolved'){
+    const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000);
+    filtered=tickets.filter(tk=>{
+      if(tk.status!=='resolved')return false;
+      const tDate=new Date(tk.resolved_ts||tk.ts);
+      return tDate>=twoDaysAgo;
+    });
+  }else if(ticketFilter==='history'){
+    filtered=tickets.filter(tk=>tk.status==='resolved');
+    if(historyFilters.dateFrom){
+      const df=new Date(historyFilters.dateFrom);
+      filtered=filtered.filter(tk=>{
+        const tDate=new Date(tk.resolved_ts||tk.ts);
+        return tDate>=df;
+      });
+    }
+    if(historyFilters.dateTo){
+      const dt=new Date(historyFilters.dateTo);
+      dt.setDate(dt.getDate()+1);
+      filtered=filtered.filter(tk=>{
+        const tDate=new Date(tk.resolved_ts||tk.ts);
+        return tDate<dt;
+      });
+    }
+    if(historyFilters.room){
+      const room=parseInt(historyFilters.room);
+      filtered=filtered.filter(tk=>tk.room===room);
+    }
+  }
+  
+  if(!filtered.length){list.innerHTML='<p style="color:#bbb;font-size:14px;text-align:center;padding:2rem 0">'+t('opencalls')+' — 0</p>';return;}
+  
+  // Special handling for "all" view: separate open and resolved
+  if(ticketFilter==='all'){
+    const openTickets=filtered.filter(tk=>tk.status==='open');
+    const resolvedTickets=filtered.filter(tk=>tk.status==='resolved');
+    let html='';
+    if(openTickets.length>0){html+=renderTicketSection(openTickets,'open');}
+    if(resolvedTickets.length>0){html+=renderTicketSection(resolvedTickets,'resolved');}
+    list.innerHTML=html;
+  }else{
+    const publicAreas=filtered.filter(tk=>!tk.room||tk.type==='Other');
+    const roomTickets=filtered.filter(tk=>tk.room&&tk.type!=='Other');
+    const sortTickets=(a,b)=>{if(a.status!==b.status){return a.status==='open'?-1:1;}return 0;};
+    publicAreas.sort(sortTickets);
+    roomTickets.sort((a,b)=>{
+      const floorA=a.room?Math.floor(a.room/100):999;
+      const floorB=b.room?Math.floor(b.room/100):999;
+      if(floorA!==floorB)return floorA-floorB;
+      if(a.room!==b.room)return a.room-b.room;
+      return sortTickets(a,b);
+    });
+    let html='';
+    if(publicAreas.length>0){
+      html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:#185FA5;margin-bottom:8px">📍 Common Areas</div>';
+      html+=publicAreas.map(tk=>buildTicketCard(tk)).join('');
+      html+='</div>';
+    }
+    let currentFloor=null;
+    roomTickets.forEach(tk=>{
+      const floor=Math.floor(tk.room/100);
+      if(floor!==currentFloor){
+        if(currentFloor!==null)html+='</div>';
+        const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
+        html+='<div style="margin-bottom:12px"><div class="floor-label">'+floorName+'</div>';
+        currentFloor=floor;
+      }
+      html+=buildTicketCard(tk);
+    });
+    if(currentFloor!==null)html+='</div>';
+    list.innerHTML=html;
+  }
+}
+
+function renderTicketSection(tickets,status){
+  const publicAreas=tickets.filter(tk=>!tk.room||tk.type==='Other');
+  const roomTickets=tickets.filter(tk=>tk.room&&tk.type!=='Other');
+  roomTickets.sort((a,b)=>{
+    const floorA=a.room?Math.floor(a.room/100):999;
+    const floorB=b.room?Math.floor(b.room/100):999;
+    if(floorA!==floorB)return floorA-floorB;
+    return a.room-b.room;
+  });
+  let html='';
+  if(publicAreas.length>0){
+    const statusLabel=status==='open'?'OPEN':'RESOLVED';
+    const statusColor=status==='open'?'#185FA5':'#639922';
+    html+='<div style="margin-bottom:16px"><div class="floor-label" style="color:'+statusColor+';margin-bottom:8px">📍 Common Areas — '+statusLabel+'</div>';
+    html+=publicAreas.map(tk=>buildTicketCard(tk)).join('');
+    html+='</div>';
+  }
+  if(roomTickets.length>0){
+    let currentFloor=null;
+    roomTickets.forEach(tk=>{
+      const floor=Math.floor(tk.room/100);
+      if(floor!==currentFloor){
+        if(currentFloor!==null)html+='</div>';
+        const floorName=['','Floor 1 (101-114)','Floor 2 (201-214)','Floor 3 (301-314)','Floor 4 (401-413)','Floor 5 (501-511)'][floor]||'Floor '+floor;
+        const statusLabel=status==='open'?'OPEN':'RESOLVED';
+        const statusColor=status==='open'?'#185FA5':'#639922';
+        html+='<div style="margin-bottom:12px"><div class="floor-label" style="color:'+statusColor+'">'+floorName+' — '+statusLabel+'</div>';
+        currentFloor=floor;
+      }
+      html+=buildTicketCard(tk);
+    });
+    if(currentFloor!==null)html+='</div>';
+  }
+  return html;
+}
+
+function buildTicketCard(tk){
+  const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5;margin-top:4px;display:block"><i class="ti ti-clock"></i> '+getETALabel(tk.eta)+'</span>':'';
+  const resolverInfo=tk.status==='resolved'&&tk.resolved_by?'<br><i class="ti ti-check"></i> Resolved by: '+(tk.resolved_by)+' · '+tk.resolved_ts:'';
+  return'<div class="ticket-card '+tk.status+'" onclick="openTicket('+tk.id+')">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-weight:600">'+getLocLabel(tk)+'</span> <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
+    +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+';white-space:nowrap">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
+    +'</div>'
+    +'<p style="font-size:13px;color:#888;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
+    +etaLabel
+    +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> Created by: '+(tk.username||'Unknown')+' · '+tk.ts+resolverInfo+'</p>'
+    +'</div>';
+}
+
+function renderStatsByRooms(){
+  const list=document.getElementById('ticket-list');
+  
+  // Maintenance categories only (filter out room types)
+  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
+  const roomTypes=['Superior','Deluxe','Suite','Loft','PremDlx','Classic','Spa','Other'];
+  
+  // Group tickets by year
+  const statsByYear={};
+  const currentYear=new Date().getFullYear();
+  tickets.forEach(tk=>{
+    if(tk.room && maintenanceCategories.includes(tk.type)){
+      const ticketDate=new Date(tk.ts);
+      let year=ticketDate.getFullYear();
+      // Handle invalid dates - use current year
+      if(isNaN(year)){
+        year=currentYear;
+      }
+      if(!statsByYear[year])statsByYear[year]={};
+      
+      if(!statsByYear[year][tk.room]){
+        statsByYear[year][tk.room]={count:0,categories:{}};
+      }
+      statsByYear[year][tk.room].count++;
+      if(!statsByYear[year][tk.room].categories[tk.type]){
+        statsByYear[year][tk.room].categories[tk.type]=0;
+      }
+      statsByYear[year][tk.room].categories[tk.type]++;
+    }
+  });
+  
+  // Sort years descending (newest first)
+  const sortedYears=Object.keys(statsByYear).sort((a,b)=>b-a);
+  
+  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Top Problem Rooms</h3>';
+  
+  sortedYears.forEach(year=>{
+    const yearRoomStats=statsByYear[year];
+    const yearId='year-'+year;
+    const sorted=Object.entries(yearRoomStats).sort((a,b)=>b[1].count-a[1].count).slice(0,20);
+    const totalIssues=sorted.reduce((sum,item)=>sum+item[1].count,0);
+    
+    // Year header (collapsible)
+    html+='<div class="section-card" style="margin-bottom:12px;overflow:hidden;border-radius:10px;background:#f0f7ff">';
+    html+='<div onclick="toggleYear(\''+yearId+'\')" style="padding:1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:#E3F2FD;border:0.5px solid #BBDEFB">';
+    html+='<div style="display:flex;align-items:center;gap:12px"><span id="'+yearId+'-arrow" style="font-size:16px;font-weight:bold">▼</span><span style="font-weight:600;font-size:15px">'+year+' ('+totalIssues+' total issues)</span></div>';
+    html+='</div>';
+    
+    // Year content
+    html+='<div id="'+yearId+'" style="padding:0">';
+    sorted.forEach(([room,data],idx)=>{
+      const roomCardId='room-'+year+'-'+room;
+      html+='<div style="padding:1rem;border-bottom:0.5px solid #BBDEFB;background:#fff">';
+      html+='<div onclick="toggleRoomStats(\''+roomCardId+'\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">';
+      html+='<div style="display:flex;align-items:center;gap:12px;flex:1"><span id="'+roomCardId+'-arrow" style="font-size:14px">▶</span><span style="font-weight:600">'+(idx+1)+'. Room '+room+' - '+data.count+' issues</span></div>';
+      html+='<span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+data.count+'</span>';
+      html+='</div>';
+      
+      // Category breakdown (maintenance categories only)
+      html+='<div id="'+roomCardId+'" class="hidden" style="margin-top:12px;padding-left:30px">';
+      Object.entries(data.categories).sort((a,b)=>b[1]-a[1]).forEach(([cat,count])=>{
+        const pct=Math.round((count/data.count)*100);
+        html+='<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px">'+cat+'</span><span style="font-weight:600;color:#185FA5">'+count+' ('+pct+'%)</span></div><div style="background:#E8E8E8;height:6px;border-radius:3px"><div style="background:#185FA5;height:100%;width:'+pct+'%;border-radius:3px"></div></div></div>';
+      });
+      html+='</div></div>';
+    });
+    html+='</div></div>';
+  });
+  
+  html+='</div>';
+  list.innerHTML=html;
+}
+
+function toggleYear(yearId){
+  const yearContent=document.getElementById(yearId);
+  const arrow=document.getElementById(yearId+'-arrow');
+  if(yearContent.style.display==='none'){
+    yearContent.style.display='block';
+    arrow.textContent='▼';
+  }else{
+    yearContent.style.display='none';
+    arrow.textContent='▶';
+  }
+}
+
+function toggleRoomStats(roomCardId){
+  const roomCard=document.getElementById(roomCardId);
+  const arrow=document.getElementById(roomCardId+'-arrow');
+  if(roomCard.classList.contains('hidden')){
+    roomCard.classList.remove('hidden');
+    arrow.textContent='▼';
+  }else{
+    roomCard.classList.add('hidden');
+    arrow.textContent='▶';
+  }
+}
+
+function renderStatsByCategory(){
+  const list=document.getElementById('ticket-list');
+  const year=new Date().getFullYear();
+  
+  // Maintenance categories only
+  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
+  
+  const catStats={};
+  tickets.forEach(tk=>{
+    // Only count maintenance issue categories, skip room types
+    if(maintenanceCategories.includes(tk.type)){
+      if(!catStats[tk.type])catStats[tk.type]=0;
+      catStats[tk.type]++;
+    }
+  });
+  
+  const sorted=Object.entries(catStats).sort((a,b)=>b[1]-a[1]);
+  const totalIssues=sorted.reduce((sum,item)=>sum+item[1],0);
+  
+  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Issues by Category ('+year+')</h3>';
+  sorted.forEach(([cat,count])=>{
+    const pct=Math.round((count/totalIssues)*100);
+    html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:600">'+cat+'</span><span style="background:#185FA5;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">'+count+' ('+pct+'%)</span></div><div style="background:#E8E8E8;height:8px;border-radius:4px;overflow:hidden"><div style="background:#185FA5;height:100%;width:'+pct+'%"></div></div></div>';
+  });
+  html+='</div>';
+  list.innerHTML=html;
+}
+
+function renderStatsBySearchRoom(){
+  const list=document.getElementById('ticket-list');
+  const year=new Date().getFullYear();
+  
+  // Maintenance categories only
+  const maintenanceCategories=['Paint','Electricity','Plumbing','AC Issues','General repairs'];
+  
+  const roomTickets=tickets.filter(tk=>tk.room===currentSearchRoom && maintenanceCategories.includes(tk.type));
+  if(!roomTickets.length){list.innerHTML='<p style="color:#bbb;text-align:center;padding:2rem">No issues found for Room '+currentSearchRoom+'</p>';return;}
+  const catStats={};
+  roomTickets.forEach(tk=>{
+    if(!catStats[tk.type])catStats[tk.type]=0;
+    catStats[tk.type]++;
+  });
+  let html='<div style="padding:1rem 0"><h3 style="margin-bottom:1rem;color:#185FA5">📊 Room '+currentSearchRoom+' - '+year+' Breakdown</h3>';
+  let totalIssues=0;
+  Object.entries(catStats).sort((a,b)=>b[1]-a[1]).forEach(([cat,count])=>{totalIssues+=count;html+='<div class="section-card" style="padding:1rem;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span>'+cat+'</span><span style="font-weight:600">'+count+' times</span></div></div>';});
+  html+='<div class="section-card" style="padding:1rem;margin-bottom:8px;background:#f0f0f0"><div style="display:flex;justify-content:space-between;font-weight:600"><span>TOTAL</span><span>'+totalIssues+' issues</span></div></div>';
+  html+='</div>';
+  list.innerHTML=html;
+}
+
+function openTicket(id){
+  const tk=tickets.find(x=>x.id===id);if(!tk)return;
+  currentTicketId=id;
+  document.getElementById('td-title').textContent=getLocLabel(tk)+' - '+tk.type;
+  const resolverInfo=tk.status==='resolved'&&tk.resolved_by?'<br><i class="ti ti-check"></i> Resolved by: '+(tk.resolved_by)+' · '+tk.resolved_ts:'';
+  document.getElementById('td-body').innerHTML=
+    '<p style="font-size:13px;color:#aaa;margin-bottom:8px"><i class="ti ti-user"></i> Created by: '+(tk.username||'Unknown')+' · '+tk.ts+resolverInfo+'</p>'
+    +'<span class="badge" style="background:'+(tk.status==='open'?'#FCEBEB':'#EAF3DE')+';color:'+(tk.status==='open'?'#A32D2D':'#27500A')+'">'+(tk.status==='open'?t('open'):t('resolved'))+'</span>'
+    +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-top:0.75rem;padding:12px;background:#f5f5f0;border-radius:10px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</div>'
+    +'<div class="note-translation" id="td-translation" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
+    +'<button class="note-translate" id="td-translate-btn" onclick="doTicketTranslate()" style="margin-top:6px"><i class="ti ti-language"></i> '+t('translate')+'</button>';
+  document.getElementById('td-translate-btn').setAttribute('data-text',tk.description);
+
+  // ETA section
+  document.getElementById('lbl-eta-title').textContent=t('etatitle');
+  document.getElementById('lbl-today').textContent=t('today');
+  document.getElementById('lbl-parts').textContent=t('parts');
+  document.getElementById('lbl-pickdate').textContent=t('pickdate');
+  const etaBtns=['eta-today','eta-parts','eta-date'];
+  etaBtns.forEach(id=>document.getElementById(id).classList.remove('selected'));
+  document.getElementById('eta-date-input').classList.add('hidden');
+  if(tk.eta==='today')document.getElementById('eta-today').classList.add('selected');
+  else if(tk.eta==='parts')document.getElementById('eta-parts').classList.add('selected');
+  else if(tk.eta&&tk.eta!=='today'&&tk.eta!=='parts'){document.getElementById('eta-date').classList.add('selected');document.getElementById('eta-date-input').classList.remove('hidden');document.getElementById('eta-date-input').value=tk.eta;}
+
+  const ma=document.getElementById('td-manager-actions');const rb=document.getElementById('td-resolve-btn');
+  if(isManager){ma.classList.remove('hidden');rb.textContent=tk.status==='open'?t('markresolved'):t('reopen');}
+  else{ma.classList.add('hidden');}
+  renderTicketComments(currentTicketId);
+  document.getElementById('ticketDetailModal').classList.remove('hidden');
+}
+
+async function setETA(type){
+  const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
+  if(type==='date'){
+    document.getElementById('eta-date-input').classList.remove('hidden');
+    document.getElementById('eta-date').classList.add('selected');
+    document.getElementById('eta-today').classList.remove('selected');
+    document.getElementById('eta-parts').classList.remove('selected');
+    return;
+  }
+  tk.eta=type;
+  document.getElementById('eta-today').classList.toggle('selected',type==='today');
+  document.getElementById('eta-parts').classList.toggle('selected',type==='parts');
+  document.getElementById('eta-date').classList.remove('selected');
+  document.getElementById('eta-date-input').classList.add('hidden');
+  renderTickets();
+  await updateTicketField(currentTicketId,{eta:type});
+  toast(t('etaset'));
+}
+
+async function setETADate(val){
+  if(!val)return;
+  const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
+  tk.eta=val;renderTickets();
+  await updateTicketField(currentTicketId,{eta:val});
+  toast(t('etaset'));
+}
+
+async function resolveTicket(){
+  const tk=tickets.find(x=>x.id===currentTicketId);if(!tk)return;
+  const ns=tk.status==='open'?'resolved':'open';
+  tk.status=ns;
+  
+  // Capture resolver info when marking as resolved
+  if(ns==='resolved'){
+    tk.resolved_by=currentUser;
+    tk.resolved_ts=new Date().toLocaleString();
+  }else{
+    // If reopening, clear resolver info
+    tk.resolved_by=null;
+    tk.resolved_ts=null;
+  }
+  
+  renderTickets();closeModal('ticketDetailModal');
+  const updateData={status:ns};
+  if(ns==='resolved'){
+    updateData.resolved_by=tk.resolved_by;
+    updateData.resolved_ts=tk.resolved_ts;
+  }else{
+    updateData.resolved_by=null;
+    updateData.resolved_ts=null;
+  }
+  await updateTicketField(currentTicketId,updateData);
+  toast(ns==='resolved'?t('markedresolved'):t('reopened'));
+}
+async function deleteTicket(){
+  if(!confirm(t('confirmdelete')))return;
+  tickets=tickets.filter(x=>x.id!==currentTicketId);
+  renderTickets();closeModal('ticketDetailModal');
+  await deleteTicketDB(currentTicketId);toast(t('deleted'));
+}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+
+document.getElementById('managerBtn').onclick=()=>{
+  if(isManager){openManagerDash();return;}
+  document.getElementById('pin-input').value='';document.getElementById('pin-error').textContent='';
+  document.getElementById('lbl-manageraccess').textContent=t('manageraccess');
+  document.getElementById('lbl-enterpin').textContent=t('enterpin');
+  document.getElementById('pinModal').classList.remove('hidden');
+};
+
+function checkPin(v){
+  if(v.length===6){
+    if(v===PIN){isManager=true;document.getElementById('managerBtn').innerHTML='<i class="ti ti-shield"></i> '+t('manager');closeModal('pinModal');openManagerDash();}
+    else{document.getElementById('pin-error').textContent=t('incorrectpin');document.getElementById('pin-input').value='';}
+  }
+}
+
+function openManagerDash(){
+  const clean=ROOMS.filter(r=>isClean(r)).length;
+  const open=tickets.filter(tk=>tk.status==='open').length;
+  const urgent=tickets.filter(tk=>tk.status==='open'&&tk.priority==='urgent').length;
+  const res=tickets.filter(tk=>tk.status==='resolved').length;
+  document.getElementById('lbl-dashboard').textContent=t('dashboard');
+  document.getElementById('lbl-resetall').textContent=t('resetall');
+  document.getElementById('lbl-opencalls').textContent=t('opencalls');
+  document.getElementById('manager-stats').innerHTML=
+    '<div class="stat-card"><div class="stat-num" style="color:#639922">'+clean+'</div><div class="stat-lbl">'+t('cleanrooms')+'</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:#E24B4A">'+urgent+'</div><div class="stat-lbl">🔴 '+t('urgentcalls')+'</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:#639922">'+res+'</div><div class="stat-lbl">'+t('resolvedstat')+'</div></div>';
+  const ot=tickets.filter(tk=>tk.status==='open').sort((a,b)=>(b.priority==='urgent')-(a.priority==='urgent'));
+  document.getElementById('manager-tickets').innerHTML=ot.length?ot.map(tk=>{
+    const urgentBadge=tk.priority==='urgent'?'<span class="badge-urgent">🔴 '+t('urgent')+'</span> ':'';
+    const etaLabel=tk.eta?'<span style="font-size:12px;color:#185FA5"> · '+getETALabel(tk.eta)+'</span>':'';
+    return'<div class="ticket-card open'+(tk.priority==='urgent'?' urgent':'')+'" onclick="closeModal(\'managerDashModal\');openTicket('+tk.id+')">'
+      +'<div style="font-weight:600">'+urgentBadge+getLocLabel(tk)+' <span class="badge '+getBadgeClass(tk.type)+'">'+tk.type+'</span></div>'
+      +'<p style="font-size:13px;color:#888;margin-top:4px;direction:'+getDir(tk.description)+';text-align:'+getAlign(tk.description)+'">'+tk.description+'</p>'
+      +'<p style="font-size:12px;color:#bbb;margin-top:4px"><i class="ti ti-user"></i> '+(tk.username||'Unknown')+' · '+tk.ts+etaLabel+'</p>'
+      +'</div>';
+  }).join(''):'<p style="color:#bbb;font-size:14px">'+t('opencalls')+' — 0</p>';
+  document.getElementById('managerDashModal').classList.remove('hidden');
+}
+
+async function resetAllData(){
+  if(!confirm(t('confirmreset')))return;
+  rooms={};tickets=[];notes={};ticketComments={};renderAll();closeModal('managerDashModal');
+  await resetAll();toast(t('reset'));
+}
+
+async function printOpenCalls(){
+  const open=tickets.filter(tk=>tk.status==='open').sort((a,b)=>{
+    const ra=a.room||99999,rb=b.room||99999;
+    return ra-rb;
+  });
+  const now=new Date().toLocaleString();
+  const getEtaText=(eta)=>{
+    if(!eta)return t('printnoeta');
+    if(eta==='today')return t('today');
+    if(eta==='parts')return t('parts');
+    return eta;
+  };
+
+  // Auto-translate descriptions if language is Russian
+  const langMap={en:'en',ru:'ru',he:'iw'};
+  const targetLang=langMap[lang]||'en';
+  let descriptions=open.map(tk=>tk.description);
+
+  if(lang==='ru'){
+    toast(t('translating'));
+    try{
+      descriptions=await Promise.all(open.map(async tk=>{
+        if(!tk.description)return'';
+        try{
+          const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(tk.description)+'&langpair=autodetect|ru');
+          const data=await res.json();
+          const translated=data.responseData?.translatedText;
+          return(translated&&translated!==tk.description)?translated:tk.description;
+        }catch(e){return tk.description;}
+      }));
+    }catch(e){}
+  }
+
+  const rows=open.length===0
+    ?'<tr><td colspan="6" style="text-align:center;padding:20px;color:#888">'+t('printnone')+'</td></tr>'
+    :open.map((tk,i)=>{
+      const loc=tk.type==='Other'&&tk.location_label?'📍 '+tk.location_label:'Room '+tk.room;
+      const pri=tk.priority==='urgent'?'🔴 '+t('urgent'):'🟡 '+t('normal');
+      const desc=descriptions[i]||tk.description;
+      const comments=(ticketComments[String(tk.id)]||[]).map(c=>'<div style="font-size:11px;color:#666;margin-top:3px;padding-left:8px;border-left:2px solid #185FA5">💬 '+(c.username||'?')+': '+c.text+'</div>').join('');
+      return'<tr>'
+        +'<td>'+loc+'</td>'
+        +'<td>'+tk.type+'</td>'
+        +'<td>'+desc+comments+'</td>'
+        +'<td>'+pri+'</td>'
+        +'<td>'+getEtaText(tk.eta)+'</td>'
+        +'<td>'+(tk.username||'—')+'</td>'
+        +'</tr>';
+    }).join('');
+
+  const html=`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${t('printitle')}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:13px;margin:20px;color:#1a1a1a}
+  h1{font-size:18px;margin-bottom:4px}
+  .subtitle{font-size:12px;color:#888;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th{background:#185FA5;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
+  td{padding:8px 10px;border-bottom:0.5px solid #e0dfd8;vertical-align:top;font-size:12px}
+  tr:nth-child(even){background:#f9f8f4}
+  @media print{body{margin:10px}}
+</style>
+<!-- Firebase SDK for Web Push Messaging -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.min.js"></script>
+
+<script>
+// Your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCHHGTSHWlzykRHQrbguZNGGtUxPmVQ06w",
+  authDomain: "mendeli-hk.firebaseapp.com",
+  projectId: "mendeli-hk",
+  storageBucket: "mendeli-hk.firebasestorage.app",
+  messagingSenderId: "1026146356647",
+  appId: "1:1026146356647:web:d6cca8f9bc506d4d36fa82",
+  measurementId: "G-HQ1T0EJ64H"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Initialize Cloud Messaging
+const messaging = firebase.messaging();
+
+// Request permission and get FCM token
+messaging.requestPermission().then(() => {
+  return messaging.getToken();
+}).then(token => {
+  console.log('🔑 FCM Token:', token);
+  }).then(token => {
+  console.log('🔑 FCM Token:', token);
+  saveFCMTokenToSupabase(token);
+})S
+}).catch(err => {
+  console.error('❌ FCM Error:', err);
+});
+messaging.requestPermission().then(() => {
+  return messaging.getToken();
+}).then(token => {
+  console.log('🔑 FCM Token:', token);
+  saveFCMTokenToSupabase(token);
+}).catch(err => {
+  console.error('❌ FCM Error:', err);
+});
+
+// ADD THIS FUNCTION HERE:
+async function saveFCMTokenToSupabase(token) {
+  try {
+    const payload = {
+      worker_name: currentUser || 'Anonymous',
+      fcm_token: token,
+      device_type: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iphone' : 'android',
+      channel: 'maintenance'
+    };
+    
+    console.log('📤 Saving FCM token to Supabase:', payload);
+    
+    const response = await fetch(SUPA_URL + '/rest/v1/worker_fcm_tokens', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if(response.ok) {
+      console.log('✅ FCM token saved to Supabase');
+    } else {
+      console.error('❌ Failed to save FCM token:', response.status);
+    }
+  } catch(error) {
+    console.error('❌ Error saving FCM token:', error);
+  }
+}
+
+</script>
+</script>
+</head>
+<body>
+<h1>HK&amp;Maintenance-Mendeli</h1>
+<div class="subtitle">${t('printitle')} &nbsp;·&nbsp; ${now}</div>
+<table>
+<thead><tr>
+  <th>${t('printroom')}</th>
+  <th>${t('printtype')}</th>
+  <th>${t('printdesc')}</th>
+  <th>${t('printpriority')}</th>
+  <th>${t('printeta')}</th>
+  <th>${t('printby')}</th>
+</tr></thead>
+<tbody>${rows}</tbody>
+</table>
+<div style="margin-top:20px;font-size:11px;color:#aaa">HK&Maintenance-Mendeli © 2026 · All rights reserved</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(),500);
+}
+
+function renderTicketComments(ticketId){
+  const comments=ticketComments[String(ticketId)]||[];
+  const list=document.getElementById('ticket-comments-list');
+  const ta=document.getElementById('new-ticket-comment');
+  if(ta){ta.value='';ta.placeholder=t('addcomment');ta.style.direction='ltr';ta.style.textAlign='left';}
+  const header=document.getElementById('lbl-ticketcomments');
+  if(header)header.textContent=t('ticketcomments');
+  if(!list)return;
+  if(comments.length===0){
+    list.innerHTML='<p style="font-size:13px;color:#bbb;margin-bottom:10px">'+t('nocomments')+'</p>';
+  }else{
+    list.innerHTML=comments.map(c=>{
+      const delBtn='<button class="note-delete" onclick="deleteTicketComment('+c.id+')"><i class="ti ti-trash"></i> '+t('delete')+'</button>';
+      return'<div class="note-item">'
+        +'<div class="note-text" style="direction:'+getDir(c.text)+';text-align:'+getAlign(c.text)+'">'+c.text+'</div>'
+        +'<div class="note-translation" id="tctr-'+c.id+'" style="display:none;font-size:13px;color:#185FA5;background:#E6F1FB;border-radius:6px;padding:6px 10px;margin-top:6px;"></div>'
+        +'<div class="note-meta"><i class="ti ti-user"></i> '+(c.username||'Unknown')+' · <i class="ti ti-clock"></i> '+c.ts
+        +'<button class="note-translate" id="tctb-'+c.id+'" data-commentid="'+c.id+'" onclick="doCommentTranslate(this)"><i class="ti ti-language"></i> '+t('translate')+'</button>'
+        +delBtn+'</div></div>';
+    }).join('');
+  }
+}
+
+function doCommentTranslate(btn){
+  const cid=btn.getAttribute('data-commentid');
+  const allComments=Object.values(ticketComments).flat();
+  const comment=allComments.find(c=>c.id==cid);
+  if(!comment)return;
+  const res=document.getElementById('tctr-'+cid);
+  translateText(comment.text,btn,res);
+}
+
+async function addTicketComment(){
+  const ta=document.getElementById('new-ticket-comment');
+  const text=ta.value.trim();
+  if(!text){alert(t('noteerror'));return;}
+  const comment={id:Date.now(),ticket_id:currentTicketId,text,ts:new Date().toLocaleString(),username:currentUser};
+  if(!ticketComments[String(currentTicketId)])ticketComments[String(currentTicketId)]=[];
+  ticketComments[String(currentTicketId)].push(comment);
+  renderTicketComments(currentTicketId);
+  await saveTicketComment(comment);toast(t('commentadded'));
+}
+
+async function deleteTicketComment(id){
+  // Ask for PIN before deleting
+  const enteredPin=prompt('Enter PIN to delete comment:');
+  if(!enteredPin)return;
+  
+  // Verify PIN
+  if(enteredPin!==PIN){
+    alert('Incorrect PIN!');
+    return;
+  }
+  
+  if(!confirm(t('confirmdelete')))return;
+  ticketComments[String(currentTicketId)]=(ticketComments[String(currentTicketId)]||[]).filter(c=>c.id!==id);
+  renderTicketComments(currentTicketId);
+  await deleteTicketCommentDB(id);toast(t('commentdeleted'));
+}
+
+function doNoteTranslate(btn){
+  const nid=btn.getAttribute('data-noteid');
+  const noteObj=(notes[currentRoom]||[]).find(n=>n.id==nid);
+  if(!noteObj)return;
+  const res=document.getElementById('ntr-'+nid);
+  translateText(noteObj.text,btn,res);
+}
+
+function doTicketTranslate(){
+  const btn=document.getElementById('td-translate-btn');
+  const res=document.getElementById('td-translation');
+  const text=btn.getAttribute('data-text');
+  translateText(text,btn,res);
+}
+
+async function translateText(text,btnEl,resultEl){
+  const langMap={en:'en',ru:'ru',he:'iw'};
+  const targetLang=langMap[lang]||'en';
+  btnEl.textContent=t('translating');
+  btnEl.disabled=true;
+  try{
+    const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=autodetect|'+targetLang);
+    const data=await res.json();
+    const translated=data.responseData?.translatedText;
+    if(translated&&translated!==text){
+      resultEl.textContent=translated;
+      resultEl.style.display='block';
+      btnEl.style.display='none';
+    }else{
+      btnEl.textContent=t('transerror');
+      btnEl.disabled=false;
+    }
+  }catch(e){
+    btnEl.textContent=t('transerror');
+    btnEl.disabled=false;
+  }
+}
+
+// Setup history search event listeners
+document.addEventListener('DOMContentLoaded',function(){
+  const df=document.getElementById('history-date-from');
+  const dt=document.getElementById('history-date-to');
+  const rm=document.getElementById('history-room-search');
+  if(df)df.addEventListener('change',function(){historyFilters.dateFrom=this.value;renderTickets();});
+  if(dt)dt.addEventListener('change',function(){historyFilters.dateTo=this.value;renderTickets();});
+  if(rm)rm.addEventListener('input',function(){historyFilters.room=this.value;renderTickets();});
+});
+
+// Also check room selection changes for duplicate detection
+document.addEventListener('DOMContentLoaded',function(){
+  const roomSel=document.getElementById('ticket-room');
+  if(roomSel)roomSel.addEventListener('change',checkDuplicateTicket);
+});
+
+initUser();loadAll();startPolling();
+
+// REGISTER SERVICE WORKER FOR BACKGROUND NOTIFICATIONS
+function registerServiceWorker() {
+  console.log('🔧 Registering Service Worker...');
+  
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => {
+        console.log('✅ Service Worker registered!');
+        saveConfigToIndexedDB();
+      })
+      .catch(err => console.log('❌ SW error:', err.message));
+  }
+}
+
+// SAVE CONFIG TO INDEXED DB FOR SERVICE WORKER
+function saveConfigToIndexedDB() {
+  console.log('💾 Saving config to IndexedDB for Service Worker...');
+  console.log('  User:', currentUser);
+  console.log('  URL:', SUPA_URL.substring(0, 40) + '...');
+  
+  const request = indexedDB.open('HKChatDB', 1);
+  
+  request.onupgradeneeded = (e) => {
+    const db = e.target.result;
+    if(!db.objectStoreNames.contains('config')) {
+      db.createObjectStore('config');
+      console.log('✅ Created config store');
+    }
+  };
+  
+  request.onsuccess = (e) => {
+    const db = e.target.result;
+    const txn = db.transaction(['config'], 'readwrite');
+    const store = txn.objectStore('config');
+    
+    const config = {
+      supaUrl: SUPA_URL,
+      supaKey: SUPA_KEY,
+      currentUser: currentUser
+    };
+    
+    const putRequest = store.put(config, 'app-config');
+    putRequest.onsuccess = () => {
+      console.log('✅✅ Config SAVED! Service Worker can now detect YOUR messages vs OTHERS');
+      console.log('   Current user is:', currentUser);
+    };
+    putRequest.onerror = () => {
+      console.log('❌ Failed to save config');
+    };
+  };
+  
+  request.onerror = () => {
+    console.log('❌ IndexedDB error');
+  };
+}
+
+// NO SERVICE WORKER NEEDED - Just use Notifications API with polling
+// REQUEST NOTIFICATION PERMISSION ON LOAD
+function requestNotificationPermission() {
+  console.log('🔔 Starting notification permission request...');
+  console.log('  Permission status:', Notification.permission);
+  
+  if(!('Notification' in window)) {
+    console.log('❌ Notifications NOT supported');
+    return Promise.reject('Notifications not supported');
+  }
+  
+  // Already granted
+  if(Notification.permission === 'granted') {
+    console.log('✅ Notifications ALREADY GRANTED');
+    return Promise.resolve('granted');
+  }
+  
+  // Already denied
+  if(Notification.permission === 'denied') {
+    console.log('❌ Notifications DENIED by user - need to allow in settings');
+    alert('⚠️ Notifications are BLOCKED.\n\nTo get messages:\n1. Click the lock icon 🔒 in address bar\n2. Find "Notifications"\n3. Change to "Allow"');
+    return Promise.reject('denied');
+  }
+  
+  // Not decided yet - ASK
+  console.log('⏳ Asking user for notification permission...');
+  return Notification.requestPermission()
+    .then(permission => {
+      console.log('📝 User response:', permission);
+      
+      if(permission === 'granted') {
+        console.log('✅✅✅ NOTIFICATIONS GRANTED!');
+        showTestNotification();
+        return 'granted';
+      } else {
+        console.log('❌ User denied notifications');
+        alert('❌ Notifications were denied. Messages won\'t pop up!');
+        return 'denied';
+      }
+    })
+    .catch(err => {
+      console.log('❌ Permission request error:', err);
+      return 'error';
+    });
+}
+
+// SHOW TEST NOTIFICATION
+function showTestNotification() {
+  if(Notification.permission === 'granted') {
+    try {
+      new Notification('HK & Maintenance', {
+        body: 'Chat notifications enabled! 🔔',
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
+        badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">HK</text></svg>',
+        tag: 'hk-test',
+        requireInteraction: false
+      });
+      console.log('✅ Test notification shown');
+    } catch(e) {
+      console.log('❌ Test notification error:', e);
+    }
+  } else {
+    console.log('❌ Cannot show test notification - permission not granted');
+  }
+}
+
+// MANUAL TEST FUNCTION - Call from console: testNotifications()
+function testNotifications() {
+  console.log('🧪 NOTIFICATION SYSTEM TEST');
+  console.log('='.repeat(50));
+  
+  console.log('1️⃣ Browser Support:');
+  console.log('  Notifications:', 'Notification' in window ? '✅' : '❌');
+  console.log('  Audio Context:', typeof(window.AudioContext) !== 'undefined' ? '✅' : '❌');
+  
+  console.log('2️⃣ Permissions:');
+  console.log('  Notification permission:', Notification.permission);
+  
+  console.log('3️⃣ Chat Polling:');
+  console.log('  Chat state open?', chatState.isOpen ? 'YES (no notifications)' : 'NO (ready for notifications)');
+  console.log('  Messages loaded:', chatState.messages.length);
+  console.log('  Seen message IDs:', chatState.seenMessageIds.length);
+  
+  console.log('4️⃣ How It Works:');
+  console.log('  ✅ Polls for messages every 2 seconds');
+  console.log('  ✅ When new message arrives (chat closed)');
+  console.log('  ✅ Shows notification popup');
+  console.log('  ✅ Plays unique PING-PING-DONG sound');
+  console.log('  ✅ Shows red badge with count');
+  
+  console.log('='.repeat(50));
+  console.log('✅ System ready! Keep browser tab open/minimized');
+}
+const chatState = {
+  isOpen: false,
+  messages: [],
+  unreadCount: 0,
+  bubblePos: { x: 0, y: 0 },
+  isDragging: false,
+  seenMessageIds: []
+};
+
+function loadChatState() {
+  try {
+    const saved = localStorage.getItem('hotelChatState');
+    if(saved) {
+      const s = JSON.parse(saved);
+      chatState.bubblePos = s.bubblePos || { x: 0, y: 0 };
+      chatState.unreadCount = s.unreadCount || 0;
+    }
+  } catch(e) {}
+  applyBubblePosition();
+}
+
+function saveChatState() {
+  try {
+    localStorage.setItem('hotelChatState', JSON.stringify({
+      bubblePos: chatState.bubblePos,
+      unreadCount: chatState.unreadCount
+    }));
+  } catch(e) {}
+}
+
+function applyBubblePosition() {
+  const bubble = document.getElementById('chatBubble');
+  if(!bubble) return;
+  const { x, y } = chatState.bubblePos;
+  if(x !== 0 || y !== 0) {
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+    bubble.style.left = x + 'px';
+    bubble.style.top = y + 'px';
+  }
+}
+
+function initDraggable() {
+  const bubble = document.getElementById('chatBubble');
+  if(!bubble) return;
+
+  let startX, startY, initialX, initialY;
+
+  function handleStart(e) {
+    if(chatState.isDragging) return;
+    chatState.isDragging = true;
+    bubble.classList.add('dragging');
+    
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    
+    const rect = bubble.getBoundingClientRect();
+    initialX = rect.left;
+    initialY = rect.top;
+  }
+
+  function handleMove(e) {
+    if(!chatState.isDragging) return;
+    
+    const touch = e.touches ? e.touches[0] : e;
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    
+    const newX = initialX + deltaX;
+    const newY = initialY + deltaY;
+    
+    const maxX = window.innerWidth - 56;
+    const maxY = window.innerHeight - 56;
+    
+    const constrainedX = Math.max(0, Math.min(newX, maxX));
+    const constrainedY = Math.max(0, Math.min(newY, maxY));
+    
+    bubble.style.left = constrainedX + 'px';
+    bubble.style.top = constrainedY + 'px';
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+  }
+
+  function handleEnd() {
+    if(!chatState.isDragging) return;
+    chatState.isDragging = false;
+    bubble.classList.remove('dragging');
+    
+    const rect = bubble.getBoundingClientRect();
+    chatState.bubblePos = {
+      x: Math.round(rect.left),
+      y: Math.round(rect.top)
+    };
+    saveChatState();
+  }
+
+  bubble.addEventListener('mousedown', handleStart);
+  bubble.addEventListener('touchstart', handleStart);
+  document.addEventListener('mousemove', handleMove);
+  document.addEventListener('touchmove', handleMove);
+  document.addEventListener('mouseup', handleEnd);
+  document.addEventListener('touchend', handleEnd);
+}
+
+function toggleChat() {
+  const win = document.getElementById('chatWindow');
+  if(!win) return;
+  
+  chatState.isOpen = !chatState.isOpen;
+  console.log('🔔 Chat window toggled - Now:', chatState.isOpen ? 'OPEN' : 'CLOSED');
+  
+  if(chatState.isOpen) {
+    win.classList.add('visible');
+    loadMessages();
+    chatState.unreadCount = 0;
+    updateBadge();
+    saveChatState();
+    console.log('✅ Chat opened, badge cleared');
+  } else {
+    win.classList.remove('visible');
+    console.log('✅ Chat closed, ready for notifications');
+  }
+}
+
+function updateBadge() {
+  const badge = document.querySelector('.chat-bubble .unread-badge');
+  if(!badge) return;
+  
+  if(chatState.unreadCount > 0) {
+    badge.textContent = chatState.unreadCount > 9 ? '9+' : chatState.unreadCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+// ===== CHANNEL SUPPORT =====
+let currentChannel = 'reception';
+
+// ===== CHANNEL SWITCHING WITH PIN PROTECTION =====
+const PROTECTED_CHANNELS = ['hk', 'maintenance'];
+const CORRECT_PIN = '199108';
+
+function switchChannel(channel) {
+  // Check if channel is protected
+  if(PROTECTED_CHANNELS.includes(channel)) {
+    // Check if PIN already verified
+    const pinVerified = localStorage.getItem('pin_verified_' + channel);
+    if(!pinVerified) {
+      // Show PIN prompt
+      showPINModal(channel);
+      return;
+    }
+  }
+  
+  // Access granted
+  currentChannel = channel;
+  
+  // Update active tab
+  document.querySelectorAll('.chat-channel').forEach(btn => {
+    if(btn.getAttribute('data-channel') === channel) {
+      btn.style.color = '#185FA5';
+      btn.style.borderBottom = '2px solid #185FA5';
+    } else {
+      btn.style.color = '#aaa';
+      btn.style.borderBottom = '2px solid transparent';
+    }
+  });
+  
+  // Reload messages for this channel
+  loadMessages();
+}
+
+// PIN Modal Functions
+function showPINModal(channel) {
+  const modal = document.getElementById('pinModal');
+  const input = document.getElementById('pinInput');
+  const submitBtn = document.getElementById('pinSubmit');
+  const cancelBtn = document.getElementById('pinCancel');
+  const errorMsg = document.getElementById('pinError');
+  
+  if(!modal) {
+    console.error('PIN modal not found');
+    return;
+  }
+  
+  // Reset
+  input.value = '';
+  errorMsg.textContent = '';
+  input.focus();
+  
+  // Show modal
+  modal.style.display = 'flex';
+  modal.dataset.channel = channel;
+  
+  // Handle submit
+  submitBtn.onclick = function() {
+    verifyPIN(input.value, channel);
+  };
+  
+  // Handle Enter key
+  input.onkeypress = function(e) {
+    if(e.key === 'Enter') {
+      verifyPIN(input.value, channel);
+    }
+  };
+  
+  // Handle cancel
+  cancelBtn.onclick = function() {
+    modal.style.display = 'none';
+  };
+}
+
+function verifyPIN(pin, channel) {
+  const errorMsg = document.getElementById('pinError');
+  const modal = document.getElementById('pinModal');
+  
+  if(pin === CORRECT_PIN) {
+    // Correct PIN - remember it
+    localStorage.setItem('pin_verified_' + channel, 'true');
+    console.log('✅ PIN verified for ' + channel);
+    
+    // Close modal
+    modal.style.display = 'none';
+    
+    // Switch to channel
+    switchChannel(channel);
+  } else {
+    // Wrong PIN
+    errorMsg.textContent = '❌ Wrong PIN. Try again.';
+    errorMsg.style.color = '#E24B4A';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+// ===== SHOP PRODUCTS =====
+const SHOP_PRODUCTS = [
+  {
+    id: 1,
+    name: 'Body Wash',
+    emoji: '🧴',
+    price: 5,
+    description: 'Premium gentle body wash with natural ingredients',
+    image: '🧴'
+  },
+  {
+    id: 2,
+    name: 'Hand Wash',
+    emoji: '🧼',
+    price: 3,
+    description: 'Anti-bacterial hand soap for fresh and clean hands',
+    image: '🧼'
+  },
+  {
+    id: 3,
+    name: 'Body Cream',
+    emoji: '🧴',
+    price: 7,
+    description: 'Moisturizing body cream with shea butter and vitamin E',
+    image: '🧴'
+  }
+];
+
+function displayShop() {
+  const container = document.getElementById('chatMessages');
+  
+  let html = '<div style="padding:16px;background:#f5f5f0">';
+  html += '<div style="text-align:center;margin-bottom:20px">';
+  html += '<div style="font-size:28px;margin-bottom:8px">🛍️</div>';
+  html += '<div style="font-size:18px;font-weight:700;color:#1a1a1a">Our Shop</div>';
+  html += '<div style="font-size:12px;color:#888;margin-top:4px">Select a product and chat with Reception</div>';
+  html += '</div>';
+  
+  SHOP_PRODUCTS.forEach(product => {
+    html += '<div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e0dfd8">';
+    html += '<div style="display:flex;gap:12px">';
+    html += '<div style="font-size:40px">' + product.emoji + '</div>';
+    html += '<div style="flex:1">';
+    html += '<div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">' + product.name + '</div>';
+    html += '<div style="font-size:12px;color:#888;margin-bottom:8px">' + product.description + '</div>';
+    html += '<div style="font-size:13px;font-weight:700;color:#185FA5;margin-bottom:10px">€' + product.price + '</div>';
+    html += '<button onclick="orderProduct(' + product.id + ', \'' + product.name + '\', ' + product.price + ')" style="width:100%;padding:10px;border-radius:8px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-weight:600;-webkit-tap-highlight-color:transparent">Order Now →</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function orderProduct(productId, productName, productPrice) {
+  // Switch to Reception channel
+  currentChannel = 'reception';
+  
+  // Update tabs
+  document.querySelectorAll('.chat-channel').forEach(btn => {
+    if(btn.getAttribute('data-channel') === 'reception') {
+      btn.style.color = '#185FA5';
+      btn.style.borderBottom = '2px solid #185FA5';
+    } else {
+      btn.style.color = '#aaa';
+      btn.style.borderBottom = '2px solid transparent';
+    }
+  });
+  
+  // Load reception messages
+  loadMessages();
+  
+  // Pre-fill input with product order
+  const input = document.getElementById('chatInput');
+  input.value = 'I want to order: ' + productName + ' (€' + productPrice + ')';
+  input.focus();
+}
+
+async function loadMessages() {
+  // Handle Shop channel separately (no database query needed)
+  if(currentChannel === 'shop') {
+    displayShop();
+    return;
+  }
+  
+  try {
+    const url = SUPA_URL + '/rest/v1/chat_messages?channel=eq.' + currentChannel + '&order=created_at.asc';
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if(!res.ok) {
+      console.log('❌ Chat fetch failed:', res.status);
+      return;
+    }
+    
+    const msgs = await res.json();
+    console.log('📨 Messages loaded:', msgs.length, 'Chat open?', chatState.isOpen, 'Seen:', chatState.seenMessageIds.length);
+    
+    // Check for NEW messages only
+    if(!chatState.isOpen && msgs.length > 0) {
+      console.log('🔍 Checking for new messages (window closed)');
+      msgs.forEach((msg, idx) => {
+        // Convert msgId to string to avoid errors
+        const msgId = String(msg.id || (msg.sender + msg.created_at));
+        const isSeen = chatState.seenMessageIds.includes(msgId);
+        const isMine = msg.sender === currentUser;
+        
+        console.log('  Message', idx, '- ID:', msgId.substring(0, 20), 'From:', msg.sender, 'Seen?', isSeen, 'Mine?', isMine);
+        
+        if(!isSeen && !isMine) {
+          console.log('✅ NEW MESSAGE from', msg.sender, ':', msg.message);
+          chatState.seenMessageIds.push(msgId);
+          chatState.unreadCount++;
+          updateBadge();
+          playNotificationSound();
+          saveChatState();
+        }
+      });
+    }
+    
+    // Add all seen IDs
+    msgs.forEach(msg => {
+      const msgId = String(msg.id || (msg.sender + msg.created_at));
+      if(!chatState.seenMessageIds.includes(msgId)) {
+        chatState.seenMessageIds.push(msgId);
+      }
+    });
+    
+    chatState.messages = msgs;
+    renderMessages();
+  } catch(e) {
+    console.log('❌ Load error:', e);
+  }
+}
+
+function renderMessages() {
+  const container = document.getElementById('chatMessages');
+  if(!container) return;
+  
+  if(!chatState.messages || chatState.messages.length === 0) {
+    container.innerHTML = '<div class="chat-empty">👋 No messages yet</div>';
+    return;
+  }
+  
+  let html = '';
+  let lastDate = null;
+  
+  chatState.messages.forEach(msg => {
+    // Check if file expired (48 hours)
+    if(msg.expires_at) {
+      const expiresDate = new Date(msg.expires_at);
+      const now = new Date();
+      if(now > expiresDate) {
+        return; // Skip expired messages
+      }
+    }
+    
+    const msgDate = new Date(msg.created_at);
+    const todayDate = new Date();
+    
+    // Format date
+    let displayDate = '';
+    const isToday = msgDate.toDateString() === todayDate.toDateString();
+    const yesterday = new Date(todayDate);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = msgDate.toDateString() === yesterday.toDateString();
+    
+    if(isToday) {
+      displayDate = 'Today';
+    } else if(isYesterday) {
+      displayDate = 'Yesterday';
+    } else {
+      displayDate = msgDate.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: msgDate.getFullYear() !== todayDate.getFullYear() ? 'numeric' : undefined
+      });
+    }
+    
+    // Show date header when date changes
+    const currentDate = msgDate.toDateString();
+    if(lastDate !== currentDate) {
+      html += '<div class="chat-date-header">' + displayDate + '</div>';
+      lastDate = currentDate;
+    }
+    
+    // Format time
+    const time = msgDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    const isOwn = msg.sender === currentUser;
+    
+    html += '<div class="chat-msg ' + (isOwn ? 'sent' : 'received') + '">';
+    if(!isOwn) {
+      html += '<div class="msg-sender">' + msg.sender + '</div>';
+    }
+    
+    // Show message text
+    if(msg.message) {
+      html += '<div class="msg-text">' + msg.message + '</div>';
+    }
+    
+    // Show file attachment
+    if(msg.file_url) {
+      const isImage = msg.file_type && msg.file_type.startsWith('image/');
+      if(isImage) {
+        html += '<img src="' + msg.file_url + '" style="max-width:100%;max-height:300px;border-radius:8px;margin:8px 0" />';
+      } else {
+        html += '<a href="' + msg.file_url + '" download="' + msg.file_name + '" style="display:inline-block;background:#E0E0E0;padding:10px 12px;border-radius:8px;text-decoration:none;color:#333;font-size:13px;margin:8px 0">📄 ' + msg.file_name + '</a>';
+      }
+    }
+    
+    html += '<div class="msg-time">' + time;
+    // Show expiration time for files
+    if(msg.expires_at) {
+      const expiresDate = new Date(msg.expires_at);
+      const remaining = Math.round((expiresDate - new Date()) / 3600000);
+      html += ' <span style="font-size:11px;color:#999;margin-left:6px">Expires in ' + remaining + 'h</span>';
+    }
+    // Show delete button for own messages
+    if(isOwn) {
+      html += ' <button onclick="deleteMessage(' + msg.id + ')" style="background:none;border:none;color:#E24B4A;cursor:pointer;font-size:13px;padding:0 4px;margin-left:8px" title="Delete message">✕</button>';
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+  
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+}
+
+// ===== DELETE MESSAGE =====
+function deleteMessage(messageId) {
+  if(!confirm('Delete this message? This cannot be undone.')) {
+    return;
+  }
+  
+  fetch(SUPA_URL + '/rest/v1/chat_messages?id=eq.' + messageId, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json'
+    }
+  }).then(res => {
+    if(res.ok) {
+      console.log('✅ Message deleted:', messageId);
+      setTimeout(loadMessages, 300);
+    } else {
+      alert('Failed to delete message');
+    }
+  }).catch(e => {
+    console.error('Delete error:', e);
+    alert('Error deleting message');
+  });
+}
+
+// ===== PUSH NOTIFICATIONS SETUP =====
+const VAPID_PUBLIC_KEY = 'BF43YDVA5Qq3LKky9HWmWAVy7i_0i9N7SYX5uuU1j7MvDzuDrtWqT-8o9f9o4P3os1zxm3_E3SseySUfINfHUM8';
+
+function initPushNotifications() {
+  console.log('🔔 Initializing push notifications...');
+  
+  // Check if notifications are supported
+  if(!('Notification' in window)) {
+    console.log('⚠️ Notifications not supported');
+    return;
+  }
+  
+  // Request notification permission if not granted
+  if(Notification.permission === 'default') {
+    Notification.requestPermission().then(permission => {
+      console.log('📬 Notification permission:', permission);
+    });
+  }
+}
+
+async function subscribeToPush(registration) {
+  try {
+    // Check if already subscribed
+    const existingSubscription = await registration.pushManager.getSubscription();
+    if(existingSubscription) {
+      console.log('✅ Already subscribed to push');
+      // Update subscription in Supabase
+      await updatePushSubscriptionInSupabase(existingSubscription);
+      return;
+    }
+    
+    // Subscribe to push
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    
+    console.log('✅ Subscribed to push notifications');
+    
+    // Save subscription to Supabase
+    await savePushSubscriptionToSupabase(subscription);
+    
+  } catch(error) {
+    console.error('❌ Push subscription error:', error);
+  }
+}
+
+async function savePushSubscriptionToSupabase(subscription) {
+  try {
+    const payload = {
+      worker_name: currentUser,
+      endpoint: subscription.endpoint,
+      p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+      auth: arrayBufferToBase64(subscription.getKey('auth')),
+      device_type: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iphone' : 'android',
+      channel: 'maintenance'
+    };
+    
+    console.log('📤 Saving push subscription:', payload.worker_name, payload.device_type);
+    
+    const response = await fetch(SUPA_URL + '/rest/v1/worker_push_subscriptions', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if(response.ok) {
+      console.log('✅ Push subscription saved to Supabase');
+    } else {
+      console.error('❌ Failed to save subscription:', response.status);
+    }
+  } catch(error) {
+    console.error('❌ Error saving subscription:', error);
+  }
+}
+
+async function updatePushSubscriptionInSupabase(subscription) {
+  try {
+    const payload = {
+      worker_name: currentUser,
+      endpoint: subscription.endpoint,
+      p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+      auth: arrayBufferToBase64(subscription.getKey('auth')),
+      device_type: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iphone' : 'android',
+      channel: 'maintenance'
+    };
+    
+    await fetch(SUPA_URL + '/rest/v1/worker_push_subscriptions?worker_name=eq.' + currentUser, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    console.log('✅ Push subscription updated');
+  } catch(error) {
+    console.error('❌ Error updating subscription:', error);
+  }
+}
+
+// Helper functions for push subscription
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+  
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  
+  for(let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  
+  return outputArray;
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for(let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
+// ===== FILE UPLOAD HANDLING =====
+let selectedFile = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Mendeli HK starting...');
+  
+  // ===== PWA INSTALLATION PROMPT =====
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('📲 Install prompt ready');
+    // You can show an install button here if desired
+  });
+  
+  // ===== PUSH NOTIFICATION SETUP =====
+  initPushNotifications();
+  
+  // ===== REGISTER SERVICE WORKER =====
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/hk-mendeli/service-worker.js')
+      .then(reg => {
+        console.log('✅ Service Worker registered');
+        // Subscribe to push notifications
+        subscribeToPush(reg);
+      })
+      .catch(err => console.error('❌ Service Worker registration failed:', err));
+  }
+  
+  const fileInput = document.getElementById('fileInput');
+  if(fileInput) {
+    fileInput.addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if(!file) {
+        console.log('❌ No file selected');
+        return;
+      }
+      
+      console.log('📎 File selected:', file.name, 'Type:', file.type, 'Size:', (file.size / 1024).toFixed(2) + 'KB');
+      
+      // Check file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if(file.size > maxSize) {
+        alert('File too large! Max 5MB. Compressing...');
+        console.log('📦 File over 5MB, attempting compression...');
+        // For images, compress
+        if(file.type.startsWith('image/')) {
+          compressImage(file);
+        } else {
+          alert('Documents must be under 5MB');
+          fileInput.value = '';
+        }
+        return;
+      }
+      
+      // Read file as base64
+      const reader = new FileReader();
+      reader.onerror = function(e) {
+        console.error('❌ FileReader error:', e);
+        alert('❌ Error reading file: ' + e.message);
+      };
+      reader.onload = function(event) {
+        selectedFile = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: event.target.result // Base64
+        };
+        console.log('✅ File ready to send:', selectedFile.name, 'Base64 size:', selectedFile.data.length + ' bytes');
+        alert('✅ File ready: ' + file.name + ' (' + (file.size / 1024).toFixed(2) + 'KB)\n\nClick send button to upload!');
+      };
+      reader.readAsDataURL(file);
+    });
+  } else {
+    console.error('❌ fileInput element not found!');
+  }
+});
+
+// Compress image if over 5MB
+function compressImage(file) {
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      // Reduce dimensions if too large
+      const maxDim = 1200;
+      if(width > height) {
+        if(width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
+        }
+      } else {
+        if(height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Compress to base64
+      canvas.toBlob(function(blob) {
+        if(blob.size > 5 * 1024 * 1024) {
+          // Still too large, reduce quality
+          canvas.toBlob(function(blob2) {
+            const reader2 = new FileReader();
+            reader2.onload = function(e) {
+              selectedFile = {
+                name: file.name,
+                type: 'image/jpeg',
+                size: blob2.size,
+                data: e.target.result
+              };
+              alert('✅ Compressed: ' + (blob2.size / 1024).toFixed(2) + 'KB');
+            };
+            reader2.readAsDataURL(blob2);
+          }, 'image/jpeg', 0.6);
+        } else {
+          const reader2 = new FileReader();
+          reader2.onload = function(e) {
+            selectedFile = {
+              name: file.name,
+              type: 'image/jpeg',
+              size: blob.size,
+              data: e.target.result
+            };
+            alert('✅ Compressed: ' + (blob.size / 1024).toFixed(2) + 'KB');
+          };
+          reader2.readAsDataURL(blob);
+        }
+      }, 'image/jpeg', 0.75);
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  if(!input) return;
+  
+  const msg = input.value.trim();
+  
+  // Either message or file is required
+  if(!msg && !selectedFile) {
+    alert('Please type a message or select a file');
+    return;
+  }
+  
+  input.value = '';
+  
+  // Log file info for debugging
+  if(selectedFile) {
+    console.log('📎 File selected:', selectedFile.name, 'Size:', selectedFile.data.length, 'bytes');
+    if(selectedFile.data.length > 5 * 1024 * 1024) {
+      alert('⚠️ File still too large after compression! Max 5MB');
+      return;
+    }
+  }
+  
+  // Calculate expiration (48 hours from now)
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 48);
+  
+  const payload = {
+    sender: currentUser,
+    channel: currentChannel,
+    message: msg || 'Shared a file',
+    created_at: new Date().toISOString(),
+    expires_at: expiresAt.toISOString()
+  };
+  
+  // Add file data if selected
+  if(selectedFile) {
+    console.log('📤 Adding file to payload:', selectedFile.name);
+    payload.file_url = selectedFile.data; // Base64
+    payload.file_type = selectedFile.type;
+    payload.file_name = selectedFile.name;
+  }
+  
+  console.log('🚀 Sending message...');
+  
+  fetch(SUPA_URL + '/rest/v1/chat_messages', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  }).then(res => {
+    console.log('📡 Response status:', res.status, res.statusText);
+    if(res.ok) {
+      console.log('✅ Message sent successfully!');
+      selectedFile = null; // Clear after sending
+      document.getElementById('fileInput').value = '';
+      setTimeout(loadMessages, 500);
+    } else {
+      return res.text().then(text => {
+        console.error('❌ Upload failed:', res.status, text);
+        alert('❌ Upload failed: ' + res.status + '\n' + text);
+      });
+    }
+  }).catch(e => {
+    console.error('❌ Send error:', e);
+    alert('❌ Error sending message: ' + e.message);
+  });
+}
+
+function playNotificationSound() {
+  console.log('🔊 Notification triggered!');
+  
+  // 1. SYSTEM NOTIFICATION (WhatsApp style)
+  if(Notification.permission === 'granted') {
+    const recentMsg = chatState.messages[chatState.messages.length - 1];
+    if(recentMsg && recentMsg.sender !== currentUser) {
+      new Notification('💬 New Message', {
+        body: recentMsg.sender + ': ' + recentMsg.message.substring(0, 50),
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23185FA5" width="100" height="100"/><text x="50" y="70" font-size="60" font-weight="bold" fill="white" text-anchor="middle">💬</text></svg>',
+        badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23E24B4A"/></svg>',
+        tag: 'chat-message',
+        requireInteraction: false
+      });
+      console.log('🔔 System notification shown');
+    }
+  }
+  
+  // 2. SOUND CHIME (Vibration removed - browser blocks it)
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if(!AudioContext) {
+      console.log('❌ AudioContext not supported');
+      return;
+    }
+    
+    const ctx = new AudioContext();
+    
+    // Resume if suspended
+    if(ctx.state === 'suspended') {
+      ctx.resume().then(() => console.log('✅ AudioContext resumed'));
+    }
+    
+    const t = ctx.currentTime;
+    
+    // UNIQUE 5-NOTE MELODY - Hotel Alert Sound
+    // Creates a distinctive "ding-ding-dong" pattern
+    const notes = [
+      { f: 800, s: 0, d: 0.1 },         // High ping
+      { f: 800, s: 0.12, d: 0.1 },      // High ping (repeat)
+      { f: 600, s: 0.24, d: 0.15 },     // Mid dong
+      { f: 800, s: 0.42, d: 0.1 },      // High ping again
+      { f: 500, s: 0.54, d: 0.25 }      // Low resonant end
+    ];
+    
+    console.log('🎶 Playing UNIQUE hotel alert with', notes.length, 'notes');
+    
+    notes.forEach((n, i) => {
+      try {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.frequency.setValueAtTime(n.f, t + n.s);
+        o.type = 'sine';
+        g.gain.setValueAtTime(0.3, t + n.s);
+        g.gain.exponentialRampToValueAtTime(0.01, t + n.s + n.d);
+        o.start(t + n.s);
+        o.stop(t + n.s + n.d);
+        console.log('  Note', i, '- Freq:', n.f, 'Hz, Duration:', n.d);
+      } catch(e) {
+        console.log('  Note', i, 'error:', e);
+      }
+    });
+    
+    console.log('✅ Unique sound scheduled to play');
+  } catch(e) {
+    console.log('❌ Sound error:', e.message);
+  }
+}
+
+function startChatPolling() {
+  console.log('⏱️ Starting chat polling every 2 seconds');
+  
+  // Initial load
+  setTimeout(loadMessages, 500);
+  
+  // Poll every 2 seconds
+  setInterval(function() {
+    if(!chatState.isDragging) {
+      console.log('⏱️ Polling for messages...');
+      loadMessages();
+    }
+  }, 2000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('💬 Chat system initializing...');
+  
+  // REQUEST PERMISSION FIRST and WAIT for it
+  requestNotificationPermission()
+    .then(result => {
+      console.log('✅ Permission result:', result);
+      if(result === 'granted') {
+        console.log('🎯 Permission granted! NOW registering Service Worker...');
+        registerServiceWorker();
+      } else {
+        console.log('⚠️ Permission not granted. Service Worker NOT registered.');
+      }
+    })
+    .catch(err => {
+      console.log('⚠️ Permission error:', err);
+    });
+  
+  // Load chat even without notifications
+  loadChatState();
+  initDraggable();
+  startChatPolling();
+  
+  const input = document.getElementById('chatInput');
+  if(input) {
+    input.addEventListener('keypress', function(e) {
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+  }
+  console.log('✅ Chat system ready!');
+});
+</script>
+
+<!-- FLOATING CHAT BUBBLE -->
+<button id="chatBubble" class="chat-bubble" onclick="toggleChat()">
+  💬
+  <div class="unread-badge hidden">0</div>
+</button>
+
+<!-- CHAT WINDOW -->
+<div id="chatWindow" class="chat-window">
+  <div class="chat-header">
+    <div>
+      <div style="font-size:16px;font-weight:700">💬 Team Chat</div>
+      <div style="font-size:12px;opacity:0.9;margin-top:2px"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#639922;margin-right:4px"></span><span id="onlineCount">0 online</span></div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  
+  <!-- CHANNEL TABS -->
+  <div style="display:flex;gap:0;border-bottom:1px solid #e0dfd8;background:#fff;overflow-x:auto;flex-shrink:0">
+    <button class="chat-channel active" data-channel="reception" onclick="switchChannel('reception')" style="flex:1;min-width:100px;padding:12px 14px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:#185FA5;border-bottom:2px solid #185FA5;background:#fff;border:none;-webkit-tap-highlight-color:transparent;white-space:nowrap">
+      🚪 Reception
+      <span class="channel-badge hidden" style="display:inline-block;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:4px">0</span>
+    </button>
+    <button class="chat-channel" data-channel="hk" onclick="switchChannel('hk')" style="flex:1;min-width:100px;padding:12px 14px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:#aaa;border-bottom:2px solid transparent;background:#fff;border:none;-webkit-tap-highlight-color:transparent;white-space:nowrap">
+      🧹 HK
+      <span class="channel-badge hidden" style="display:inline-block;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:4px">0</span>
+    </button>
+    <button class="chat-channel" data-channel="maintenance" onclick="switchChannel('maintenance')" style="flex:1;min-width:100px;padding:12px 14px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:#aaa;border-bottom:2px solid transparent;background:#fff;border:none;-webkit-tap-highlight-color:transparent;white-space:nowrap">
+      🔧 Maintenance
+      <span class="channel-badge hidden" style="display:inline-block;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:4px">0</span>
+    </button>
+    <button class="chat-channel" data-channel="shop" onclick="switchChannel('shop')" style="flex:1;min-width:100px;padding:12px 14px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:#aaa;border-bottom:2px solid transparent;background:#fff;border:none;-webkit-tap-highlight-color:transparent;white-space:nowrap">
+      🛍️ Shop
+      <span class="channel-badge hidden" style="display:inline-block;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:4px">0</span>
+    </button>
+  </div>
+  
+  <div id="chatMessages" class="chat-messages"></div>
+  <div class="chat-input-area">
+    <input 
+      id="chatInput" 
+      class="chat-input" 
+      type="text" 
+      placeholder="Type message..."
+      autocomplete="off"
+    >
+    <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
+    <button style="background:#185FA5;border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('fileInput').click()" title="Upload file">📎</button>
+    <button class="chat-send" onclick="sendChatMessage()">→</button>
+  </div>
+</div>
+
+<!-- PIN MODAL FOR HK & MAINTENANCE -->
+<div id="pinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:10000">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:300px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.2)">
+    <div style="font-size:18px;font-weight:700;margin-bottom:8px;color:#1a1a1a">🔐 Access Required</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px">This section is for staff only.<br>Enter the PIN to continue.</div>
+    <input type="password" id="pinInput" placeholder="Enter PIN" style="width:100%;border:1px solid #ddd;border-radius:10px;padding:12px;font-size:16px;letter-spacing:2px;text-align:center;margin-bottom:4px" maxlength="6">
+    <div id="pinError" style="font-size:12px;color:#E24B4A;margin-bottom:16px;min-height:18px"></div>
+    <div style="display:flex;gap:10px">
+      <button id="pinCancel" style="flex:1;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;font-weight:600">Cancel</button>
+      <button id="pinSubmit" style="flex:1;padding:12px;border-radius:10px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-weight:600">Access</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
