@@ -460,8 +460,13 @@ async function savePushSubscriptionToSupabase(subscription) {
   }
 }
 
-// Start Web Push after everything loads
-document.addEventListener('DOMContentLoaded', initWebPush);
+// Start Web Push immediately (don't wait for DOMContentLoaded)
+if(document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initWebPush);
+} else {
+  // Page already loaded, call immediately
+  initWebPush();
+}
 </script>
 
 </head>
