@@ -2,7 +2,14 @@
 <html lang="he-IL">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mendeli HK">
+<meta name="theme-color" content="#185FA5">
+<meta name="description" content="Hotel staff communication app for Housekeeping, Maintenance, and Reception">
+<link rel="manifest" href="/hk-mendeli/manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23185FA5' width='192' height='192'/><text x='96' y='140' font-size='120' fill='white' text-anchor='middle' font-weight='bold'>HK</text></svg>">
 <title>HK&amp;Maintenance-Mendeli</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
@@ -2006,7 +2013,23 @@ function updateBadge() {
 // ===== CHANNEL SUPPORT =====
 let currentChannel = 'reception';
 
+// ===== CHANNEL SWITCHING WITH PIN PROTECTION =====
+const PROTECTED_CHANNELS = ['hk', 'maintenance'];
+const CORRECT_PIN = '199108';
+
 function switchChannel(channel) {
+  // Check if channel is protected
+  if(PROTECTED_CHANNELS.includes(channel)) {
+    // Check if PIN already verified
+    const pinVerified = localStorage.getItem('pin_verified_' + channel);
+    if(!pinVerified) {
+      // Show PIN prompt
+      showPINModal(channel);
+      return;
+    }
+  }
+  
+  // Access granted
   currentChannel = channel;
   
   // Update active tab
@@ -2024,7 +2047,156 @@ function switchChannel(channel) {
   loadMessages();
 }
 
+// PIN Modal Functions
+function showPINModal(channel) {
+  const modal = document.getElementById('pinModal');
+  const input = document.getElementById('pinInput');
+  const submitBtn = document.getElementById('pinSubmit');
+  const cancelBtn = document.getElementById('pinCancel');
+  const errorMsg = document.getElementById('pinError');
+  
+  if(!modal) {
+    console.error('PIN modal not found');
+    return;
+  }
+  
+  // Reset
+  input.value = '';
+  errorMsg.textContent = '';
+  input.focus();
+  
+  // Show modal
+  modal.style.display = 'flex';
+  modal.dataset.channel = channel;
+  
+  // Handle submit
+  submitBtn.onclick = function() {
+    verifyPIN(input.value, channel);
+  };
+  
+  // Handle Enter key
+  input.onkeypress = function(e) {
+    if(e.key === 'Enter') {
+      verifyPIN(input.value, channel);
+    }
+  };
+  
+  // Handle cancel
+  cancelBtn.onclick = function() {
+    modal.style.display = 'none';
+  };
+}
+
+function verifyPIN(pin, channel) {
+  const errorMsg = document.getElementById('pinError');
+  const modal = document.getElementById('pinModal');
+  
+  if(pin === CORRECT_PIN) {
+    // Correct PIN - remember it
+    localStorage.setItem('pin_verified_' + channel, 'true');
+    console.log('✅ PIN verified for ' + channel);
+    
+    // Close modal
+    modal.style.display = 'none';
+    
+    // Switch to channel
+    switchChannel(channel);
+  } else {
+    // Wrong PIN
+    errorMsg.textContent = '❌ Wrong PIN. Try again.';
+    errorMsg.style.color = '#E24B4A';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+// ===== SHOP PRODUCTS =====
+const SHOP_PRODUCTS = [
+  {
+    id: 1,
+    name: 'Body Wash',
+    emoji: '🧴',
+    price: 5,
+    description: 'Premium gentle body wash with natural ingredients',
+    image: '🧴'
+  },
+  {
+    id: 2,
+    name: 'Hand Wash',
+    emoji: '🧼',
+    price: 3,
+    description: 'Anti-bacterial hand soap for fresh and clean hands',
+    image: '🧼'
+  },
+  {
+    id: 3,
+    name: 'Body Cream',
+    emoji: '🧴',
+    price: 7,
+    description: 'Moisturizing body cream with shea butter and vitamin E',
+    image: '🧴'
+  }
+];
+
+function displayShop() {
+  const container = document.getElementById('chatMessages');
+  
+  let html = '<div style="padding:16px;background:#f5f5f0">';
+  html += '<div style="text-align:center;margin-bottom:20px">';
+  html += '<div style="font-size:28px;margin-bottom:8px">🛍️</div>';
+  html += '<div style="font-size:18px;font-weight:700;color:#1a1a1a">Our Shop</div>';
+  html += '<div style="font-size:12px;color:#888;margin-top:4px">Select a product and chat with Reception</div>';
+  html += '</div>';
+  
+  SHOP_PRODUCTS.forEach(product => {
+    html += '<div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e0dfd8">';
+    html += '<div style="display:flex;gap:12px">';
+    html += '<div style="font-size:40px">' + product.emoji + '</div>';
+    html += '<div style="flex:1">';
+    html += '<div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px">' + product.name + '</div>';
+    html += '<div style="font-size:12px;color:#888;margin-bottom:8px">' + product.description + '</div>';
+    html += '<div style="font-size:13px;font-weight:700;color:#185FA5;margin-bottom:10px">€' + product.price + '</div>';
+    html += '<button onclick="orderProduct(' + product.id + ', \'' + product.name + '\', ' + product.price + ')" style="width:100%;padding:10px;border-radius:8px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-weight:600;-webkit-tap-highlight-color:transparent">Order Now →</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function orderProduct(productId, productName, productPrice) {
+  // Switch to Reception channel
+  currentChannel = 'reception';
+  
+  // Update tabs
+  document.querySelectorAll('.chat-channel').forEach(btn => {
+    if(btn.getAttribute('data-channel') === 'reception') {
+      btn.style.color = '#185FA5';
+      btn.style.borderBottom = '2px solid #185FA5';
+    } else {
+      btn.style.color = '#aaa';
+      btn.style.borderBottom = '2px solid transparent';
+    }
+  });
+  
+  // Load reception messages
+  loadMessages();
+  
+  // Pre-fill input with product order
+  const input = document.getElementById('chatInput');
+  input.value = 'I want to order: ' + productName + ' (€' + productPrice + ')';
+  input.focus();
+}
+
 async function loadMessages() {
+  // Handle Shop channel separately (no database query needed)
+  if(currentChannel === 'shop') {
+    displayShop();
+    return;
+  }
+  
   try {
     const url = SUPA_URL + '/rest/v1/chat_messages?channel=eq.' + currentChannel + '&order=created_at.asc';
     const res = await fetch(url, {
@@ -2201,10 +2373,168 @@ function deleteMessage(messageId) {
   });
 }
 
+// ===== PUSH NOTIFICATIONS SETUP =====
+const VAPID_PUBLIC_KEY = 'BF43YDVA5Qq3LKky9HWmWAVy7i_0i9N7SYX5uuU1j7MvDzuDrtWqT-8o9f9o4P3os1zxm3_E3SseySUfINfHUM8';
+
+function initPushNotifications() {
+  console.log('🔔 Initializing push notifications...');
+  
+  // Check if notifications are supported
+  if(!('Notification' in window)) {
+    console.log('⚠️ Notifications not supported');
+    return;
+  }
+  
+  // Request notification permission if not granted
+  if(Notification.permission === 'default') {
+    Notification.requestPermission().then(permission => {
+      console.log('📬 Notification permission:', permission);
+    });
+  }
+}
+
+async function subscribeToPush(registration) {
+  try {
+    // Check if already subscribed
+    const existingSubscription = await registration.pushManager.getSubscription();
+    if(existingSubscription) {
+      console.log('✅ Already subscribed to push');
+      // Update subscription in Supabase
+      await updatePushSubscriptionInSupabase(existingSubscription);
+      return;
+    }
+    
+    // Subscribe to push
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    
+    console.log('✅ Subscribed to push notifications');
+    
+    // Save subscription to Supabase
+    await savePushSubscriptionToSupabase(subscription);
+    
+  } catch(error) {
+    console.error('❌ Push subscription error:', error);
+  }
+}
+
+async function savePushSubscriptionToSupabase(subscription) {
+  try {
+    const payload = {
+      worker_name: currentUser,
+      endpoint: subscription.endpoint,
+      p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+      auth: arrayBufferToBase64(subscription.getKey('auth')),
+      device_type: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iphone' : 'android',
+      channel: 'maintenance'
+    };
+    
+    console.log('📤 Saving push subscription:', payload.worker_name, payload.device_type);
+    
+    const response = await fetch(SUPA_URL + '/rest/v1/worker_push_subscriptions', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    if(response.ok) {
+      console.log('✅ Push subscription saved to Supabase');
+    } else {
+      console.error('❌ Failed to save subscription:', response.status);
+    }
+  } catch(error) {
+    console.error('❌ Error saving subscription:', error);
+  }
+}
+
+async function updatePushSubscriptionInSupabase(subscription) {
+  try {
+    const payload = {
+      worker_name: currentUser,
+      endpoint: subscription.endpoint,
+      p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+      auth: arrayBufferToBase64(subscription.getKey('auth')),
+      device_type: /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iphone' : 'android',
+      channel: 'maintenance'
+    };
+    
+    await fetch(SUPA_URL + '/rest/v1/worker_push_subscriptions?worker_name=eq.' + currentUser, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    console.log('✅ Push subscription updated');
+  } catch(error) {
+    console.error('❌ Error updating subscription:', error);
+  }
+}
+
+// Helper functions for push subscription
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+  
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  
+  for(let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  
+  return outputArray;
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for(let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+}
+
 // ===== FILE UPLOAD HANDLING =====
 let selectedFile = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Mendeli HK starting...');
+  
+  // ===== PWA INSTALLATION PROMPT =====
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('📲 Install prompt ready');
+    // You can show an install button here if desired
+  });
+  
+  // ===== PUSH NOTIFICATION SETUP =====
+  initPushNotifications();
+  
+  // ===== REGISTER SERVICE WORKER =====
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/hk-mendeli/service-worker.js')
+      .then(reg => {
+        console.log('✅ Service Worker registered');
+        // Subscribe to push notifications
+        subscribeToPush(reg);
+      })
+      .catch(err => console.error('❌ Service Worker registration failed:', err));
+  }
+  
   const fileInput = document.getElementById('fileInput');
   if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
@@ -2544,6 +2874,10 @@ document.addEventListener('DOMContentLoaded', function() {
       🔧 Maintenance
       <span class="channel-badge hidden" style="display:inline-block;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:4px">0</span>
     </button>
+    <button class="chat-channel" data-channel="shop" onclick="switchChannel('shop')" style="flex:1;min-width:100px;padding:12px 14px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:#aaa;border-bottom:2px solid transparent;background:#fff;border:none;-webkit-tap-highlight-color:transparent;white-space:nowrap">
+      🛍️ Shop
+      <span class="channel-badge hidden" style="display:inline-block;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;margin-left:4px">0</span>
+    </button>
   </div>
   
   <div id="chatMessages" class="chat-messages"></div>
@@ -2558,6 +2892,20 @@ document.addEventListener('DOMContentLoaded', function() {
     <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display:none">
     <button style="background:#185FA5;border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('fileInput').click()" title="Upload file">📎</button>
     <button class="chat-send" onclick="sendChatMessage()">→</button>
+  </div>
+</div>
+
+<!-- PIN MODAL FOR HK & MAINTENANCE -->
+<div id="pinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:10000">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:300px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.2)">
+    <div style="font-size:18px;font-weight:700;margin-bottom:8px;color:#1a1a1a">🔐 Access Required</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px">This section is for staff only.<br>Enter the PIN to continue.</div>
+    <input type="password" id="pinInput" placeholder="Enter PIN" style="width:100%;border:1px solid #ddd;border-radius:10px;padding:12px;font-size:16px;letter-spacing:2px;text-align:center;margin-bottom:4px" maxlength="6">
+    <div id="pinError" style="font-size:12px;color:#E24B4A;margin-bottom:16px;min-height:18px"></div>
+    <div style="display:flex;gap:10px">
+      <button id="pinCancel" style="flex:1;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;font-weight:600">Cancel</button>
+      <button id="pinSubmit" style="flex:1;padding:12px;border-radius:10px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-weight:600">Access</button>
+    </div>
   </div>
 </div>
 
